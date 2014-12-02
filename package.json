@@ -1,0 +1,57 @@
+{
+  "name": "vortex",
+  "version": "0.0.0",
+  "description": "High performance, interactive statistical graphics engine for the web.",
+  "main": "make.coffee",
+  "scripts": {
+    "start": "coffee make.coffee -bt",
+    "build": "coffee make.coffee -b",
+    "watch": "coffee make.coffee -w",
+    "test": "coffee make.coffee -t | faucet",
+    "clean": "coffee make.coffee -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/h2oai/vortex.git"
+  },
+  "keywords": [
+    "graphics",
+    "visualization",
+    "statistics"
+  ],
+  "author": "Prithvi Prabhu <prithvi@h2o.ai>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/h2oai/vortex/issues"
+  },
+  "homepage": "https://github.com/h2oai/vortex",
+  "devDependencies": {
+    "minimist": "~1.1.0",
+    "marked": "~0.3.2",
+    "async": "~0.9.0",
+    "lodash": "~2.4.1",
+    "coffee-script": "~1.8.0",
+    "tape": "~3.0.3",
+    "uglify-js": "~2.4.15",
+    "stylus": "~0.49.3",
+    "nib": "~1.0.4",
+    "js-yaml": "~3.2.3",
+    "coffeelint": "~1.6.1",
+    "faucet": "0.0.1",
+    "jade": "~1.7.0",
+    "request": "~2.48.0",
+    "istanbul": "~0.3.2",
+    "groc": "~0.7.0",
+    "bower": "~1.3.12",
+    "fs-extra": "~0.12.0",
+    "glob": "~4.3.1",
+    "esprima": "~1.2.2",
+    "escodegen": "~1.4.1",
+    "d3": "~3.4.13",
+    "browserify": "~6.3.3",
+    "testling": "~1.7.1",
+    "connect": "~3.3.3",
+    "serve-static": "~1.7.1",
+    "hound": "~1.0.4"
+  }
+}
