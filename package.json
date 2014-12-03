@@ -7,7 +7,7 @@
     "start": "coffee make.coffee -bt",
     "build": "coffee make.coffee -b",
     "watch": "coffee make.coffee -w",
-    "test": "coffee make.coffee -t | faucet",
+    "test": "coffee make.coffee -bt | faucet",
     "cover": "coffee make.coffee -b && mkdir -p build/cover && istanbul cover --dir build/cover build/js/tests.js && istanbul report --dir build/cover html",
     "clean": "coffee make.coffee -c"
   },

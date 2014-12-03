@@ -77,8 +77,9 @@ watch = ->
   hound
     .watch locate 'src'
     .on 'change', (file, stats) ->
+      console.log file
       if /\.(coffee)$/.test file
-        console.log "#{file} changed. Rebuilding..."
+        console.log "#{file} changed..."
         try
           build()
           test()
