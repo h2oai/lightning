@@ -1,4 +1,5 @@
 require 'coffee-script/register'
+_ = require 'lodash'
 minimist = require 'minimist'
 path = require 'path'
 fs = require 'fs-extra'
@@ -9,9 +10,15 @@ jade = require 'jade'
 stylus = require 'stylus'
 nib = require 'nib'
 yaml = require 'js-yaml'
+marked = require 'marked'
+highlight = require 'highlight.js'
+esprima = require 'esprima'
+escodegen = require 'escodegen'
 shorthand = require './tools/shorthand/shorthand.coffee'
 
+EOL = "\n"
 words = (str) -> str.split /\s+/g
+trimArray = (lines) -> lines.join(EOL).trim().split(EOL)
 locate = (names...) -> path.join.apply null, [ __dirname ].concat names
 read = (src) ->
   console.log "Reading #{src}"
@@ -29,30 +36,144 @@ cpn = (src, dest) ->
   cp src, dest unless fs.existsSync dest
 
 shorthandSymbols = yaml.safeLoad read 'shorthand.yml'
-shorthandImplicits = [ 'console', 'Math', 'lodash' ]
+shorthandImplicits = [ 'console', 'Math', '_' ]
 compileCoffee = (script) ->
   shorthand shorthandSymbols, (coffee.compile script), 
     implicits: shorthandImplicits
 
-header_js = """
+node_header_js = """
+var _ = require('lodash');
+var d3 = require('d3');
+"""
+node_test_header_js = """
 var test = require('tape');
-var lodash = require('lodash');
+var _ = require('lodash');
 var d3 = require('d3');
 """
 
-build = ->
-  console.log "Building..."
-  cpn 'lib/lodash/dist/lodash.js', 'build/js/lodash.js'
-  cpn 'lib/d3/d3.js', 'build/js/d3.js'
-  cpn 'lib/comma-separated-values/csv.js', 'build/js/csv.js'
+blockCommentPattern = /^\s*\#\#\#\s*$/
+headerPattern = /^(plot)\s+([\w-]+)\s*$/
+defaultArticleData = width: 640, height: 240
+requiredFrontMatter = [ 'data' ]
 
-  vortex_coffee = read 'src/vortex.coffee'
-  tests_coffee = read 'src/tests.coffee'
-  write 'build/js/vortex.js', compileCoffee vortex_coffee
-  write 'build/js/tests.js', header_js + compileCoffee [ vortex_coffee, tests_coffee ].join("\n")
+parseArticles = (compileScript, lines) ->
+  # group into comment / code blocks
+  blocks = []
+  block = null
+  code = yes
+  for line in lines
+    if blockCommentPattern.test line
+      code = not code 
+      blocks.push block if block
+      block = 
+        type: if code then 'code' else null
+        lines: []
+    else
+      block.lines.push line.trimRight()
+
+  # last block
+  blocks.push block
+
+  # parse comments and nest code
+  articles = []
+  articleSymbols = {}
+  for block in blocks
+    if block.type isnt 'code'
+      # trim off empty top/bottom lines
+      lines = trimArray block.lines
+
+      # parse descriptor
+      descriptor = lines.shift()
+      if matches = headerPattern.exec descriptor
+        block.type = matches[1]
+        block.symbol = matches[2]
+      else
+        throw new Error "Invalid descriptor '#{descriptor}'"
+
+      block.title = lines.shift()
+
+      if block.type is 'plot'
+        [ description, frontmatter ] = (lines.join EOL).split /[-]{3,}/
+
+        # parse front matter
+        block.data = if frontmatter then yaml.safeLoad frontmatter else {}
+        _.defaults block.data, defaultArticleData
+
+        # check required attrs
+        for attr in requiredFrontMatter
+          console.warn "Article '#{block.symbol}' is missing attribute '#{attr}'." unless block.data[attr]
+
+        # parse description
+        block.description = if description then marked description
+
+        console.warn "Article '#{block.symbol}' is missing a description." unless block.description
+
+      # clean up
+      delete block.lines
+
+      if articleSymbols[block.symbol]
+        throw new Error "Duplicate Article '#{block.symbol}'."
+      else
+        articleSymbols[block.symbol] = yes
+        articles.push block
+    else
+      article = articles[articles.length - 1]
+
+      article.coffeescript = coffeescript = (trimArray block.lines).join EOL
+      article.coffeescriptListing = (highlight.highlightAuto coffeescript, [ 'coffeescript' ]).value
+      article.javascript = javascript = coffee.compile coffeescript, bare: yes
+      article.javascriptListing = (highlight.highlightAuto javascript, [ 'javascript' ]).value
+
+      article.script = compileScript javascript
+
+  articles
+
+buildDoc = ->
+  console.log "Building docs..."
 
   for csv in glob 'data/*.csv'
     cpn csv, locate 'build/data', path.basename csv
+
+  cpn 'lib/lodash/dist/lodash.js', 'build/js/lodash.js'
+  cpn 'lib/d3/d3.js', 'build/js/d3.js'
+  cpn 'lib/comma-separated-values/csv.js', 'build/js/csv.js'
+  cpn 'node_modules/highlight.js/styles/tomorrow.css', 'build/css/syntax.css'
+  cpn 'lib/HTML5-Reset/assets/css/reset.css', 'build/css/reset.css'
+
+  stylus.render (read 'src/doc.styl'), { filename: 'build/doc.css' }, (error, css) ->
+    throw error if error
+    write 'build/css/doc.css', css
+  templatePath = 'src/doc.jade'
+  renderPage = jade.compileFile templatePath,
+    filename: templatePath
+    pretty: yes
+
+  plot_coffee = locate 'build/js/vortex-node.js'
+  if key = require.resolve plot_coffee
+    delete require.cache[ key ]
+  plot = require plot_coffee
+  compileScript = plot.parse esprima, escodegen
+
+  articles = parseArticles compileScript, (read 'src/doc.coffee').split EOL
+
+  for article in articles
+    write "build/#{article.symbol}.html", renderPage type: 'article', article: article
+
+  write 'build/index.html', renderPage type: 'articles', articles: articles
+
+  return
+
+
+build = ->
+  console.log "Building..."
+
+  vortex_coffee = read 'src/vortex.coffee'
+  tests_coffee = read 'src/tests.coffee'
+  vortex = compileCoffee vortex_coffee
+  write 'build/js/vortex.js', vortex
+  write 'build/js/vortex-node.js', node_header_js + EOL + vortex
+  #TODO compile vortex only once.
+  write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ vortex_coffee, tests_coffee ].join(EOL)
 
   cp 'build/js/vortex.js', 'dist/vortex.js'
 
@@ -93,7 +214,8 @@ clean = ->
 
 main = (argv) ->
   do clean if argv.c
-  do build if argv.b
+  do build if argv.b or argv.d
+  do buildDoc if argv.d
   do test if argv.t
   do watch if argv.w
 

@@ -1,0 +1,61 @@
+doctype
+html.no-js
+  head
+    meta(charset='utf-8')
+    meta(http-equiv='X-UA-Compatible', content='IE=edge')
+    title Vortex Documentation
+    meta(name='description', content='')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    link(rel='stylesheet', type='text/css', href='http://fonts.googleapis.com/css?family=Lekton:400,700')
+    link(rel='stylesheet', type='text/css', href='css/reset.css')
+    link(rel='stylesheet', type='text/css', href='css/syntax.css')
+    link(rel='stylesheet', type='text/css', href='css/doc.css')
+    //-script(src='javascripts/vendor/modernizr-2.7.1.min.js')
+  body
+    <!--[if lt IE 8]>
+    p.browsehappy
+      | You are using an <strong>outdated</strong> browser.
+      | Please <a href="http://browsehappy.com/">upgrade your browser</a>
+      | to improve your experience.
+    <![endif]-->
+
+    if type == 'article'
+      .container
+        h1=article.title || article.symbol
+        .article(id="article-#{article.symbol}")
+        if article.description
+          p!=article.description
+        .plot
+        h2 Coffeescript
+        pre!=article.coffeescriptListing
+        h2 Javascript
+        pre!=article.javascriptListing
+        h2 Compiled
+        pre!=article.script
+    else if type == 'articles'
+      .container
+        h1 Contents
+        ul
+          for article in articles
+            li
+              a(href="/#{article.symbol}.html")= article.title
+
+    //- Scripts
+    if type == 'article'
+      script(type='text/javascript' src='js/lodash.js')
+      script(type='text/javascript' src='js/d3.js')
+      script(type='text/javascript' src='js/csv.js')
+      script(type='text/javascript' src='js/vortex.js')
+      script(type='text/javascript')!=article.script
+    //- Google Analytics: change UA-XXXXX-X to be your site's ID.
+    //-
+      script.
+        (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+        function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+        e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+        e.src='//www.google-analytics.com/analytics.js';
+        r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+        ga('create','UA-XXXXX-X');ga('send','pageview');
+
+
+

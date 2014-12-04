@@ -1,0 +1,56 @@
+// Tomorrow
+// https://github.com/ChrisKempson/Tomorrow-Theme#tomorrow
+color-background = #fff
+color-foreground = #4d4d4c
+color-current = #efefef 
+color-selection = #d6d6d6
+color-comment = #8e908c
+color-red = #c82829
+color-orange = #f5871f
+color-yellow = #eab700
+color-green = #718c00
+color-aqua = #3e999f
+color-blue = #4271ae
+color-purple = #8959a8
+color-highlight = #cdfe04
+color-tooltip = #555
+
+// Highlight.js + Tomorrow theme + Coffeescript combo yields same color for function names and comments, so fix.
+.hljs-title
+  color color-purple
+
+body
+  background-color color-background
+  color color-foreground
+  font-size 14px
+  line-height 18px
+  font-family 'Lekton', monospace
+
+h1, p, ul, ol, .article
+  margin-bottom 30px
+
+h2
+  margin-bottom 10px
+
+pre
+  margin-bottom 35px
+
+h1, h2
+  font-weight 700
+
+a
+  text-decoration none
+  background-color color-highlight
+  &:hover
+    text-decoration underline
+
+pre
+  font-family 'Lekton', monospace
+  background url(unquote('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAKElEQVQImWN89+4dAwODoKAgAwMDE5z1/v17xv///0NYUBkIS1BQEAB7Uw7Oc/qzUwAAAABJRU5ErkJggg=='))
+  padding 15px
+  white-space pre
+
+.container
+  width 640px
+  margin 100px auto
+

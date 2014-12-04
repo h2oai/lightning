@@ -19,6 +19,7 @@
     "lodash": "~2.4.1"
   },
   "devDependencies": {
-    "comma-separated-values": "~3.6.1"
+    "comma-separated-values": "~3.6.1",
+    "HTML5-Reset": "~2.1.2"
   }
 }

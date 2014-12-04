@@ -155,286 +155,286 @@ tan:
   object: Math
 forEach:
   type: qualify
-  object: lodash
+  object: _
 map:
   type: qualify
-  object: lodash
+  object: _
 reduce:
   type: qualify
-  object: lodash
+  object: _
 reduceRight:
   type: qualify
-  object: lodash
+  object: _
 find:
   type: qualify
-  object: lodash
+  object: _
 filter:
   type: qualify
-  object: lodash
+  object: _
 where:
   type: qualify
-  object: lodash
+  object: _
 findWhere:
   type: qualify
-  object: lodash
+  object: _
 reject:
   type: qualify
-  object: lodash
+  object: _
 every:
   type: qualify
-  object: lodash
+  object: _
 some:
   type: qualify
-  object: lodash
+  object: _
 contains:
   type: qualify
-  object: lodash
+  object: _
 invoke:
   type: qualify
-  object: lodash
+  object: _
 pluck:
   type: qualify
-  object: lodash
+  object: _
 maxBy:
   type: qualify
-  object: lodash
+  object: _
   property: max
 minBy:
   type: qualify
-  object: lodash
+  object: _
   property: min
 sortBy:
   type: qualify
-  object: lodash
+  object: _
 groupBy:
   type: qualify
-  object: lodash
+  object: _
 indexBy:
   type: qualify
-  object: lodash
+  object: _
 countBy:
   type: qualify
-  object: lodash
+  object: _
 shuffle:
   type: qualify
-  object: lodash
+  object: _
 sample:
   type: qualify
-  object: lodash
+  object: _
 toArray:
   type: qualify
-  object: lodash
+  object: _
 sizeOf:
   type: qualify
-  object: lodash
+  object: _
 partition:
   type: qualify
-  object: lodash
+  object: _
 head:
   type: qualify
-  object: lodash
+  object: _
 initial:
   type: qualify
-  object: lodash
+  object: _
 last:
   type: qualify
-  object: lodash
+  object: _
 tail:
   type: qualify
-  object: lodash
+  object: _
 compact:
   type: qualify
-  object: lodash
+  object: _
 flatten:
   type: qualify
-  object: lodash
+  object: _
 without:
   type: qualify
-  object: lodash
+  object: _
 union:
   type: qualify
-  object: lodash
+  object: _
 intersection:
   type: qualify
-  object: lodash
+  object: _
 difference:
   type: qualify
-  object: lodash
+  object: _
 unique:
   type: qualify
-  object: lodash
+  object: _
 zip:
   type: qualify
-  object: lodash
+  object: _
 toObject:
   type: qualify
-  object: lodash
+  object: _
   property: object
 indexOf:
   type: qualify
-  object: lodash
+  object: _
 lastIndexOf:
   type: qualify
-  object: lodash
+  object: _
 sortedIndex:
   type: qualify
-  object: lodash
+  object: _
 bind:
   type: qualify
-  object: lodash
+  object: _
 bindAll:
   type: qualify
-  object: lodash
+  object: _
 partial:
   type: qualify
-  object: lodash
+  object: _
 memoize:
   type: qualify
-  object: lodash
+  object: _
 delay:
   type: qualify
-  object: lodash
+  object: _
 defer:
   type: qualify
-  object: lodash
+  object: _
 throttle:
   type: qualify
-  object: lodash
+  object: _
 debounce:
   type: qualify
-  object: lodash
+  object: _
 once:
   type: qualify
-  object: lodash
+  object: _
 after:
   type: qualify
-  object: lodash
+  object: _
 before:
   type: qualify
-  object: lodash
+  object: _
 wrap:
   type: qualify
-  object: lodash
+  object: _
 negate:
   type: qualify
-  object: lodash
+  object: _
 compose:
   type: qualify
-  object: lodash
+  object: _
 keys:
   type: qualify
-  object: lodash
+  object: _
 vvalues:
   type: qualify
-  object: lodash
+  object: _
 pairs:
   type: qualify
-  object: lodash
+  object: _
 invert:
   type: qualify
-  object: lodash
+  object: _
 functions:
   type: qualify
-  object: lodash
+  object: _
 extend:
   type: qualify
-  object: lodash
+  object: _
 pick:
   type: qualify
-  object: lodash
+  object: _
 omit:
   type: qualify
-  object: lodash
+  object: _
 defaults:
   type: qualify
-  object: lodash
+  object: _
 clone:
   type: qualify
-  object: lodash
+  object: _
 tap:
   type: qualify
-  object: lodash
+  object: _
 has:
   type: qualify
-  object: lodash
+  object: _
 matches:
   type: qualify
-  object: lodash
+  object: _
 isEqual:
   type: qualify
-  object: lodash
+  object: _
 isEmpty:
   type: qualify
-  object: lodash
+  object: _
 isElement:
   type: qualify
-  object: lodash
+  object: _
 isArray:
   type: qualify
-  object: lodash
+  object: _
 isObject:
   type: qualify
-  object: lodash
+  object: _
 isArguments:
   type: qualify
-  object: lodash
+  object: _
 isFunction:
   type: qualify
-  object: lodash
+  object: _
 isString:
   type: qualify
-  object: lodash
+  object: _
 isNumber:
   type: qualify
-  object: lodash
+  object: _
 isFinite:
   type: qualify
-  object: lodash
+  object: _
 isBoolean:
   type: qualify
-  object: lodash
+  object: _
 isDate:
   type: qualify
-  object: lodash
+  object: _
 isRegExp:
   type: qualify
-  object: lodash
+  object: _
 isNaN:
   type: qualify
-  object: lodash
+  object: _
 isNull:
   type: qualify
-  object: lodash
+  object: _
 isUndefined:
   type: qualify
-  object: lodash
+  object: _
 identity:
   type: qualify
-  object: lodash
+  object: _
 constant:
   type: qualify
-  object: lodash
+  object: _
 noop:
   type: qualify
-  object: lodash
+  object: _
 times:
   type: qualify
-  object: lodash
+  object: _
 random:
   type: qualify
-  object: lodash
+  object: _
 iteratee:
   type: qualify
-  object: lodash
+  object: _
 uniqueId:
   type: qualify
-  object: lodash
+  object: _
 escape:
   type: qualify
-  object: lodash
+  object: _
 unescape:
   type: qualify
-  object: lodash
+  object: _
 now:
   type: qualify
-  object: lodash
+  object: _
