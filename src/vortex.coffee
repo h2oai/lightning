@@ -4,6 +4,10 @@
 
 # TODO fix mmin, mmax, vvalues in shorthand
 
+
+Pi = Math.PI
+TwoPi = 2 * Pi
+
 operation = (f, args...) -> -> apply f, null, args
 
 arrayElementsAreEqual = (xs, ys) ->
@@ -12,6 +16,18 @@ arrayElementsAreEqual = (xs, ys) ->
     yes
   else
     no
+
+filterByType = (args, types...) ->
+  filtered = []
+  for arg in args
+    filtered.push arg for type in types when arg instanceof type
+  filtered
+
+findByType = (args, types...) ->
+  for arg in args
+    return arg for type in types when arg instanceof type
+  return
+
 
 #
 # Pseudo-types
@@ -160,7 +176,7 @@ dispatch = do ->
 #
 
 _prototypeId = 0
-nextPrototypeName = -> "Map#{++_prototypeId}"
+nextPrototypeName = -> "Rec#{++_prototypeId}"
 _prototypeCache = {}
 createCompiledPrototype = (attrs) ->
   # Since the prototype depends only on attribute names,
@@ -177,6 +193,28 @@ createCompiledPrototype = (attrs) ->
 plot_compile = (variables) ->
   createCompiledPrototype (variable.label for variable in variables)
 
+class Layout
+
+class RectangularLayout extends Layout
+  constructor: (@axisX, @axisY) ->
+
+class Axis
+
+class LinearAxis
+  constructor: (@label, @domain, @range, @scale, @computeTicks) ->
+
+createLinearAxis = (label, domain, range) ->
+  scale = d3.scale.linear()
+    .domain [ domain.min, domain.max ]
+    .range [ range.min, range.max ]
+    .nice()
+
+  computeTicks = (count) ->
+    format = scale.tickFormat count
+    scale.ticks count
+
+  new LinearAxis label, domain, range, scale, computeTicks
+
 class Variable
   constructor: (@label, @type, @domain, @format, @read) ->
 
@@ -190,12 +228,37 @@ class Value
 class Color
   constructor: (@color) ->
 
-class Mark
+class Geometry
 
-class PointMark
+class PointGeometry extends Geometry
   constructor: (@position, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
-class TextMark
+
+renderPoint = (table, geom, layout, canvas) ->
+
+  g = canvas.context
+  scaleX = layout.axisX.scale
+  scaleY = layout.axisY.scale
+
+  { fieldX, fieldY } = geom.position
+
+  for rec in table.records
+    valueX = rec[fieldX]
+    valueY = rec[fieldY]
+
+    if valueX isnt null and valueY isnt null
+      x = scaleX valueX
+      y = scaleY valueY
+      
+      g.beginPath()
+      g.arc x, y, 5, 0, TwoPi, no
+      g.fillStyle = 'green'
+      g.fill()
+      g.closePath()
+
+  return
+
+class TextGeometry extends Geometry
   constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
 
 class Channel
@@ -205,11 +268,57 @@ class ColorChannel extends Channel
 class PositionChannel extends Channel
   constructor: (@fieldX, @fieldY) ->
 
-class FillColor extends ColorChannel
+class FillColorChannel extends Channel
+class FillOpacityChannel extends Channel
+class StrokeColorChannel extends Channel
+class StrokeOpacityChannel extends Channel
+class SizeChannel extends Channel
+class LineWidthChannel extends Channel
+class ShapeChannel extends Channel
+
+class FixedFillColorChannel extends FillColorChannel
   constructor: (@color) ->
 
-class FillColorChannel extends ColorChannel
+class VariableFillColorChannel extends FillColorChannel
   constructor: (@field, @range) ->
+
+class FixedFillOpacityChannel extends FillOpacityChannel
+  constructor: (@opacity) ->
+
+class VariableFillOpacityChannel extends FillOpacityChannel
+  constructor: (@field, @range) ->
+
+class FixedStrokeColorChannel extends StrokeColorChannel
+  constructor: (@color) ->
+
+class VariableStrokeColorChannel extends StrokeColorChannel
+  constructor: (@field, @range) ->
+
+class FixedStrokeOpacityChannel extends StrokeOpacityChannel
+  constructor: (@opacity) ->
+
+class VariableStrokeOpacityChannel extends StrokeOpacityChannel
+  constructor: (@field, @range) ->
+
+class FixedSizeChannel extends SizeChannel
+  constructor: (@size) ->
+
+class VariableSizeChannel extends SizeChannel
+  constructor: (@field, @range) ->
+
+class FixedLineWidthChannel extends LineWidthChannel
+  constructor: (@color) ->
+
+class VariableLineWidthChannel extends LineWidthChannel
+  constructor: (@lineWidth, @range) ->
+
+class FixedShapeChannel extends ShapeChannel
+  constructor: (@shape) ->
+
+class VariableShapeChannel extends ShapeChannel
+  constructor: (@field, @range) ->
+
+
 
 class Range
 
@@ -248,7 +357,17 @@ plot_polar = (scaleR, scaleA) ->
 
 plot_parallel = (scales...) ->
 
-plot_point = (channels...) ->
+plot_point = (ops...) ->
+  position = getOp ops, PositionChannel
+  shape = getOp ops, ShapeChannel, {}
+  size = getOp ops, SizeChannel, {}
+  fillColor = getOp ops, FillColorChannel, {}
+  fillOpacity = getOp ops, FillOpacityChannel, {}
+  strokeColor = getOp ops, StrokeColorChannel, {}
+  strokeOpacity = getOp ops, StrokeOpacityChannel, {}
+  lineWidth = getOp ops, LineWidthChannel, {}
+
+  new PointGeometry position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 plot_value = (value) -> new Value value
 
@@ -289,9 +408,9 @@ plot_position = dispatch(
 )
 
 plot_fillColor = dispatch(
-  [ Color, (color) -> new FillColor color ]
-  [ String, (field) -> new FillColorChannel field ]
-  [ String, ColorRange, (field, range) -> new FillColorChannel field, range ]
+  [ Color, (color) -> new FixedFillColorChannel color ]
+  [ String, (field) -> new VariableFillColorChannel field ]
+  [ String, ColorRange, (field, range) -> new VariableFillColorChannel field, range ]
 )
 
 plot_strokeColor = (field, args...) ->
@@ -325,26 +444,112 @@ plot_parse = (esprima, escodegen) ->
       return
     escodegen.generate ast
 
-render = dispatch(
+
+class Canvas
+  constructor: (@element, @context, @bounds, @ratio) ->
+
+createCanvas = (bounds) ->
+  { width, height } = bounds
+
+  element = document.createElement 'canvas'
+  context = element.getContext '2d' 
+
+  dpr = window.devicePixelRatio or 1
+  bspr = context.webkitBackingStorePixelRatio or context.mozBackingStorePixelRatio or context.msBackingStorePixelRatio or context.oBackingStorePixelRatio or context.backingStorePixelRatio or 1 
+
+  ratio = dpr / bspr
+
+  if dpr isnt bspr
+    element.width = width * ratio
+    element.height = height * ratio
+    context.scale ratio, ratio
+    element.style.width = "#{width}px"
+    element.style.height = "#{height}px"
+  else
+    element.width = width
+    element.height = height
+
+  new Canvas element, context, bounds, ratio
+
+class Bounds
+  constructor: (@width, @height) ->
+
+plot_defaults =
+  bounds: new Bounds 400, 400
+
+getOp = (ops, type, def) ->
+  if op = findByType ops, type
+    op
+  else
+    if def
+      def
+    else
+      throw new Error "Missing op" #XXX
+
+arePositionVariablesCompatible = (variables) ->
+  top = head variables
+
+  for variable in rest variables
+    if (top.type isnt variable.type) or (top.type is TString and top.label isnt variable.label)
+      throw new Error "Variable '#{variable.label}' of type '#{variable.type}' cannot be plotted on the same axis as variable '#{top.label}' of type '#{top.type}'" 
+
+  return yes
+
+render = (table, ops) ->
+  bounds = getOp ops, Bounds, plot_defaults.bounds
+  geoms = filterByType ops, Geometry
+
+  positions = map geoms, (geom) -> geom.position
+  variablesX = map positions, (position) -> table.schema[position.fieldX]
+  variablesY = map positions, (position) -> table.schema[position.fieldY]
+
+  #TODO handle layers
+
+  geom = head geoms
+  variableX = head variablesX
+  variableY = head variablesY
+
+  axisX = if variableX.type is TNumber
+    createLinearAxis variableX.label, new SequentialRange(variableX.domain[0], variableX.domain[1]), new SequentialRange 0, bounds.width  
+  else
+    null #XXX
+
+  axisY = if variableY.type is TNumber
+    createLinearAxis variableY.label, new SequentialRange(variableY.domain[0], variableY.domain[1]), new SequentialRange bounds.height, 0
+  else
+    null #XXX
+
+  layout = new RectangularLayout axisX, axisY
+
+  canvas = createCanvas bounds
+
+  renderPoint table, geom, layout, canvas
+  
+  canvas.element
+
+_plot = dispatch(
   [ 
-    Datasource, Array, (ds, args) -> 
+    Datasource, Array, Function, (ds, ops, go) -> 
       ds.read (error, table) -> 
         if error
-          throw error
+          go error
         else
-          render table, args
+          _plot table, ops, go
   ] 
-  [ 
-    Table, Array, (table, args) ->
-      console.log table
+  [
+    Table, Array, Function, (table, ops, go) ->
+      try
+        go null, render table, ops
+      catch error
+        go error
   ]
 )
 
-plot = (args...) ->
-  if datasource = (find args, (arg) -> arg instanceof Datasource or arg instanceof Table)
-    render datasource, without args, datasource 
+plot = (ops...) ->
+  if datasource = findByType ops, Datasource, Table
+    (go) -> _plot datasource, (without ops, datasource), go
   else
-    (more...) -> apply plot, null, concat args, more
+    (more...) -> apply plot, null, concat ops, more
 
 
 plot.data = plot_data
