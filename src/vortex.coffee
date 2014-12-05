@@ -2,6 +2,8 @@
 # Vortex
 #
 
+# TODO fix mmin, mmax, vvalues in shorthand
+
 operation = (f, args...) -> -> apply f, null, args
 
 arrayElementsAreEqual = (xs, ys) ->
@@ -10,6 +12,10 @@ arrayElementsAreEqual = (xs, ys) ->
     yes
   else
     no
+
+#
+# Pseudo-types
+#
 
 TUndefined = 'undefined'
 TNull = 'null'
@@ -23,6 +29,10 @@ TArguments = 'Arguments'
 TDate = 'Date'
 TRegExp = 'RegExp'
 TError = 'Error'
+
+#
+# Type detection
+#
 
 typeOf = (a) ->
   type = Object::toString.call a
@@ -54,6 +64,10 @@ typeOf = (a) ->
         TError
       else
         type
+
+#
+# Dispatching / Pattern Matching
+#
 
 dispatch = do ->
   matchPattern_ = (pattern) ->
@@ -116,10 +130,59 @@ dispatch = do ->
     (args...) ->
       for matcher in matchers when matcher.match args
         return apply matcher.func, null, args
+        
+      throw new Error "Pattern match failure for args [ #{join (map args, (arg) -> '' + arg + ':' + typeOf arg), ', '} ]" #TODO improve message
 
-      throw new Error 'Pattern match failure' #TODO improve message
+#
+# Data
+#
 
-# TODO fix mmin, mmax, vvalues in shorthand
+#
+# Insane hack to compress large 2D data tables.
+# The basis for doing this is described here:
+# http://www.html5rocks.com/en/tutorials/speed/v8/
+# See Tip #1 "Hidden Classes"
+#
+# Applies to IE as well:
+# http://msdn.microsoft.com/en-us/library/windows/apps/hh781219.aspx#optimize_property_access
+#
+# http://jsperf.com/big-data-matrix/3
+# As of 31 Oct 2014, for a 10000 row, 100 column table in Chrome,
+#   retained memory sizes:
+# raw json: 31,165 KB
+# array of objects: 41,840 KB
+# array of arrays: 14,960 KB
+# array of prototyped instances: 14,840 KB
+#
+# Usage:
+# Record = plot.compile [ 'bar', 'baz', 'qux', ... ]
+# record = new Record args...
+#
+
+_prototypeId = 0
+nextPrototypeName = -> "Map#{++_prototypeId}"
+_prototypeCache = {}
+createCompiledPrototype = (attrs) ->
+  # Since the prototype depends only on attribute names,
+  #  return a cached prototype, if any.
+  cacheKey = join attrs, '\0'
+  return proto if proto = _prototypeCache[cacheKey]
+
+  params = ( "a#{i}" for i in [0 ... attrs.length] )
+  inits = ( "this[#{JSON.stringify attr}]=a#{i};" for attr, i in attrs )
+
+  prototypeName = nextPrototypeName()
+  _prototypeCache[cacheKey] = (new Function "function #{prototypeName}(#{params.join ','}){#{inits.join ''}} return #{prototypeName};")()
+
+plot_compile = (variables) ->
+  createCompiledPrototype (variable.label for variable in variables)
+
+class Variable
+  constructor: (@label, @type, @domain, @format, @read) ->
+
+class Table
+  constructor: (@label, @variables, @records) ->
+    @schema = indexBy variables, (variable) -> variable.label
 
 class Value
   constructor: (@value) ->
@@ -172,6 +235,13 @@ class DivergingColorRange extends ColorRange
 class Matcher
   constructor: (@match, @func) ->
 
+class Datasource
+  constructor: (@read) ->
+
+plot_data = dispatch(
+  [ Table, identity ]
+  [ Function, (read) -> new Datasource read ]
+)
 plot_rectangular = (scaleX, scaleY) ->
 
 plot_polar = (scaleR, scaleA) ->
@@ -255,9 +325,29 @@ plot_parse = (esprima, escodegen) ->
       return
     escodegen.generate ast
 
-plot = (args...) ->
-  (table, domElement, refill) ->
+render = dispatch(
+  [ 
+    Datasource, Array, (ds, args) -> 
+      ds.read (error, table) -> 
+        if error
+          throw error
+        else
+          render table, args
+  ] 
+  [ 
+    Table, Array, (table, args) ->
+      console.log table
+  ]
+)
 
+plot = (args...) ->
+  if datasource = (find args, (arg) -> arg instanceof Datasource or arg instanceof Table)
+    render datasource, without args, datasource 
+  else
+    (more...) -> apply plot, null, concat args, more
+
+
+plot.data = plot_data
 plot.rectangular = plot_rectangular
 plot.polar = plot_polar
 plot.parallel = plot_parallel
@@ -270,5 +360,9 @@ plot.position = plot_position
 plot.fillColor = plot_fillColor
 plot.strokeColor = plot_strokeColor
 plot.parse = plot_parse
+plot.compile = plot_compile
+plot.Table = Table
+plot.Variable = Variable
+
 
 if module?.exports? then module.exports = plot else window.plot = plot

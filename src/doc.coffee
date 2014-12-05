@@ -9,10 +9,10 @@ tags:
  - ll
 ###
 
-plot point(
-    position 'wt', 'mpg'
-    fillColor color 'black'
-  )
+plot (data csv 'mtcars'), point(
+  position 'wt', 'mpg'
+  fillColor color 'black'
+)
 
 ###
 plot ll-point-2
@@ -26,9 +26,9 @@ tags:
 ###
 
 plot point(
-    position 'wt', 'mpg'
-    fillColor 'qsec', range '#13263a', '#47a0ea'
-  )
+  position 'wt', 'mpg'
+  fillColor 'qsec', range '#13263a', '#47a0ea'
+)
 
 
 ###
@@ -43,10 +43,10 @@ tags:
 ###
 
 plot point(
-    position 'wt', 'mpg'
-    fillColor color 'black'
-    fillOpacity 'qsec'
-  )
+  position 'wt', 'mpg'
+  fillColor color 'black'
+  fillOpacity 'qsec'
+)
 
 
 ###
@@ -61,9 +61,9 @@ tags:
 ###
 
 plot point(
-    position 'wt', 'mpg'
-    fillColor 'cyl', range ['red', 'green', 'blue']
-  )
+  position 'wt', 'mpg'
+  fillColor 'cyl', range ['red', 'green', 'blue']
+)
 
 
 ###
@@ -77,10 +77,10 @@ tags:
  - ll
 ###
 plot point(
-    position 'wt', 'mpg'
-    fillColor color 'black'
-    shape 'cyl', range ['circle', 'triangle', 'square']
-  )
+  position 'wt', 'mpg'
+  fillColor color 'black'
+  shape 'cyl', range ['circle', 'triangle', 'square']
+)
 
 
 ###
@@ -94,10 +94,10 @@ tags:
  - ll
 ###
 plot point( 
-    position 'wt', 'mpg'
-    fillColor color 'black'
-    size 'qsec'
-  )
+  position 'wt', 'mpg'
+  fillColor color 'black'
+  size 'qsec'
+)
 
 
 ###
@@ -111,10 +111,10 @@ tags:
  - ll
 ###
 plot point(
-    position 'wt', 'mpg'
-    strokeColor color 'black'
-    shape 'cyl', range ['circle', 'triangle', 'square']
-  )
+  position 'wt', 'mpg'
+  strokeColor color 'black'
+  shape 'cyl', range ['circle', 'triangle', 'square']
+)
 
 
 ###
@@ -128,10 +128,10 @@ tags:
  - ll
 ###
 plot point(
-    position 'wt', 'mpg'
-    strokeColor color 'black'
-    size 'qsec'
-  )
+  position 'wt', 'mpg'
+  strokeColor color 'black'
+  size 'qsec'
+)
 
 
 ###
@@ -145,10 +145,10 @@ tags:
  - ll
 ###
 plot point(
-    position 'wt', 'mpg'
-    fillColor color 'red'
-    size value 3
-  )
+  position 'wt', 'mpg'
+  fillColor color 'red'
+  size value 3
+)
 
 
 ###
@@ -162,11 +162,11 @@ tags:
  - ll
 ###
 plot point(
-    position 'wt', 'mpg'
-    fillColor color 'red'
-    size value 3
-    shape shapes.square
-  )
+  position 'wt', 'mpg'
+  fillColor color 'red'
+  size value 3
+  shape shapes.square
+)
 
 
 ###
@@ -180,10 +180,10 @@ tags:
  - ll
 ###
 plot point(
-    position 'carat', 'price'
-    fillColor color 'black'
-    fillOpacity opacity 1/10
-  )
+  position 'carat', 'price'
+  fillColor color 'black'
+  fillOpacity opacity 1/10
+)
 
 
 ###
@@ -197,10 +197,10 @@ tags:
  - ll
 ###
 plot point(
-    position 'carat', 'price'
-    fillColor color 'black'
-    fillOpacity opacity 1/20
-  )
+  position 'carat', 'price'
+  fillColor color 'black'
+  fillOpacity opacity 1/20
+)
 
 
 ###
@@ -214,8 +214,8 @@ tags:
  - ll
 ###
 plot point(
-    position 'carat', 'price'
-    fillColor color 'black'
-    fillOpacity opacity 1/100
-  )
+  position 'carat', 'price'
+  fillColor color 'black'
+  fillOpacity opacity 1/100
+)
 

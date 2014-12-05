@@ -38,14 +38,16 @@ html.no-js
         ul
           for article in articles
             li
-              a(href="/#{article.symbol}.html")= article.title
+              a(href="#{article.symbol}.html")= article.title
 
     //- Scripts
     if type == 'article'
+      script(type='text/javascript' src='js/jquery.js')
       script(type='text/javascript' src='js/lodash.js')
       script(type='text/javascript' src='js/d3.js')
       script(type='text/javascript' src='js/csv.js')
       script(type='text/javascript' src='js/vortex.js')
+      script(type='text/javascript' src='js/demo.js')
       script(type='text/javascript')!=article.script
     //- Google Analytics: change UA-XXXXX-X to be your site's ID.
     //-

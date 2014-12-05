@@ -134,9 +134,16 @@ buildDoc = ->
   for csv in glob 'data/*.csv'
     cpn csv, locate 'build/data', path.basename csv
 
+  for schema_yml in glob 'data/*.yml'
+    write "build/data/#{path.basename schema_yml, '.yml'}.json", JSON.stringify (yaml.safeLoad read schema_yml), null, 2
+
+  cpn 'lib/jquery/dist/jquery.js', 'build/js/jquery.js'
   cpn 'lib/lodash/dist/lodash.js', 'build/js/lodash.js'
   cpn 'lib/d3/d3.js', 'build/js/d3.js'
   cpn 'lib/comma-separated-values/csv.js', 'build/js/csv.js'
+
+  write 'build/js/demo.js', coffee.compile read 'src/demo.coffee'
+
   cpn 'node_modules/highlight.js/styles/tomorrow.css', 'build/css/syntax.css'
   cpn 'lib/HTML5-Reset/assets/css/reset.css', 'build/css/reset.css'
 
