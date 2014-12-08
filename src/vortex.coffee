@@ -7,6 +7,13 @@
 
 Pi = Math.PI
 TwoPi = 2 * Pi
+HalfPi = Pi / 2
+Epsilon = 1e-6
+EpsilonSquare = Epsilon * Epsilon
+Radians = Pi / 180
+Degrees = 180 / Pi
+Tan30 = tan 30 * Radians
+Sqrt3 = sqrt 3
 
 operation = (f, args...) -> -> apply f, null, args
 
@@ -200,7 +207,7 @@ class RectangularLayout extends Layout
 
 class Axis
 
-class LinearAxis
+class LinearAxis extends Axis
   constructor: (@label, @domain, @range, @scale, @computeTicks) ->
 
 createLinearAxis = (label, domain, range) ->
@@ -234,9 +241,120 @@ class PointGeometry extends Geometry
   constructor: (@position, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
 
-renderPoint = (table, geom, layout, canvas) ->
+drawCircle = (g, x, y, area) ->
+  g.beginPath()
+  g.arc x, y, r, 0, TwoPi, no
+  g.closePath()
 
+drawSquare = (g, x, y, area) ->
+  r = 0.5 * sqrt area
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo r, r
+  g.lineTo -r, r
+  g.lineTo -r, -r
+  g.lineTo r, -r
+  g.closePath()
+  g.restore()
+
+drawCross = (g, x, y, area) ->
+  r = 0.5 * sqrt area / 5
+  r3 = r * 3
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo r3, r
+  g.lineTo r, r
+  g.lineTo r, r3
+  g.lineTo -r, r3
+  g.lineTo -r, r
+  g.lineTo -r3, r
+  g.lineTo -r3, -r
+  g.lineTo -r, -r
+  g.lineTo -r, -r3
+  g.lineTo r, -r3
+  g.lineTo r, -r
+  g.lineTo r3, -r
+  g.closePath()
+  g.restore()
+
+drawDiamond = (g, x, y, area) ->
+  ry = sqrt area / (2 * Tan30)
+  rx = ry * Tan30
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo rx, 0
+  g.lineTo 0, ry
+  g.lineTo -rx, 0
+  g.lineTo 0, -ry
+  g.closePath()
+  g.restore()
+
+
+drawTriangleUp = (g, x, y, area) ->
+  rx = Math.sqrt area / Sqrt3
+  ry = rx * Sqrt3 / 2
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo 0, -ry
+  g.lineTo rx, ry
+  g.lineTo -rx, ry
+  g.closePath()
+  g.restore()
+
+drawTriangleDown = (g, x, y, area) ->
+  rx = Math.sqrt area / Sqrt3
+  ry = rx * Sqrt3 / 2
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo 0, ry
+  g.lineTo rx, -ry
+  g.lineTo -rx, -ry
+  g.closePath()
+  g.restore()
+
+drawTriangleRight = (g, x, y, area) ->
+  ry = Math.sqrt area / Sqrt3
+  rx = ry * Sqrt3 / 2
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo rx, 0
+  g.lineTo -rx, ry
+  g.lineTo -rx, -ry
+  g.closePath()
+  g.restore()
+
+drawTriangleLeft = (g, x, y, area) ->
+  ry = Math.sqrt area / Sqrt3
+  rx = ry * Sqrt3 / 2
+  g.save()
+  g.translate x, y
+  g.beginPath()
+  g.moveTo -rx, 0 
+  g.lineTo rx, -ry
+  g.lineTo rx, ry
+  g.closePath()
+  g.restore()
+
+Shapes =
+  circle: drawCircle
+  square: drawSquare
+  cross: drawCross
+  diamond: drawDiamond
+  triangleUp: drawTriangleUp
+  triangleDown: drawTriangleDown
+  triangleLeft: drawTriangleLeft
+  triangleRight: drawTriangleRight
+
+
+renderPoint = (table, geom, layout, canvas) ->
   g = canvas.context
+
   scaleX = layout.axisX.scale
   scaleY = layout.axisY.scale
 
@@ -250,11 +368,9 @@ renderPoint = (table, geom, layout, canvas) ->
       x = scaleX valueX
       y = scaleY valueY
       
-      g.beginPath()
-      g.arc x, y, 5, 0, TwoPi, no
+      Shapes.triangleUp g, x, y, Pi * 5 * 5
       g.fillStyle = 'green'
       g.fill()
-      g.closePath()
 
   return
 
@@ -518,6 +634,9 @@ render = (table, ops) ->
     createLinearAxis variableY.label, new SequentialRange(variableY.domain[0], variableY.domain[1]), new SequentialRange bounds.height, 0
   else
     null #XXX
+
+  console.log axisX.computeTicks 10
+  console.log axisY.computeTicks 10
 
   layout = new RectangularLayout axisX, axisY
 
