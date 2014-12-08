@@ -369,15 +369,22 @@ encodePoint = (table, geom, layout) ->
   positionX = (rec) -> layout.axisX.scale rec[fieldX]
   positionY = (rec) -> layout.axisY.scale rec[fieldY]
 
-  if geom.shape
+  shape = if geom.shape
     if geom.shape instanceof VariableShapeChannel
       throw new Error 'ni'
     else
-      shape = always Shapes[geom.shape.shape] or Shapes.circle
+      always Shapes[geom.shape.shape] or Shapes.circle
   else
-    shape = always Shapes.circle
+    always Shapes.circle
 
-  size = null
+  size = if geom.size
+    if geom.size instanceof VariableSizeChannel
+      throw new Error 'ni'
+    else
+      always geom.size.size
+  else
+    always 64
+
   fillColor = null
   fillOpacity = null
   strokeColor = null
@@ -389,15 +396,14 @@ encodePoint = (table, geom, layout) ->
 renderPoint = (table, geom, canvas) ->
   g = canvas.context
 
-  { positionX, positionY, shape } = geom
+  { positionX, positionY, shape, size } = geom
 
   for rec in table.records
     x = positionX rec
     y = positionY rec
 
     if x isnt null and y isnt null
-      (shape rec) g, x, y, Pi * 5 * 5
-      #(shape rec) g, x, y, (size rec)
+      (shape rec) g, x, y, (size rec)
       g.fillStyle = 'green'
       g.fill()
 
