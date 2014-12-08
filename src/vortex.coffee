@@ -17,6 +17,8 @@ Sqrt3 = sqrt 3
 
 operation = (f, args...) -> -> apply f, null, args
 
+always = (value) -> -> value
+
 arrayElementsAreEqual = (xs, ys) ->
   if xs and ys and xs.length is ys.length
     return no for x, i in xs when x isnt ys[i]
@@ -238,15 +240,23 @@ class Color
 class Geometry
 
 class PointGeometry extends Geometry
-  constructor: (@position, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
+class TextGeometry extends Geometry
+  constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
+
+class Encoding
+
+class PointEncoding extends Encoding
+  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
 drawCircle = (g, x, y, area) ->
+  r = sqrt area/Pi
   g.beginPath()
   g.arc x, y, r, 0, TwoPi, no
   g.closePath()
 
-drawSquare = (g, x, y, area) ->
+drawSquare = (g, x, y, area) -> #TODO replace with a single rect() call
   r = 0.5 * sqrt area
   g.save()
   g.translate x, y
@@ -351,38 +361,58 @@ Shapes =
   triangleLeft: drawTriangleLeft
   triangleRight: drawTriangleRight
 
+encodePoint = (table, geom, layout) ->
 
-renderPoint = (table, geom, layout, canvas) ->
+  fieldX = geom.positionX.field
+  fieldY = geom.positionY.field
+
+  positionX = (rec) -> layout.axisX.scale rec[fieldX]
+  positionY = (rec) -> layout.axisY.scale rec[fieldY]
+
+  if geom.shape
+    if geom.shape instanceof VariableShapeChannel
+      throw new Error 'ni'
+    else
+      shape = always Shapes[geom.shape.shape] or Shapes.circle
+  else
+    shape = always Shapes.circle
+
+  size = null
+  fillColor = null
+  fillOpacity = null
+  strokeColor = null
+  strokeOpacity = null
+  lineWidth = null
+
+  new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+
+renderPoint = (table, geom, canvas) ->
   g = canvas.context
 
-  scaleX = layout.axisX.scale
-  scaleY = layout.axisY.scale
-
-  { fieldX, fieldY } = geom.position
+  { positionX, positionY, shape } = geom
 
   for rec in table.records
-    valueX = rec[fieldX]
-    valueY = rec[fieldY]
+    x = positionX rec
+    y = positionY rec
 
-    if valueX isnt null and valueY isnt null
-      x = scaleX valueX
-      y = scaleY valueY
-      
-      Shapes.triangleUp g, x, y, Pi * 5 * 5
+    if x isnt null and y isnt null
+      (shape rec) g, x, y, Pi * 5 * 5
+      #(shape rec) g, x, y, (size rec)
       g.fillStyle = 'green'
       g.fill()
 
   return
 
-class TextGeometry extends Geometry
-  constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
 
 class Channel
 
 class ColorChannel extends Channel
 
-class PositionChannel extends Channel
+class PointChannel extends Channel
   constructor: (@fieldX, @fieldY) ->
+
+class PositionChannel extends Channel
+  constructor: (@field) ->
 
 class FillColorChannel extends Channel
 class FillOpacityChannel extends Channel
@@ -434,8 +464,6 @@ class FixedShapeChannel extends ShapeChannel
 class VariableShapeChannel extends ShapeChannel
   constructor: (@field, @range) ->
 
-
-
 class Range
 
 class CategoricalRange extends Range
@@ -474,16 +502,18 @@ plot_polar = (scaleR, scaleA) ->
 plot_parallel = (scales...) ->
 
 plot_point = (ops...) ->
-  position = getOp ops, PositionChannel
-  shape = getOp ops, ShapeChannel, {}
-  size = getOp ops, SizeChannel, {}
-  fillColor = getOp ops, FillColorChannel, {}
-  fillOpacity = getOp ops, FillOpacityChannel, {}
-  strokeColor = getOp ops, StrokeColorChannel, {}
-  strokeOpacity = getOp ops, StrokeOpacityChannel, {}
-  lineWidth = getOp ops, LineWidthChannel, {}
+  point = getOp ops, PointChannel
+  positionX = new PositionChannel point.fieldX
+  positionY = new PositionChannel point.fieldY
+  shape = getOp ops, ShapeChannel
+  size = getOp ops, SizeChannel
+  fillColor = getOp ops, FillColorChannel
+  fillOpacity = getOp ops, FillOpacityChannel
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
 
-  new PointGeometry position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointGeometry positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 plot_value = (value) -> new Value value
 
@@ -520,7 +550,7 @@ plot_range = dispatch(
 )
 
 plot_position = dispatch(
-  [ String, String, (fieldX, fieldY) -> new PositionChannel fieldX, fieldY ]
+  [ String, String, (fieldX, fieldY) -> new PointChannel fieldX, fieldY ]
 )
 
 plot_fillColor = dispatch(
@@ -597,10 +627,7 @@ getOp = (ops, type, def) ->
   if op = findByType ops, type
     op
   else
-    if def
-      def
-    else
-      throw new Error "Missing op" #XXX
+    def
 
 arePositionVariablesCompatible = (variables) ->
   top = head variables
@@ -615,15 +642,15 @@ render = (table, ops) ->
   bounds = getOp ops, Bounds, plot_defaults.bounds
   geoms = filterByType ops, Geometry
 
-  positions = map geoms, (geom) -> geom.position
-  variablesX = map positions, (position) -> table.schema[position.fieldX]
-  variablesY = map positions, (position) -> table.schema[position.fieldY]
+  #positions = map geoms, (geom) -> geom.position
+  #variablesX = map positions, (position) -> table.schema[position.fieldX]
+  #variablesY = map positions, (position) -> table.schema[position.fieldY]
 
   #TODO handle layers
 
   geom = head geoms
-  variableX = head variablesX
-  variableY = head variablesY
+  variableX = table.schema[geom.positionX.field]
+  variableY = table.schema[geom.positionY.field]
 
   axisX = if variableX.type is TNumber
     createLinearAxis variableX.label, new SequentialRange(variableX.domain[0], variableX.domain[1]), new SequentialRange 0, bounds.width  
@@ -642,7 +669,8 @@ render = (table, ops) ->
 
   canvas = createCanvas bounds
 
-  renderPoint table, geom, layout, canvas
+  encoding = encodePoint table, geom, layout
+  renderPoint table, encoding, canvas
   
   canvas.element
 

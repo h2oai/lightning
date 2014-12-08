@@ -1,4 +1,20 @@
 ###
+plot ll-point-0
+Sample plot
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+  )
+)
+###
 plot ll-point-1
 Sample plot
 Description goes here.
@@ -12,7 +28,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor color 'black'
+    fillColor color 'red'
   )
 )
 
