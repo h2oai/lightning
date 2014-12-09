@@ -601,8 +601,8 @@ encodePoint = (table, geom, layout) ->
   new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
 
 
-highlightPoint = (data, indices, encoding) ->
-  { positionX, positionY, shape, size, lineWidth } = encoding
+highlightPoint = (data, indices, encoding, g) ->
+  { positionX, positionY, shape, size, stroke, lineWidth } = encoding
 
   for index in indices
     d = data[index]
@@ -1045,13 +1045,23 @@ render = (table, ops) ->
 
   layout = new RectangularLayout axisX, axisY
 
+  encoding = encodePoint table, (defaultPointGeometry geom), layout
+
   viewport = createViewport bounds
 
   colorMap = createColorMap viewport.maskCanvas.context
+  __index = undefined
   io =
     hover: (x, y) ->
-      if undefined isnt index = colorMap.test x, y
-        console.log table.records[index]
+      index = colorMap.test x, y
+      if index isnt __index
+        __index = index
+        if index isnt undefined
+          console.log table.records[index]
+          highlightPoint table.records, [index], encoding, viewport.hoverCanvas.context
+        else
+          viewport.hoverCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
+
     select: (x1, y1, x2, y2) ->
       xmin = if x1 > x2 then x2 else x1
       xmax = if x1 > x2 then x1 else x2
@@ -1061,7 +1071,6 @@ render = (table, ops) ->
 
   captureMouseEvents viewport, io
 
-  encoding = encodePoint table, (defaultPointGeometry geom), layout
   indices = sequence table.records.length
   renderPoint table.records, indices, encoding, viewport.baseCanvas.context, viewport.maskCanvas.context, colorMap
   
