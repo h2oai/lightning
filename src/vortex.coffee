@@ -586,6 +586,43 @@ renderPoint = (table, encoding, viewport) ->
 
   return
 
+captureMouseEvents = (viewport, io) ->
+  $document = $ document
+  $canvas = $ viewport.hoverCanvas.element
+  marquee = viewport.marquee.style
+
+  x = y = x1 = y1 = x2 = y2 = 0
+  isDragging = no
+
+  $canvas.on 'mousemove', (e) -> 
+    { offsetX:x, offsetY:y }  = e
+    if isDragging
+      marquee.left = px if x > x1 then x1 else x
+      marquee.top = px if y > y1 then y1 else y
+      marquee.width = px abs x - x1
+      marquee.height = px abs y - y1
+    else
+      io.hover x, y
+
+
+  $canvas.on 'mousedown', (e) ->
+    e.preventDefault()
+    { offsetX:x1, offsetY:y1 }  = e
+    isDragging = yes
+    marquee.display = 'block'
+    marquee.left = px x1
+    marquee.top = px y1
+    $document.on 'mouseup', (e) ->
+      e.preventDefault()
+      { offsetX:x2, offsetY:y2 }  = e
+      isDragging = no
+      marquee.display = 'none'
+      marquee.width = px 0
+      marquee.height = px 0
+      $document.off 'mouseup'
+      io.select x1, y1, x2, y2
+
+  return
 
 class Channel
 
@@ -843,29 +880,45 @@ createCanvas = (bounds) ->
 px = (pixels) -> "#{round pixels}px"
 
 class Viewport
-  constructor: (@element, @baseCanvas, @highlightCanvas, @keylineCanvas, @hoverCanvas, @maskCanvas, @bounds) ->
+  constructor: (@element, @baseCanvas, @highlightCanvas, @keylineCanvas, @hoverCanvas, @maskCanvas, @marquee, @bounds) ->
 
 createViewport = (bounds) ->
   [ baseCanvas, highlightCanvas, keylineCanvas, hoverCanvas, maskCanvas ] = for i in [ 1 .. 5 ]
     createCanvas bounds
 
-  element = document.createElement 'div'
-  element.style.position = 'relative'
-  element.style.width = px bounds.width
-  element.style.height = px bounds.height
+  container = document.createElement 'div'
+  # Set position to 'relative'. This has two effects: 
+  #  1. The canvases contained in it are set to position: absolute, so that they overlap instead of flowing
+  #  2. Mouse events captured on the topmost canvas get reported with the offset relative to this container instead of the page.
+  container.style.position = 'relative'
+  container.style.width = px bounds.width
+  container.style.height = px bounds.height
 
-  element.appendChild baseCanvas.element
-  element.appendChild highlightCanvas.element
-  element.appendChild keylineCanvas.element
-  element.appendChild hoverCanvas.element
+  marquee = document.createElement 'div'
+  marquee.style.position = 'absolute'
+  marquee.style.left = px 0
+  marquee.style.top = px 0
+  marquee.style.width = px 0
+  marquee.style.height = px 0
+  marquee.style.display = 'none'
+  marquee.style.outline = '1px dotted #999'
+  marquee.style.background = 'rgba(0, 0, 0, 0.05)'
+
+  container.appendChild baseCanvas.element
+  container.appendChild highlightCanvas.element
+  container.appendChild keylineCanvas.element
+  container.appendChild marquee
+  container.appendChild hoverCanvas.element
+
 
   new Viewport(
-    element
+    container
     baseCanvas
     highlightCanvas
     keylineCanvas
     hoverCanvas
     maskCanvas
+    marquee
     bounds
   )
 
@@ -920,6 +973,18 @@ render = (table, ops) ->
   layout = new RectangularLayout axisX, axisY
 
   viewport = createViewport bounds
+
+  io =
+    hover: (x, y) ->
+      debug x, y
+    select: (x1, y1, x2, y2) ->
+      xmin = if x1 > x2 then x2 else x1
+      xmax = if x1 > x2 then x1 else x2
+      ymin = if y1 > y2 then y2 else y1
+      ymax = if y1 > y2 then y1 else y2
+      debug xmin, ymin, xmax, ymax
+
+  captureMouseEvents viewport, io
 
   encoding = encodePoint table, (defaultPointGeometry geom), layout
   renderPoint table, encoding, viewport
