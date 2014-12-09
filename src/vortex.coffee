@@ -418,25 +418,25 @@ encodeColor = (table, colorChannel, opacityChannel) ->
     if isVariableOpacity
       opacityField = opacityChannel.field
       scaleOpacity = null #XXX
-      (rec) ->
-        color = scaleColor rec[colorField]
-        opacity = scaleOpacity rec[opacityField]
+      (d) ->
+        color = scaleColor d[colorField]
+        opacity = scaleOpacity d[opacityField]
         colorToStyleA color, opacity
     else
       opacity = opacityChannel.value
       if 0 <= opacity < 1
-        (rec) ->
-          color = scaleColor rec[colorField]
+        (d) ->
+          color = scaleColor d[colorField]
           colorToStyleA color, opacity
       else
-        (rec) ->
-          colorToStyle scaleColor rec[colorField]
+        (d) ->
+          colorToStyle scaleColor d[colorField]
   else
     color = colorChannel.value
     if isVariableOpacity
       opacityField = opacityChannel.field
       scaleOpacity = null #XXX
-      (rec) -> colorToStyleA color, scaleOpacity rec[opacityField]
+      (d) -> colorToStyleA color, scaleOpacity d[opacityField]
     else
       opacity = opacityChannel.value
       if 0 <= opacity < 1
@@ -549,8 +549,8 @@ encodePoint = (table, geom, layout) ->
   fieldX = geom.positionX.field
   fieldY = geom.positionY.field
 
-  positionX = (rec) -> layout.axisX.scale rec[fieldX]
-  positionY = (rec) -> layout.axisY.scale rec[fieldY]
+  positionX = (d) -> layout.axisX.scale d[fieldX]
+  positionY = (d) -> layout.axisY.scale d[fieldY]
   shape = encodeShape table, geom.shape
   size = encodeSize table, geom.size
 
@@ -563,25 +563,25 @@ encodePoint = (table, geom, layout) ->
 
   new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
 
-renderPoint = (table, encoding, canvas) ->
-  g = canvas.context
+renderPoint = (table, encoding, viewport) ->
+  g = viewport.baseCanvas.context
 
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
-  for rec in table.records
-    x = positionX rec
-    y = positionY rec
+  for d in table.records
+    x = positionX d
+    y = positionY d
 
     if x isnt null and y isnt null
-      (shape rec) g, x, y, (size rec)
+      (shape d) g, x, y, (size d)
 
       if stroke
-        g.lineWidth = lineWidth rec
-        g.strokeStyle = stroke rec
+        g.lineWidth = lineWidth d
+        g.strokeStyle = stroke d
         g.stroke()
 
       if fill
-        g.fillStyle = fill rec
+        g.fillStyle = fill d
         g.fill()
 
   return
@@ -826,17 +826,48 @@ createCanvas = (bounds) ->
 
   ratio = dpr / bspr
 
+  element.style.position = 'absolute'
+
   if dpr isnt bspr
     element.width = width * ratio
     element.height = height * ratio
     context.scale ratio, ratio
-    element.style.width = "#{width}px"
-    element.style.height = "#{height}px"
+    element.style.width = px width
+    element.style.height = px height
   else
     element.width = width
     element.height = height
 
   new Canvas element, context, bounds, ratio
+
+px = (pixels) -> "#{round pixels}px"
+
+class Viewport
+  constructor: (@element, @baseCanvas, @highlightCanvas, @keylineCanvas, @hoverCanvas, @maskCanvas, @bounds) ->
+
+createViewport = (bounds) ->
+  [ baseCanvas, highlightCanvas, keylineCanvas, hoverCanvas, maskCanvas ] = for i in [ 1 .. 5 ]
+    createCanvas bounds
+
+  element = document.createElement 'div'
+  element.style.position = 'relative'
+  element.style.width = px bounds.width
+  element.style.height = px bounds.height
+
+  element.appendChild baseCanvas.element
+  element.appendChild highlightCanvas.element
+  element.appendChild keylineCanvas.element
+  element.appendChild hoverCanvas.element
+
+  new Viewport(
+    element
+    baseCanvas
+    highlightCanvas
+    keylineCanvas
+    hoverCanvas
+    maskCanvas
+    bounds
+  )
 
 class Bounds
   constructor: (@width, @height) ->
@@ -888,12 +919,12 @@ render = (table, ops) ->
 
   layout = new RectangularLayout axisX, axisY
 
-  canvas = createCanvas bounds
+  viewport = createViewport bounds
 
   encoding = encodePoint table, (defaultPointGeometry geom), layout
-  renderPoint table, encoding, canvas
+  renderPoint table, encoding, viewport
   
-  canvas.element
+  viewport.element
 
 _plot = dispatch(
   [ 

@@ -160,27 +160,6 @@ plot(
 
 
 ###
-plot ll-point-3
-Sample plot
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  bounds 640, 480
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    fillColor value 'black'
-    fillOpacity 'qsec'
-  )
-)
-
-
-###
 plot ll-point-4
 Sample plot
 Description goes here.
