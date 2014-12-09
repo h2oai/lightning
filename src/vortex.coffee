@@ -238,6 +238,18 @@ class Table
 class Value
   constructor: (@value) ->
 
+class NumberValue extends Value
+  constructor: (value) -> super value
+
+class StringValue extends Value
+  constructor: (value) -> super value
+
+class DateValue extends Value
+  constructor: (value) -> super value
+
+class BooleanValue extends Value
+  constructor: (value) -> super value
+
 class Geometry
 
 class PointGeometry extends Geometry
@@ -666,6 +678,13 @@ plot_point = (ops...) ->
 
 plot_value = (value) -> new Value value
 
+plot_value = dispatch(
+  [ Number, (value) -> new NumberValue value ]
+  [ Boolean, (value) -> new BooleanValue value ]
+  [ Date, (value) -> new DateValue value ]
+  [ String, (value) -> new StringValue value ]
+)
+
 colorToStyle = (color) -> color.css()
 
 colorToStyleA = (color, alpha) ->
@@ -707,42 +726,42 @@ plot_position = dispatch(
 )
 
 plot_shape = dispatch(
-  [ Value, (value) -> new FixedShapeChannel value.value ]
+  [ StringValue, (value) -> new FixedShapeChannel value.value ]
   [ String, (field) -> new VariableShapeChannel field ]
   [ String, ColorRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
 plot_fillColor = dispatch(
-  [ Value, (value) -> new FixedFillColorChannel createColor value.value ]
+  [ StringValue, (value) -> new FixedFillColorChannel createColor value.value ]
   [ String, (field) -> new VariableFillColorChannel field ]
   [ String, ColorRange, (field, range) -> new VariableFillColorChannel field, range ]
 )
 
 plot_fillOpacity = dispatch(
-  [ Value, (value) -> new FixedFillOpacityChannel value.value ]
+  [ NumberValue, (value) -> new FixedFillOpacityChannel value.value ]
   [ String, (field) -> new VariableFillOpacityChannel field ]
   [ String, SequentialRange, (field, range) -> new VariableFillOpacityChannel field, range ]
 )
 
 plot_strokeColor = dispatch(
-  [ Value, (value) -> new FixedStrokeColorChannel createColor value.value ]
+  [ StringValue, (value) -> new FixedStrokeColorChannel createColor value.value ]
   [ String, (field) -> new VariableStrokeColorChannel field ]
   [ String, ColorRange, (field, range) -> new VariableStrokeColorChannel field, range ]
 )
 
 plot_strokeOpacity = dispatch(
-  [ Value, (value) -> new FixedStrokeOpacityChannel value.value ]
+  [ NumberValue, (value) -> new FixedStrokeOpacityChannel value.value ]
   [ String, (field) -> new VariableStrokeOpacityChannel field ]
   [ String, SequentialRange, (field, range) -> new VariableStrokeOpacityChannel field, range ]
 )
 
 plot_size = dispatch(
-  [ Value, (value) -> new FixedSizeChannel defaultSize * value.value * defaultSize * value.value ]
+  [ NumberValue, (value) -> new FixedSizeChannel defaultSize * value.value * defaultSize * value.value ]
   [ String, (field) -> new VariableSizeChannel field ]
   [ String, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
 )
 plot_lineWidth = dispatch(
-  [ Value, (value) -> new FixedLineWidthChannel value.value ]
+  [ NumberValue, (value) -> new FixedLineWidthChannel value.value ]
   [ String, (field) -> new VariableLineWidthChannel field ]
   [ String, SequentialRange, (field, range) -> new VariableLineWidthChannel field, range ]
 )
