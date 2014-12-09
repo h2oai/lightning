@@ -44,11 +44,13 @@ compileCoffee = (script) ->
 node_header_js = """
 var _ = require('lodash');
 var d3 = require('d3');
+var chroma = require('chroma-js');
 """
 node_test_header_js = """
 var test = require('tape');
 var _ = require('lodash');
 var d3 = require('d3');
+var chroma = require('chroma-js');
 """
 
 blockCommentPattern = /^\s*\#\#\#\s*$/
@@ -124,7 +126,7 @@ parseArticles = (compileScript, lines) ->
       article.javascript = javascript = coffee.compile coffeescript, bare: yes
       article.javascriptListing = (highlight.highlightAuto javascript, [ 'javascript' ]).value
 
-      article.script = compileScript 'var f = ' + javascript + EOL + "f(function(error, element){document.getElementById('plot').appendChild(element);});"
+      article.script = compileScript 'var f = ' + javascript + EOL + "f(function(error, element){if(error){document.getElementById('error').innerHTML=error.message;}else{document.getElementById('plot').appendChild(element);}});"
 
   articles
 
@@ -140,6 +142,7 @@ buildDoc = ->
   cpn 'lib/jquery/dist/jquery.js', 'build/js/jquery.js'
   cpn 'lib/lodash/dist/lodash.js', 'build/js/lodash.js'
   cpn 'lib/d3/d3.js', 'build/js/d3.js'
+  cpn 'lib/chroma-js/chroma.js', 'build/js/chroma.js'
   cpn 'lib/comma-separated-values/csv.js', 'build/js/csv.js'
 
   write 'build/js/demo.js', coffee.compile read 'src/demo.coffee'

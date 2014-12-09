@@ -1,6 +1,6 @@
 ###
-plot ll-point-0
-Sample plot
+plot point
+point
 Description goes here.
 ---
 tags:
@@ -15,8 +15,8 @@ plot(
   )
 )
 ###
-plot ll-point-1
-Sample plot
+plot point-sh
+point + shape
 Description goes here.
 ---
 tags:
@@ -28,7 +28,115 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor color 'red'
+    shape value 'triangleUp'
+  )
+)
+###
+plot point-sc
+point + strokeColor
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    strokeColor value 'red'
+  )
+)
+###
+plot point-sc-so
+point + strokeColor + strokeOpacity
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    strokeColor value 'red'
+    strokeOpacity value 0.5
+  )
+)
+###
+plot point-sc-so-lw
+point + strokeColor + strokeOpacity + lineWidth
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    strokeColor value 'red'
+    strokeOpacity value 0.5
+    lineWidth value 5
+  )
+)
+###
+plot point-fc
+point + fillColor
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor value 'red'
+  )
+)
+###
+plot point-fc-fo
+point + fillColor + fillOpacity
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor value 'red'
+    fillOpacity value 0.5
+  )
+)
+###
+plot point-fc-fo-sz
+point + fillColor + fillOpacity + size
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor value 'red'
+    fillOpacity value 0.5
+    size value 2 
   )
 )
 
@@ -66,7 +174,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor color 'black'
+    fillColor value 'black'
     fillOpacity 'qsec'
   )
 )
@@ -104,7 +212,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor color 'black'
+    fillColor value 'black'
     shape 'cyl', range ['circle', 'triangle', 'square']
   )
 )
@@ -123,7 +231,7 @@ plot(
   data csv 'mtcars'
   point( 
     position 'wt', 'mpg'
-    fillColor color 'black'
+    fillColor value 'black'
     size 'qsec'
   )
 )
@@ -142,7 +250,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    strokeColor color 'black'
+    strokeColor value 'black'
     shape 'cyl', range ['circle', 'triangle', 'square']
   )
 )
@@ -161,7 +269,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    strokeColor color 'black'
+    strokeColor value 'black'
     size 'qsec'
   )
 )
@@ -180,7 +288,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor color 'red'
+    fillColor value 'red'
     size value 3
   )
 )
@@ -199,7 +307,7 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor color 'red'
+    fillColor value 'red'
     size value 3
     shape shapes.square
   )
@@ -220,7 +328,7 @@ plot(
   data csv 'diamonds'
   point(
     position 'carat', 'price'
-    fillColor color 'black'
+    fillColor value 'black'
     fillOpacity opacity 1/10
   )
 )
@@ -240,7 +348,7 @@ plot(
   data csv 'diamonds'
   point(
     position 'carat', 'price'
-    fillColor color 'black'
+    fillColor value 'black'
     fillOpacity opacity 1/20
   )
 )
@@ -260,7 +368,7 @@ plot(
   data csv 'diamonds'
   point(
     position 'carat', 'price'
-    fillColor color 'black'
+    fillColor value 'black'
     fillOpacity opacity 1/100
   )
 )

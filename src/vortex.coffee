@@ -5,15 +5,19 @@
 # TODO fix mmin, mmax, vvalues in shorthand
 
 
-Pi = Math.PI
-TwoPi = 2 * Pi
-HalfPi = Pi / 2
-Epsilon = 1e-6
-EpsilonSquare = Epsilon * Epsilon
-Radians = Pi / 180
-Degrees = 180 / Pi
+π = Math.PI
+τ = 2 * π
+Halfπ = π / 2
+ε = 1e-6
+EpsilonSquare = ε * ε
+Radians = π / 180
+Degrees = 180 / π
 Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
+
+defaultSize = 8
+
+createColor = chroma
 
 operation = (f, args...) -> -> apply f, null, args
 
@@ -234,9 +238,6 @@ class Table
 class Value
   constructor: (@value) ->
 
-class Color
-  constructor: (@color) ->
-
 class Geometry
 
 class PointGeometry extends Geometry
@@ -248,12 +249,12 @@ class TextGeometry extends Geometry
 class Encoding
 
 class PointEncoding extends Encoding
-  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+  constructor: (@positionX, @positionY, @shape, @size, @fill, @stroke, @lineWidth) ->
 
 drawCircle = (g, x, y, area) ->
-  r = sqrt area/Pi
+  r = sqrt area/π
   g.beginPath()
-  g.arc x, y, r, 0, TwoPi, no
+  g.arc x, y, r, 0, τ, no
   g.closePath()
 
 drawSquare = (g, x, y, area) -> #TODO replace with a single rect() call
@@ -361,6 +362,142 @@ Shapes =
   triangleLeft: drawTriangleLeft
   triangleRight: drawTriangleRight
 
+encodeColor = (table, colorChannel, opacityChannel) ->
+  isVariableColor = colorChannel instanceof VariableFillColorChannel or colorChannel instanceof VariableStrokeColorChannel
+  isVariableOpacity = opacityChannel instanceof VariableFillOpacityChannel or opacityChannel instanceof VariableStrokeOpacityChannel
+
+  if isVariableColor
+    colorField = colorChannel.field
+    scaleColor = null #XXX
+    if isVariableOpacity
+      opacityField = opacityChannel.field
+      scaleOpacity = null #XXX
+      (rec) ->
+        color = scaleColor rec[colorField]
+        opacity = scaleOpacity rec[opacityField]
+        colorToStyleA color, opacity
+    else
+      opacity = opacityChannel.value
+      if 0 <= opacity < 1
+        (rec) ->
+          color = scaleColor rec[colorField]
+          colorToStyleA color, opacity
+      else
+        (rec) ->
+          colorToStyle scaleColor rec[colorField]
+  else
+    color = colorChannel.value
+    if isVariableOpacity
+      opacityField = opacityChannel.field
+      scaleOpacity = null #XXX
+      (rec) -> colorToStyleA color, scaleOpacity rec[opacityField]
+    else
+      opacity = opacityChannel.value
+      if 0 <= opacity < 1
+        always colorToStyleA color, opacity
+      else
+        always colorToStyle color
+
+ColorPalettes =
+  c10: [
+    '#1f77b4'
+    '#ff7f0e'
+    '#2ca02c'
+    '#d62728'
+    '#9467bd'
+    '#8c564b'
+    '#e377c2'
+    '#7f7f7f'
+    '#bcbd22'
+    '#17becf'
+  ]
+  c20: [
+    '#1f77b4'
+    '#aec7e8'
+    '#ff7f0e'
+    '#ffbb78'
+    '#2ca02c'
+    '#98df8a'
+    '#d62728'
+    '#ff9896'
+    '#9467bd'
+    '#c5b0d5'
+    '#8c564b'
+    '#c49c94'
+    '#e377c2'
+    '#f7b6d2'
+    '#7f7f7f'
+    '#c7c7c7'
+    '#bcbd22'
+    '#dbdb8d'
+    '#17becf'
+    '#9edae5'
+  ]
+  c20b: [
+    '#393b79'
+    '#5254a3'
+    '#6b6ecf'
+    '#9c9ede'
+    '#637939'
+    '#8ca252'
+    '#b5cf6b'
+    '#cedb9c'
+    '#8c6d31'
+    '#bd9e39'
+    '#e7ba52'
+    '#e7cb94'
+    '#843c39'
+    '#ad494a'
+    '#d6616b'
+    '#e7969c'
+    '#7b4173'
+    '#a55194'
+    '#ce6dbd'
+    '#de9ed6'
+  ]
+  c20c: [
+    '#3182bd'
+    '#6baed6'
+    '#9ecae1'
+    '#c6dbef'
+    '#e6550d'
+    '#fd8d3c'
+    '#fdae6b'
+    '#fdd0a2'
+    '#31a354'
+    '#74c476'
+    '#a1d99b'
+    '#c7e9c0'
+    '#756bb1'
+    '#9e9ac8'
+    '#bcbddc'
+    '#dadaeb'
+    '#636363'
+    '#969696'
+    '#bdbdbd'
+    '#d9d9d9'
+  ]
+
+defaultPointGeometry = (geom) ->
+
+  geom.shape = new FixedShapeChannel 'circle' unless geom.shape
+  geom.size = new FixedSizeChannel defaultSize * defaultSize unless geom.size
+
+  hasFill = geom.fillColor or geom.fillOpacity
+  hasStroke = geom.strokeColor or geom.strokeOpacity or geom.lineWidth
+  hasStroke = yes unless hasFill or hasStroke
+
+  if hasFill
+    geom.fillColor = new FixedFillColorChannel createColor head ColorPalettes.c10 unless geom.fillColor
+    geom.fillOpacity = new FixedFillOpacityChannel 1 unless geom.fillOpacity
+
+  if hasStroke
+    geom.strokeColor = new FixedStrokeColorChannel createColor head ColorPalettes.c10 unless geom.strokeColor
+    geom.strokeOpacity = new FixedStrokeOpacityChannel 1 unless geom.strokeOpacity
+    geom.lineWidth = new FixedLineWidthChannel 1.5 unless geom.lineWidth
+
+  geom
+
 encodePoint = (table, geom, layout) ->
 
   fieldX = geom.positionX.field
@@ -369,34 +506,33 @@ encodePoint = (table, geom, layout) ->
   positionX = (rec) -> layout.axisX.scale rec[fieldX]
   positionY = (rec) -> layout.axisY.scale rec[fieldY]
 
-  shape = if geom.shape
-    if geom.shape instanceof VariableShapeChannel
+  shape = if geom.shape instanceof VariableShapeChannel
+    throw new Error 'ni'
+  else
+    always Shapes[geom.shape.value] or Shapes.circle
+
+  size = if geom.size instanceof VariableSizeChannel
+    throw new Error 'ni'
+  else
+    always geom.size.value
+
+  if geom.fillColor or geom.fillOpacity
+    fill = encodeColor table, geom.fillColor, geom.fillOpacity
+
+  if geom.strokeColor or geom.strokeOpacity or geom.lineWidth
+    stroke = encodeColor table, geom.strokeColor, geom.strokeOpacity
+
+    lineWidth = if geom.lineWidth instanceof VariableLineWidthChannel
       throw new Error 'ni'
     else
-      always Shapes[geom.shape.shape] or Shapes.circle
-  else
-    always Shapes.circle
+      always geom.lineWidth.value
 
-  size = if geom.size
-    if geom.size instanceof VariableSizeChannel
-      throw new Error 'ni'
-    else
-      always geom.size.size
-  else
-    always 64
-
-  fillColor = null
-  fillOpacity = null
-  strokeColor = null
-  strokeOpacity = null
-  lineWidth = null
-
-  new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
 
 renderPoint = (table, geom, canvas) ->
   g = canvas.context
 
-  { positionX, positionY, shape, size } = geom
+  { positionX, positionY, shape, size, fill, stroke, lineWidth } = geom
 
   for rec in table.records
     x = positionX rec
@@ -404,8 +540,15 @@ renderPoint = (table, geom, canvas) ->
 
     if x isnt null and y isnt null
       (shape rec) g, x, y, (size rec)
-      g.fillStyle = 'green'
-      g.fill()
+
+      if stroke
+        g.lineWidth = lineWidth rec
+        g.strokeStyle = stroke rec
+        g.stroke()
+
+      if fill
+        g.fillStyle = fill rec
+        g.fill()
 
   return
 
@@ -429,43 +572,43 @@ class LineWidthChannel extends Channel
 class ShapeChannel extends Channel
 
 class FixedFillColorChannel extends FillColorChannel
-  constructor: (@color) ->
+  constructor: (@value) ->
 
 class VariableFillColorChannel extends FillColorChannel
   constructor: (@field, @range) ->
 
 class FixedFillOpacityChannel extends FillOpacityChannel
-  constructor: (@opacity) ->
+  constructor: (@value) ->
 
 class VariableFillOpacityChannel extends FillOpacityChannel
   constructor: (@field, @range) ->
 
 class FixedStrokeColorChannel extends StrokeColorChannel
-  constructor: (@color) ->
+  constructor: (@value) ->
 
 class VariableStrokeColorChannel extends StrokeColorChannel
   constructor: (@field, @range) ->
 
 class FixedStrokeOpacityChannel extends StrokeOpacityChannel
-  constructor: (@opacity) ->
+  constructor: (@value) ->
 
 class VariableStrokeOpacityChannel extends StrokeOpacityChannel
   constructor: (@field, @range) ->
 
 class FixedSizeChannel extends SizeChannel
-  constructor: (@size) ->
+  constructor: (@value) ->
 
 class VariableSizeChannel extends SizeChannel
   constructor: (@field, @range) ->
 
 class FixedLineWidthChannel extends LineWidthChannel
-  constructor: (@color) ->
+  constructor: (@value) ->
 
 class VariableLineWidthChannel extends LineWidthChannel
   constructor: (@lineWidth, @range) ->
 
 class FixedShapeChannel extends ShapeChannel
-  constructor: (@shape) ->
+  constructor: (@value) ->
 
 class VariableShapeChannel extends ShapeChannel
   constructor: (@field, @range) ->
@@ -523,7 +666,11 @@ plot_point = (ops...) ->
 
 plot_value = (value) -> new Value value
 
-plot_color = (color) -> new Color color
+colorToStyle = (color) -> color.css()
+
+colorToStyleA = (color, alpha) ->
+  [ r, g, b ] = color.rgb()
+  createColor.rgb(r, g, b).alpha(alpha).css()
 
 plot_domain = (values...) ->
 
@@ -559,13 +706,46 @@ plot_position = dispatch(
   [ String, String, (fieldX, fieldY) -> new PointChannel fieldX, fieldY ]
 )
 
+plot_shape = dispatch(
+  [ Value, (value) -> new FixedShapeChannel value.value ]
+  [ String, (field) -> new VariableShapeChannel field ]
+  [ String, ColorRange, (field, range) -> new VariableShapeChannel field, range ]
+)
+
 plot_fillColor = dispatch(
-  [ Color, (color) -> new FixedFillColorChannel color ]
+  [ Value, (value) -> new FixedFillColorChannel createColor value.value ]
   [ String, (field) -> new VariableFillColorChannel field ]
   [ String, ColorRange, (field, range) -> new VariableFillColorChannel field, range ]
 )
 
-plot_strokeColor = (field, args...) ->
+plot_fillOpacity = dispatch(
+  [ Value, (value) -> new FixedFillOpacityChannel value.value ]
+  [ String, (field) -> new VariableFillOpacityChannel field ]
+  [ String, SequentialRange, (field, range) -> new VariableFillOpacityChannel field, range ]
+)
+
+plot_strokeColor = dispatch(
+  [ Value, (value) -> new FixedStrokeColorChannel createColor value.value ]
+  [ String, (field) -> new VariableStrokeColorChannel field ]
+  [ String, ColorRange, (field, range) -> new VariableStrokeColorChannel field, range ]
+)
+
+plot_strokeOpacity = dispatch(
+  [ Value, (value) -> new FixedStrokeOpacityChannel value.value ]
+  [ String, (field) -> new VariableStrokeOpacityChannel field ]
+  [ String, SequentialRange, (field, range) -> new VariableStrokeOpacityChannel field, range ]
+)
+
+plot_size = dispatch(
+  [ Value, (value) -> new FixedSizeChannel defaultSize * value.value * defaultSize * value.value ]
+  [ String, (field) -> new VariableSizeChannel field ]
+  [ String, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
+)
+plot_lineWidth = dispatch(
+  [ Value, (value) -> new FixedLineWidthChannel value.value ]
+  [ String, (field) -> new VariableLineWidthChannel field ]
+  [ String, SequentialRange, (field, range) -> new VariableLineWidthChannel field, range ]
+)
 
 plot_parse = (esprima, escodegen) ->
   walkAst = (node, f) ->
@@ -675,7 +855,7 @@ render = (table, ops) ->
 
   canvas = createCanvas bounds
 
-  encoding = encodePoint table, geom, layout
+  encoding = encodePoint table, (defaultPointGeometry geom), layout
   renderPoint table, encoding, canvas
   
   canvas.element
@@ -711,12 +891,16 @@ plot.polar = plot_polar
 plot.parallel = plot_parallel
 plot.point = plot_point
 plot.value = plot_value
-plot.color = plot_color
 plot.domain = plot_domain
 plot.range = plot_range
 plot.position = plot_position
 plot.fillColor = plot_fillColor
+plot.fillOpacity = plot_fillOpacity
 plot.strokeColor = plot_strokeColor
+plot.strokeOpacity = plot_strokeOpacity
+plot.size = plot_size
+plot.lineWidth = plot_lineWidth
+plot.shape = plot_shape
 plot.parse = plot_parse
 plot.compile = plot_compile
 plot.Table = Table

@@ -26,6 +26,7 @@ html.no-js
         if article.description
           p!=article.description
         #plot
+        #error
         h2 Coffeescript
         pre!=article.coffeescriptListing
         h2 Javascript
@@ -45,6 +46,7 @@ html.no-js
       script(type='text/javascript' src='js/jquery.js')
       script(type='text/javascript' src='js/lodash.js')
       script(type='text/javascript' src='js/d3.js')
+      script(type='text/javascript' src='js/chroma.js')
       script(type='text/javascript' src='js/csv.js')
       script(type='text/javascript' src='js/vortex.js')
       script(type='text/javascript' src='js/demo.js')
