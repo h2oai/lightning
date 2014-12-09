@@ -14,9 +14,9 @@ Radians = π / 180
 Degrees = 180 / π
 Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
+ColorLimit = 255 * 255 * 255
 
 defaultSize = 8
-
 
 #
 # Chroma wrappers
@@ -221,6 +221,43 @@ createCompiledPrototype = (attrs) ->
 
 plot_compile = (variables) ->
   createCompiledPrototype (variable.label for variable in variables)
+
+
+byteToHex = (b) ->
+  hex = b.toString 16
+  if hex.length is 1 then "0#{hex}" else hex
+
+createColorMap = (context) ->
+  _color = 0
+  dict = {}
+
+  put = (index) ->
+    color = _color++
+    _color = 0 if _color >= ColorLimit
+    dict[color] = index
+    r = (color >> 16) & 255
+    g = (color >> 8) & 255
+    b = color & 255
+    "##{byteToHex r}#{byteToHex g}#{byteToHex b}"
+
+  test = (x, y) ->
+    [ r, g, b, a ] = context.getImageData x, y, 1, 1
+      .data
+
+    if a is 255
+      color = (r << 16) + (g << 8) + b
+      dict[color]
+    else
+      undefined
+
+  put: put
+  test: test
+
+class Size
+  constructor: (@width, @height) ->
+
+class Rect
+  constructor: (@left, @top, @width, @height) ->
 
 class Layout
 
@@ -563,20 +600,48 @@ encodePoint = (table, geom, layout) ->
 
   new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
 
-renderPoint = (table, encoding, viewport) ->
-  g = viewport.baseCanvas.context
 
+highlightPoint = (data, indices, encoding) ->
+  { positionX, positionY, shape, size, lineWidth } = encoding
+
+  for index in indices
+    d = data[index]
+    x = positionX d
+    y = positionY d
+    if x isnt null and y isnt null
+      (shape d) g, x, y, size d
+
+      g.lineWidth = 2 + if stroke then lineWidth d else 1
+      g.stroke()
+
+  g.save()
+  g.globalCompositeOperation = 'destination-out'
+  for index in indices
+    d = data[index]
+    x = positionX d
+    y = positionY d
+    if x isnt null and y isnt null
+      (shape d) g, x, y, size d
+      g.fill()
+  g.restore()
+
+
+renderPoint = (data, indices, encoding, g, m, colorMap) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
-  for d in table.records
+  for index in indices
+    d = data[index]
     x = positionX d
     y = positionY d
 
     if x isnt null and y isnt null
-      (shape d) g, x, y, (size d)
+      draw = shape d
+      a = size d
+      draw g, x, y, a
 
       if stroke
-        g.lineWidth = lineWidth d
+        lw = lineWidth d
+        g.lineWidth = lw
         g.strokeStyle = stroke d
         g.stroke()
 
@@ -584,6 +649,14 @@ renderPoint = (table, encoding, viewport) ->
         g.fillStyle = fill d
         g.fill()
 
+      maskStyle = colorMap.put index
+      draw m, x, y, a
+      m.fillStyle = maskStyle
+      m.fill()
+      if stroke
+        m.lineWidth = lw
+        m.strokeStyle = maskStyle
+        m.stroke()
   return
 
 captureMouseEvents = (viewport, io) ->
@@ -974,9 +1047,11 @@ render = (table, ops) ->
 
   viewport = createViewport bounds
 
+  colorMap = createColorMap viewport.maskCanvas.context
   io =
     hover: (x, y) ->
-      debug x, y
+      if undefined isnt index = colorMap.test x, y
+        console.log table.records[index]
     select: (x1, y1, x2, y2) ->
       xmin = if x1 > x2 then x2 else x1
       xmax = if x1 > x2 then x1 else x2
@@ -987,7 +1062,8 @@ render = (table, ops) ->
   captureMouseEvents viewport, io
 
   encoding = encodePoint table, (defaultPointGeometry geom), layout
-  renderPoint table, encoding, viewport
+  indices = sequence table.records.length
+  renderPoint table.records, indices, encoding, viewport.baseCanvas.context, viewport.maskCanvas.context, colorMap
   
   viewport.element
 

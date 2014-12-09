@@ -279,6 +279,10 @@ lastIndexOf:
 sortedIndex:
   type: qualify
   object: _
+sequence:
+  type: qualify
+  object: _
+  property: range
 bind:
   type: qualify
   object: _
