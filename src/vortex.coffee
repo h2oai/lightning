@@ -244,6 +244,8 @@ createColorMap = (context) ->
     [ r, g, b, a ] = context.getImageData x, y, 1, 1
       .data
 
+    debug r,g,b,a
+
     if a is 255
       color = (r << 16) + (g << 8) + b
       dict[color]
@@ -602,7 +604,7 @@ encodePoint = (table, geom, layout) ->
 
 
 highlightPoint = (data, indices, encoding, g) ->
-  { positionX, positionY, shape, size, stroke, lineWidth } = encoding
+  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   for index in indices
     d = data[index]
@@ -611,7 +613,7 @@ highlightPoint = (data, indices, encoding, g) ->
     if x isnt null and y isnt null
       (shape d) g, x, y, size d
 
-      g.lineWidth = 2 + if stroke then lineWidth d else 1
+      g.lineWidth = 3 + if stroke then lineWidth d else 1
       g.stroke()
 
   g.save()
@@ -622,7 +624,12 @@ highlightPoint = (data, indices, encoding, g) ->
     y = positionY d
     if x isnt null and y isnt null
       (shape d) g, x, y, size d
-      g.fill()
+      if stroke
+        lw = lineWidth d
+        g.lineWidth = lw
+        g.stroke()
+      if fill
+        g.fill()
   g.restore()
 
 
@@ -1056,11 +1063,11 @@ render = (table, ops) ->
       index = colorMap.test x, y
       if index isnt __index
         __index = index
+        viewport.hoverCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
         if index isnt undefined
           console.log table.records[index]
           highlightPoint table.records, [index], encoding, viewport.hoverCanvas.context
-        else
-          viewport.hoverCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
+      return
 
     select: (x1, y1, x2, y2) ->
       xmin = if x1 > x2 then x2 else x1
