@@ -17,7 +17,23 @@ Sqrt3 = sqrt 3
 
 defaultSize = 8
 
+
+#
+# Chroma wrappers
+#
 createColor = chroma
+
+cloneColor = (color) ->
+  [ r, g, b ] = color.rgb()
+  createColor.rgb r, g, b
+
+colorToStyle = (color) -> color.css()
+
+colorToStyleA = (color, alpha) ->
+  cloneColor color
+    .alpha alpha
+    .css()
+
 
 operation = (f, args...) -> -> apply f, null, args
 
@@ -374,6 +390,24 @@ Shapes =
   triangleLeft: drawTriangleLeft
   triangleRight: drawTriangleRight
 
+encodeShape = (table, shapeChannel) ->
+  if shapeChannel instanceof VariableShapeChannel
+    throw new Error 'ni'
+  else
+    always Shapes[shapeChannel.value] or Shapes.circle
+
+encodeSize = (table, sizeChannel) ->
+  if sizeChannel instanceof VariableSizeChannel
+    throw new Error 'ni'
+  else
+    always sizeChannel.value
+
+encodeLineWidth = (table, lineWidthChannel) ->
+  if lineWidthChannel instanceof VariableLineWidthChannel
+    throw new Error 'ni'
+  else
+    always lineWidthChannel.value
+
 encodeColor = (table, colorChannel, opacityChannel) ->
   isVariableColor = colorChannel instanceof VariableFillColorChannel or colorChannel instanceof VariableStrokeColorChannel
   isVariableOpacity = opacityChannel instanceof VariableFillOpacityChannel or opacityChannel instanceof VariableStrokeOpacityChannel
@@ -517,34 +551,22 @@ encodePoint = (table, geom, layout) ->
 
   positionX = (rec) -> layout.axisX.scale rec[fieldX]
   positionY = (rec) -> layout.axisY.scale rec[fieldY]
-
-  shape = if geom.shape instanceof VariableShapeChannel
-    throw new Error 'ni'
-  else
-    always Shapes[geom.shape.value] or Shapes.circle
-
-  size = if geom.size instanceof VariableSizeChannel
-    throw new Error 'ni'
-  else
-    always geom.size.value
+  shape = encodeShape table, geom.shape
+  size = encodeSize table, geom.size
 
   if geom.fillColor or geom.fillOpacity
     fill = encodeColor table, geom.fillColor, geom.fillOpacity
 
   if geom.strokeColor or geom.strokeOpacity or geom.lineWidth
     stroke = encodeColor table, geom.strokeColor, geom.strokeOpacity
-
-    lineWidth = if geom.lineWidth instanceof VariableLineWidthChannel
-      throw new Error 'ni'
-    else
-      always geom.lineWidth.value
+    lineWidth = encodeLineWidth table, geom.lineWidth
 
   new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
 
-renderPoint = (table, geom, canvas) ->
+renderPoint = (table, encoding, canvas) ->
   g = canvas.context
 
-  { positionX, positionY, shape, size, fill, stroke, lineWidth } = geom
+  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   for rec in table.records
     x = positionX rec
@@ -684,12 +706,6 @@ plot_value = dispatch(
   [ Date, (value) -> new DateValue value ]
   [ String, (value) -> new StringValue value ]
 )
-
-colorToStyle = (color) -> color.css()
-
-colorToStyleA = (color, alpha) ->
-  [ r, g, b ] = color.rgb()
-  createColor.rgb(r, g, b).alpha(alpha).css()
 
 plot_domain = (values...) ->
 
