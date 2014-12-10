@@ -139,6 +139,29 @@ plot(
     size value 2 
   )
 )
+###
+plot point-fc-fo-sc-so-sz-sh
+point + fillColor + fillOpacity + strokeColor + strokeOpacity + size + shape
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor value 'red'
+    fillOpacity value 0.25
+    size value 2 
+    strokeColor value 'purple'
+    strokeOpacity value 0.5
+    lineWidth value 5
+    shape value 'triangleUp'
+  )
+)
 
 ###
 plot ll-point-2
