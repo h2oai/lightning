@@ -623,7 +623,7 @@ highlightPoint = (data, indices, encoding, g) ->
     if x isnt null and y isnt null
       (shape d) g, x, y, size d
 
-      g.lineWidth = 3 + if stroke then lineWidth d else 1
+      g.lineWidth = 4 + if stroke then lineWidth d else 1
       g.stroke()
 
   g.save()
@@ -634,12 +634,9 @@ highlightPoint = (data, indices, encoding, g) ->
     y = positionY d
     if x isnt null and y isnt null
       (shape d) g, x, y, size d
-      if stroke
-        lw = lineWidth d
-        g.lineWidth = lw
-        g.stroke()
-      if fill
-        g.fill()
+      g.lineWidth = 2 + if stroke then lineWidth d else 0
+      g.stroke()
+      g.fill() if fill
   g.restore()
 
 
