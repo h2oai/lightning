@@ -612,6 +612,7 @@ encodePoint = (table, geom, layout) ->
 highlightPoint = (data, indices, encoding, g) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
+  g.save()
   for index in indices
     d = data[index]
     x = positionX d
@@ -621,6 +622,7 @@ highlightPoint = (data, indices, encoding, g) ->
 
       g.lineWidth = 4 + if stroke then lineWidth d else 1
       g.stroke()
+  g.restore()
 
   g.save()
   g.globalCompositeOperation = 'destination-out'
@@ -640,6 +642,7 @@ highlightPoint = (data, indices, encoding, g) ->
 maskPoint = (data, indices, encoding, g, colorMap) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
+  g.save()
   for index in indices
     d = data[index]
     x = positionX d
@@ -654,11 +657,12 @@ maskPoint = (data, indices, encoding, g, colorMap) ->
         g.lineWidth = lineWidth d
         g.strokeStyle = maskStyle
         g.stroke()
-  return
+  g.restore()
 
 renderPoint = (data, indices, encoding, g) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
+  g.save()
   for index in indices
     d = data[index]
     x = positionX d
@@ -675,7 +679,8 @@ renderPoint = (data, indices, encoding, g) ->
       if fill
         g.fillStyle = fill d
         g.fill()
-  return
+
+  g.restore()
 
 # XXX Naive, need some kind of memoization during rendering.
 selectPoint = (data, indices, encoding, xmin, ymin, xmax, ymax) ->
