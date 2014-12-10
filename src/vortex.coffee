@@ -232,7 +232,6 @@ createTestMap = (context) ->
   test = (x, y) ->
     [ r, g, b, a ] = context.getImageData x, y, 1, 1
       .data
-    debug r,g,b,a
     r is 255 and g is 255 and b is 255 and a is 255
   put: put
   test: test
@@ -253,9 +252,6 @@ createColorMap = (context) ->
   test = (x, y) ->
     [ r, g, b, a ] = context.getImageData x, y, 1, 1
       .data
-
-    debug r,g,b,a
-
     if a is 255
       color = (r << 16) + (g << 8) + b
       dict[color]
@@ -684,6 +680,7 @@ renderPoint = (data, indices, encoding, g) ->
 # TODO implement additive selections
 # TODO remove jquery dependency
 captureMouseEvents = (viewport, io) ->
+
   $document = $ document
   $canvas = $ viewport.hoverCanvas.element
   marquee = viewport.marquee.style
@@ -701,7 +698,6 @@ captureMouseEvents = (viewport, io) ->
     else
       io.hover x, y
 
-
   $canvas.on 'mousedown', (e) ->
     e.preventDefault()
     { offsetX:x1, offsetY:y1 }  = e
@@ -717,7 +713,10 @@ captureMouseEvents = (viewport, io) ->
       marquee.width = px 0
       marquee.height = px 0
       $document.off 'mouseup'
-      io.select x1, y1, x2, y2
+      if (abs x1 - x2) > 5 or (abs y1 - y2) > 5
+        io.selectWithin x1, y1, x2, y2
+      else
+        io.selectAt x1, y1
 
   return
 
@@ -1075,25 +1074,34 @@ render = (table, ops) ->
   testMap = createTestMap viewport.hittestCanvas.context
   __index = undefined
   io =
-    hover: (x, y) ->
+    test: (x, y) ->
       index = colorMap.test x, y
+      if index isnt undefined
+        # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
+        viewport.hittestCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
+        maskPoint table.records, [ index ], encoding, viewport.hittestCanvas.context, testMap
+        return index if testMap.test x, y
+      return
+
+    hover: (x, y) ->
+      index = io.test x, y
       if index isnt __index
         __index = index
         viewport.hoverCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
         if index isnt undefined
-          viewport.hittestCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
-          maskPoint table.records, [ index ], encoding, viewport.hittestCanvas.context, testMap
-          if testMap.test x, y
-            debug table.records[index]
-            highlightPoint table.records, [ index ], encoding, viewport.hoverCanvas.context
+          debug table.records[index]
+          highlightPoint table.records, [ index ], encoding, viewport.hoverCanvas.context
       return
 
-    select: (x1, y1, x2, y2) ->
+    selectAt: (x, y) ->
+      debug 'click', x, y
+
+    selectWithin: (x1, y1, x2, y2) ->
       xmin = if x1 > x2 then x2 else x1
       xmax = if x1 > x2 then x1 else x2
       ymin = if y1 > y2 then y2 else y1
       ymax = if y1 > y2 then y1 else y2
-      debug xmin, ymin, xmax, ymax
+      debug 'select', xmin, ymin, xmax, ymax
 
   captureMouseEvents viewport, io
 
