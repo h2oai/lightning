@@ -624,6 +624,7 @@ highlightPoint = (data, indices, encoding, g) ->
 
   g.save()
   g.globalCompositeOperation = 'destination-out'
+  g.fillStyle = g.strokeStyle = 'black'
   for index in indices
     d = data[index]
     x = positionX d
@@ -1094,14 +1095,23 @@ render = (table, ops) ->
       return
 
     selectAt: (x, y) ->
-      debug 'click', x, y
+      index = io.test x, y
+      debug 'selectAt', x, y
+      viewport.highlightCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
+      if index isnt undefined
+        viewport.baseCanvas.element.style.opacity = 0.5
+        highlightPoint table.records, [ index ], encoding, viewport.highlightCanvas.context
+        renderPoint table.records, [ index ], encoding, viewport.highlightCanvas.context
+      else
+        viewport.baseCanvas.element.style.opacity = 1
+
 
     selectWithin: (x1, y1, x2, y2) ->
       xmin = if x1 > x2 then x2 else x1
       xmax = if x1 > x2 then x1 else x2
       ymin = if y1 > y2 then y2 else y1
       ymax = if y1 > y2 then y1 else y2
-      debug 'select', xmin, ymin, xmax, ymax
+      debug 'selectWithin', xmin, ymin, xmax, ymax
 
   captureMouseEvents viewport, io
 
