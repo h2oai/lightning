@@ -677,6 +677,21 @@ renderPoint = (data, indices, encoding, g) ->
         g.fill()
   return
 
+# XXX Naive, need some kind of memoization during rendering.
+selectPoint = (data, indices, encoding, xmin, ymin, xmax, ymax) ->
+  { positionX, positionY } = encoding
+
+  selection = []
+
+  for index in indices
+    d = data[index]
+    x = positionX d
+    y = positionY d
+    if x isnt null and y isnt null and xmin <= x <= xmax and ymin <= y <= ymax
+      selection.push index
+
+  selection
+
 # XXX disable RMB
 # TODO implement additive selections
 # TODO remove jquery dependency
@@ -1073,6 +1088,8 @@ render = (table, ops) ->
 
   colorMap = createColorMap viewport.maskCanvas.context
   testMap = createTestMap viewport.hittestCanvas.context
+  indices = sequence table.records.length
+
   __index = undefined
   io =
     test: (x, y) ->
@@ -1094,17 +1111,19 @@ render = (table, ops) ->
           highlightPoint table.records, [ index ], encoding, viewport.hoverCanvas.context
       return
 
-    selectAt: (x, y) ->
-      index = io.test x, y
-      debug 'selectAt', x, y
+    select: (selection) ->
       viewport.highlightCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
-      if index isnt undefined
+      if selection.length
         viewport.baseCanvas.element.style.opacity = 0.5
-        highlightPoint table.records, [ index ], encoding, viewport.highlightCanvas.context
-        renderPoint table.records, [ index ], encoding, viewport.highlightCanvas.context
+        highlightPoint table.records, selection, encoding, viewport.highlightCanvas.context
+        renderPoint table.records, selection, encoding, viewport.highlightCanvas.context
       else
         viewport.baseCanvas.element.style.opacity = 1
 
+    selectAt: (x, y) ->
+      index = io.test x, y
+      debug 'selectAt', x, y
+      io.select if index isnt undefined then [ index ] else []
 
     selectWithin: (x1, y1, x2, y2) ->
       xmin = if x1 > x2 then x2 else x1
@@ -1112,10 +1131,10 @@ render = (table, ops) ->
       ymin = if y1 > y2 then y2 else y1
       ymax = if y1 > y2 then y1 else y2
       debug 'selectWithin', xmin, ymin, xmax, ymax
+      io.select selectPoint table.records, indices, encoding, xmin, ymin, xmax, ymax
 
   captureMouseEvents viewport, io
 
-  indices = sequence table.records.length
   renderPoint table.records, indices, encoding, viewport.baseCanvas.context
   maskPoint table.records, indices, encoding, viewport.maskCanvas.context, colorMap
   
