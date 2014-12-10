@@ -227,6 +227,16 @@ byteToHex = (b) ->
   hex = b.toString 16
   if hex.length is 1 then "0#{hex}" else hex
 
+createTestMap = (context) ->
+  put = (index) -> "#fff"
+  test = (x, y) ->
+    [ r, g, b, a ] = context.getImageData x, y, 1, 1
+      .data
+    debug r,g,b,a
+    r is 255 and g is 255 and b is 255 and a is 255
+  put: put
+  test: test
+
 createColorMap = (context) ->
   _color = 0
   dict = {}
@@ -633,7 +643,7 @@ highlightPoint = (data, indices, encoding, g) ->
   g.restore()
 
 
-renderPoint = (data, indices, encoding, g, m, colorMap) ->
+maskPoint = (data, indices, encoding, g, colorMap) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   for index in indices
@@ -642,30 +652,40 @@ renderPoint = (data, indices, encoding, g, m, colorMap) ->
     y = positionY d
 
     if x isnt null and y isnt null
-      draw = shape d
-      a = size d
-      draw g, x, y, a
+      maskStyle = colorMap.put index
+      (shape d) g, x, y, size d
+      g.fillStyle = maskStyle
+      g.fill()
+      if stroke
+        g.lineWidth = lineWidth d
+        g.strokeStyle = maskStyle
+        g.stroke()
+  return
+
+renderPoint = (data, indices, encoding, g) ->
+  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
+
+  for index in indices
+    d = data[index]
+    x = positionX d
+    y = positionY d
+
+    if x isnt null and y isnt null
+      (shape d) g, x, y, size d
 
       if stroke
-        lw = lineWidth d
-        g.lineWidth = lw
+        g.lineWidth = lineWidth d
         g.strokeStyle = stroke d
         g.stroke()
 
       if fill
         g.fillStyle = fill d
         g.fill()
-
-      maskStyle = colorMap.put index
-      draw m, x, y, a
-      m.fillStyle = maskStyle
-      m.fill()
-      if stroke
-        m.lineWidth = lw
-        m.strokeStyle = maskStyle
-        m.stroke()
   return
 
+# XXX disable RMB
+# TODO implement additive selections
+# TODO remove jquery dependency
 captureMouseEvents = (viewport, io) ->
   $document = $ document
   $canvas = $ viewport.hoverCanvas.element
@@ -960,16 +980,15 @@ createCanvas = (bounds) ->
 px = (pixels) -> "#{round pixels}px"
 
 class Viewport
-  constructor: (@element, @baseCanvas, @highlightCanvas, @keylineCanvas, @hoverCanvas, @maskCanvas, @marquee, @bounds) ->
+  constructor: (@element, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @hittestCanvas, @marquee, @bounds) ->
 
 createViewport = (bounds) ->
-  [ baseCanvas, highlightCanvas, keylineCanvas, hoverCanvas, maskCanvas ] = for i in [ 1 .. 5 ]
-    createCanvas bounds
+  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, hittestCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
 
   container = document.createElement 'div'
   # Set position to 'relative'. This has two effects: 
-  #  1. The canvases contained in it are set to position: absolute, so that they overlap instead of flowing
-  #  2. Mouse events captured on the topmost canvas get reported with the offset relative to this container instead of the page.
+  #  1. The canvases contained in it (which are set to position: absolute), overlap instead of flowing.
+  #  2. Mouse events captured on the top-most canvas get reported with the offset relative to this container instead of the page.
   container.style.position = 'relative'
   container.style.width = px bounds.width
   container.style.height = px bounds.height
@@ -986,7 +1005,6 @@ createViewport = (bounds) ->
 
   container.appendChild baseCanvas.element
   container.appendChild highlightCanvas.element
-  container.appendChild keylineCanvas.element
   container.appendChild marquee
   container.appendChild hoverCanvas.element
 
@@ -995,9 +1013,9 @@ createViewport = (bounds) ->
     container
     baseCanvas
     highlightCanvas
-    keylineCanvas
     hoverCanvas
     maskCanvas
+    hittestCanvas
     marquee
     bounds
   )
@@ -1047,8 +1065,8 @@ render = (table, ops) ->
   else
     null #XXX
 
-  console.log axisX.computeTicks 10
-  console.log axisY.computeTicks 10
+  debug axisX.computeTicks 10
+  debug axisY.computeTicks 10
 
   layout = new RectangularLayout axisX, axisY
 
@@ -1057,6 +1075,7 @@ render = (table, ops) ->
   viewport = createViewport bounds
 
   colorMap = createColorMap viewport.maskCanvas.context
+  testMap = createTestMap viewport.hittestCanvas.context
   __index = undefined
   io =
     hover: (x, y) ->
@@ -1065,8 +1084,11 @@ render = (table, ops) ->
         __index = index
         viewport.hoverCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
         if index isnt undefined
-          console.log table.records[index]
-          highlightPoint table.records, [index], encoding, viewport.hoverCanvas.context
+          viewport.hittestCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
+          maskPoint table.records, [ index ], encoding, viewport.hittestCanvas.context, testMap
+          if testMap.test x, y
+            debug table.records[index]
+            highlightPoint table.records, [ index ], encoding, viewport.hoverCanvas.context
       return
 
     select: (x1, y1, x2, y2) ->
@@ -1079,7 +1101,8 @@ render = (table, ops) ->
   captureMouseEvents viewport, io
 
   indices = sequence table.records.length
-  renderPoint table.records, indices, encoding, viewport.baseCanvas.context, viewport.maskCanvas.context, colorMap
+  renderPoint table.records, indices, encoding, viewport.baseCanvas.context
+  maskPoint table.records, indices, encoding, viewport.maskCanvas.context, colorMap
   
   viewport.element
 
