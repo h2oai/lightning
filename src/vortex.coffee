@@ -227,16 +227,18 @@ byteToHex = (b) ->
   hex = b.toString 16
   if hex.length is 1 then "0#{hex}" else hex
 
-createTestMap = (context) ->
+createTestMap = (canvas) ->
+  { context, ratio } = canvas
   put = (index) -> "#fff"
   test = (x, y) ->
-    [ r, g, b, a ] = context.getImageData x, y, 1, 1
+    [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
       .data
     r is 255 and g is 255 and b is 255 and a is 255
   put: put
   test: test
 
-createColorMap = (context) ->
+createColorMap = (canvas) ->
+  { context, ratio } = canvas
   _color = 0
   dict = {}
 
@@ -250,7 +252,7 @@ createColorMap = (context) ->
     "##{byteToHex r}#{byteToHex g}#{byteToHex b}"
 
   test = (x, y) ->
-    [ r, g, b, a ] = context.getImageData x, y, 1, 1
+    [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
       .data
     if a is 255
       color = (r << 16) + (g << 8) + b
@@ -1091,8 +1093,8 @@ render = (table, ops) ->
 
   viewport = createViewport bounds
 
-  colorMap = createColorMap viewport.maskCanvas.context
-  testMap = createTestMap viewport.hittestCanvas.context
+  colorMap = createColorMap viewport.maskCanvas
+  testMap = createTestMap viewport.hittestCanvas
   indices = sequence table.records.length
 
   __index = undefined
@@ -1107,6 +1109,7 @@ render = (table, ops) ->
       return
 
     hover: (x, y) ->
+      debug x, y
       index = io.test x, y
       if index isnt __index
         __index = index
