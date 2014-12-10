@@ -227,17 +227,23 @@ byteToHex = (b) ->
   hex = b.toString 16
   if hex.length is 1 then "0#{hex}" else hex
 
-createTestMap = (canvas) ->
+class Clip
+  constructor: (@put, @test) ->
+
+createClip = (canvas) ->
   { context, ratio } = canvas
   put = (index) -> "#fff"
   test = (x, y) ->
     [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
       .data
     r is 255 and g is 255 and b is 255 and a is 255
-  put: put
-  test: test
 
-createColorMap = (canvas) ->
+  new Clip put, test
+
+class Mask
+  constructor: (@put, @test) ->
+
+createMask = (canvas) ->
   { context, ratio } = canvas
   _color = 0
   dict = {}
@@ -260,8 +266,7 @@ createColorMap = (canvas) ->
     else
       undefined
 
-  put: put
-  test: test
+  new Mask put, test
 
 class Size
   constructor: (@width, @height) ->
@@ -297,6 +302,7 @@ class Variable
 class Table
   constructor: (@label, @variables, @records) ->
     @schema = indexBy variables, (variable) -> variable.label
+    @indices = sequence records.length
 
 class Value
   constructor: (@value) ->
@@ -643,7 +649,7 @@ highlightPoint = (data, indices, encoding, g) ->
   g.restore()
 
 
-maskPoint = (data, indices, encoding, g, colorMap) ->
+maskPoint = (data, indices, encoding, g, mask) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
@@ -653,7 +659,7 @@ maskPoint = (data, indices, encoding, g, colorMap) ->
     y = positionY d
 
     if x isnt null and y isnt null
-      maskStyle = colorMap.put index
+      maskStyle = mask.put index
       (shape d) g, x, y, size d
       g.fillStyle = maskStyle
       g.fill()
@@ -690,25 +696,25 @@ renderPoint = (data, indices, encoding, g) ->
 selectPoint = (data, indices, encoding, xmin, ymin, xmax, ymax) ->
   { positionX, positionY } = encoding
 
-  selection = []
+  selectedIndices = []
 
   for index in indices
     d = data[index]
     x = positionX d
     y = positionY d
     if x isnt null and y isnt null and xmin <= x <= xmax and ymin <= y <= ymax
-      selection.push index
+      selectedIndices.push index
 
-  selection
+  selectedIndices
 
 # XXX disable RMB
 # TODO implement additive selections
 # TODO remove jquery dependency
-captureMouseEvents = (viewport, io) ->
+captureMouseEvents = (canvas, marquee, hover, selectWithin, selectAt) ->
 
   $document = $ document
-  $canvas = $ viewport.hoverCanvas.element
-  marquee = viewport.marquee.style
+  $canvas = $ canvas
+  marquee = marquee.style
 
   x = y = x1 = y1 = x2 = y2 = 0
   isDragging = no
@@ -721,7 +727,7 @@ captureMouseEvents = (viewport, io) ->
       marquee.width = px abs x - x1
       marquee.height = px abs y - y1
     else
-      io.hover x, y
+      hover x, y
 
   $canvas.on 'mousedown', (e) ->
     e.preventDefault()
@@ -739,9 +745,9 @@ captureMouseEvents = (viewport, io) ->
       marquee.height = px 0
       $document.off 'mouseup'
       if (abs x1 - x2) > 5 or (abs y1 - y2) > 5
-        io.selectWithin x1, y1, x2, y2
+        selectWithin x1, y1, x2, y2
       else
-        io.selectAt x1, y1
+        selectAt x1, y1
 
   return
 
@@ -1001,10 +1007,73 @@ createCanvas = (bounds) ->
 px = (pixels) -> "#{round pixels}px"
 
 class Viewport
-  constructor: (@element, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @hittestCanvas, @marquee, @bounds) ->
+  constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
+
+
+createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint) ->
+
+  viewport = createViewport bounds
+
+  { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
+  { records, indices } = table
+
+  _index = undefined
+
+  test = (x, y) ->
+    index = mask.test x, y
+    if index isnt undefined
+      # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
+      clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+      maskPoint records, [ index ], encoding, clipCanvas.context, clip
+      return index if clip.test x, y
+    return
+
+  hover = (x, y) ->
+    debug x, y
+    index = test x, y
+    if index isnt _index
+      _index = index
+      hoverCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+      if index isnt undefined
+        debug records[index]
+        highlightPoint records, [ index ], encoding, hoverCanvas.context
+    return
+
+  highlight = (indices) ->
+    highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+    if indices.length
+      baseCanvas.element.style.opacity = 0.5
+      highlightPoint records, indices, encoding, highlightCanvas.context
+      renderPoint records, indices, encoding, highlightCanvas.context
+    else
+      baseCanvas.element.style.opacity = 1
+
+  selectAt = (x, y) ->
+    index = test x, y
+    debug 'selectAt', x, y
+    highlight if index isnt undefined then [ index ] else []
+
+  selectWithin = (x1, y1, x2, y2) ->
+    xmin = if x1 > x2 then x2 else x1
+    xmax = if x1 > x2 then x1 else x2
+    ymin = if y1 > y2 then y2 else y1
+    ymax = if y1 > y2 then y1 else y2
+    debug 'selectWithin', xmin, ymin, xmax, ymax
+    highlight selectPoint records, indices, encoding, xmin, ymin, xmax, ymax
+
+  render = ->
+    renderPoint records, indices, encoding, baseCanvas.context
+    maskPoint records, indices, encoding, maskCanvas.context, mask
+
+  captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
+
+  new Visualization viewport, table, test, highlight, hover, selectAt, selectWithin, render
+
+class Visualization
+  constructor: (@viewport, @table, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
 
 createViewport = (bounds) ->
-  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, hittestCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
+  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
 
   container = document.createElement 'div'
   # Set position to 'relative'. This has two effects: 
@@ -1029,16 +1098,20 @@ createViewport = (bounds) ->
   container.appendChild marquee
   container.appendChild hoverCanvas.element
 
+  mask = createMask maskCanvas
+  clip = createClip clipCanvas
 
   new Viewport(
+    bounds
     container
     baseCanvas
     highlightCanvas
     hoverCanvas
     maskCanvas
-    hittestCanvas
+    clipCanvas
     marquee
-    bounds
+    mask
+    clip
   )
 
 class Bounds
@@ -1093,62 +1166,11 @@ render = (table, ops) ->
 
   encoding = encodePoint table, (defaultPointGeometry geom), layout
 
-  viewport = createViewport bounds
+  visualization = createVisualization bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint
 
-  colorMap = createColorMap viewport.maskCanvas
-  testMap = createTestMap viewport.hittestCanvas
-  indices = sequence table.records.length
-
-  __index = undefined
-  io =
-    test: (x, y) ->
-      index = colorMap.test x, y
-      if index isnt undefined
-        # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
-        viewport.hittestCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
-        maskPoint table.records, [ index ], encoding, viewport.hittestCanvas.context, testMap
-        return index if testMap.test x, y
-      return
-
-    hover: (x, y) ->
-      debug x, y
-      index = io.test x, y
-      if index isnt __index
-        __index = index
-        viewport.hoverCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
-        if index isnt undefined
-          debug table.records[index]
-          highlightPoint table.records, [ index ], encoding, viewport.hoverCanvas.context
-      return
-
-    select: (selection) ->
-      viewport.highlightCanvas.context.clearRect 0, 0, viewport.bounds.width, viewport.bounds.height
-      if selection.length
-        viewport.baseCanvas.element.style.opacity = 0.5
-        highlightPoint table.records, selection, encoding, viewport.highlightCanvas.context
-        renderPoint table.records, selection, encoding, viewport.highlightCanvas.context
-      else
-        viewport.baseCanvas.element.style.opacity = 1
-
-    selectAt: (x, y) ->
-      index = io.test x, y
-      debug 'selectAt', x, y
-      io.select if index isnt undefined then [ index ] else []
-
-    selectWithin: (x1, y1, x2, y2) ->
-      xmin = if x1 > x2 then x2 else x1
-      xmax = if x1 > x2 then x1 else x2
-      ymin = if y1 > y2 then y2 else y1
-      ymax = if y1 > y2 then y1 else y2
-      debug 'selectWithin', xmin, ymin, xmax, ymax
-      io.select selectPoint table.records, indices, encoding, xmin, ymin, xmax, ymax
-
-  captureMouseEvents viewport, io
-
-  renderPoint table.records, indices, encoding, viewport.baseCanvas.context
-  maskPoint table.records, indices, encoding, viewport.maskCanvas.context, colorMap
+  visualization.render()
   
-  viewport.element
+  visualization.viewport.container
 
 _plot = dispatch(
   [ 
