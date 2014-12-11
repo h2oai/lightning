@@ -295,15 +295,26 @@ class Size
 class Rect
   constructor: (@left, @top, @width, @height) ->
 
-class Layout
+class Encoder
+  constructor: (@label, @encode) ->
 
-class RectangularLayout extends Layout
-  constructor: (@axisX, @axisY) ->
+class ConstantEncoder extends Encoder
+  constructor: (@value) ->
+    super 'Constant', always value
 
-class Axis
+class VariableEncoder extends Encoder
+  constructor: (label, encode) ->
+    super label, encode
 
-class LinearAxis extends Axis
-  constructor: (@label, @domain, @range, @scale, @computeTicks) ->
+class LinearAxis extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+createNicedLinearScale = (domain, range) ->
+  scale = d3.scale.linear()
+    .domain [ domain.min, domain.max ]
+    .range [ range.min, range.max ]
+    .nice()
 
 createLinearAxis = (label, domain, range) ->
   scale = d3.scale.linear()
@@ -311,17 +322,17 @@ createLinearAxis = (label, domain, range) ->
     .range [ range.min, range.max ]
     .nice()
 
-  computeTicks = (count) ->
+  guide = (count) ->
     format = scale.tickFormat count
     scale.ticks count
 
-  new LinearAxis label, domain, range, scale, computeTicks
+  new LinearAxis label, scale, domain, range, guide
 
 createLinearColorScale = (label, domain, range) ->
 
 createCategoricalColorScale = (label, domain, range) ->
 
-createCategoricalScale = (label, domain, range) ->
+createCategoricalScale = (domain, range) ->
   _lookup = {}
   _lookup[category] = index for category, index in domain
   _rangeValues = range.values
@@ -374,9 +385,7 @@ class PointGeometry extends Geometry
 class TextGeometry extends Geometry
   constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
 
-class Encoding
-
-class PointEncoding extends Encoding
+class PointEncoding
   constructor: (@positionX, @positionY, @shape, @size, @fill, @stroke, @lineWidth) ->
 
 drawCircle = (g, x, y, area) ->
@@ -496,23 +505,40 @@ ShapePalettes =
     'triangleUp', 'triangleDown', 'triangleLeft', 'triangleRight'
   ] 
 
-encodeShape = (table, shapeChannel) ->
-  if shapeChannel instanceof VariableShapeChannel
-    throw new Error 'ni'
+pickCategoricalColorPalette = (cardinality) ->
+  if cardinality > 10
+    ColorPalettes.c20
   else
-    always Shapes[shapeChannel.value] or Shapes.circle
+    ColorPalettes.c10
+
+pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
+
+class VariableShapeEncoder extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+encodeShape = (table, channel) ->
+  if channel instanceof VariableShapeChannel
+    field = channel.field
+    variable = table.schema[field]
+    throw new Error "Cannot map field '#{field}' to shapes." if variable.type isnt TString
+    channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length unless channel.range
+    scale = createCategoricalScale variable.domain, channel.range
+    new VariableShapeEncoder variable.label, scale, variable.domain, channel.range, null #XXX
+  else
+    new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
 encodeSize = (table, sizeChannel) ->
   if sizeChannel instanceof VariableSizeChannel
     throw new Error 'ni'
   else
-    always sizeChannel.value
+    new ConstantEncoder sizeChannel.value
 
 encodeLineWidth = (table, lineWidthChannel) ->
   if lineWidthChannel instanceof VariableLineWidthChannel
     throw new Error 'ni'
   else
-    always lineWidthChannel.value
+    new ConstantEncoder lineWidthChannel.value
 
 encodeColor = (table, colorChannel, opacityChannel) ->
   isVariableColor = colorChannel instanceof VariableFillColorChannel or colorChannel instanceof VariableStrokeColorChannel
@@ -546,9 +572,9 @@ encodeColor = (table, colorChannel, opacityChannel) ->
     else
       opacity = opacityChannel.value
       if 0 <= opacity < 1
-        always colorToStyleA color, opacity
+        new ConstantEncoder colorToStyleA color, opacity
       else
-        always colorToStyle color
+        new ConstantEncoder colorToStyle color
 
 ColorPalettes =
   c10: [
@@ -594,13 +620,31 @@ defaultPointGeometry = (geom) ->
 
   geom
 
-encodePoint = (table, geom, layout) ->
+encodePosition = (table, channel, range) ->
+  field = channel.field
+  variable = table.schema[field]
+  { domain } = variable
 
-  fieldX = geom.positionX.field
-  fieldY = geom.positionY.field
+  switch variable.type
+    when TNumber
+      scale = createNicedLinearScale(
+        new SequentialRange domain[0], domain[1]
+        range
+      )
+      encode = (d) -> scale d[field]
+      guide = (count) ->
+        format = scale.tickFormat count
+        scale.ticks count
 
-  positionX = (d) -> layout.axisX.scale d[fieldX]
-  positionY = (d) -> layout.axisY.scale d[fieldY]
+      new LinearAxis variable.label, encode, domain, range, guide
+    else
+      throw new Error 'ni'
+
+encodePoint = (table, geom, bounds) ->
+
+  positionX = encodePosition table, geom.positionX, new SequentialRange 0, bounds.width
+  positionY = encodePosition table, geom.positionY, new SequentialRange bounds.height, 0
+
   shape = encodeShape table, geom.shape
   size = encodeSize table, geom.size
 
@@ -902,7 +946,7 @@ plot_position = dispatch(
 plot_shape = dispatch(
   [ StringValue, (value) -> new FixedShapeChannel value.value ]
   [ String, (field) -> new VariableShapeChannel field ]
-  [ String, ColorRange, (field, range) -> new VariableShapeChannel field, range ]
+  [ String, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
 plot_fillColor = dispatch(
@@ -1004,12 +1048,19 @@ class Viewport
   constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
 
 
+extractEncodings = (encoding) ->
+  encodings = {}
+  for own attr, encoder of encoding
+    encodings[attr] = if encoder then encoder.encode else undefined
+  encodings
+
 createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint) ->
 
   viewport = createViewport bounds
 
   { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
   { records, indices } = table
+  encodings = extractEncodings encoding
 
   _index = undefined
 
@@ -1018,7 +1069,7 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
     if index isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      maskPoint records, [ index ], encoding, clipCanvas.context, clip
+      maskPoint records, [ index ], encodings, clipCanvas.context, clip
       return index if clip.test x, y
     return
 
@@ -1030,15 +1081,15 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
       hoverCanvas.context.clearRect 0, 0, bounds.width, bounds.height
       if index isnt undefined
         debug records[index]
-        highlightPoint records, [ index ], encoding, hoverCanvas.context
+        highlightPoint records, [ index ], encodings, hoverCanvas.context
     return
 
   highlight = (indices) ->
     highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
-      highlightPoint records, indices, encoding, highlightCanvas.context
-      renderPoint records, indices, encoding, highlightCanvas.context
+      highlightPoint records, indices, encodings, highlightCanvas.context
+      renderPoint records, indices, encodings, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
 
@@ -1053,11 +1104,11 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    highlight selectPoint records, indices, encoding, xmin, ymin, xmax, ymax
+    highlight selectPoint records, indices, encodings, xmin, ymin, xmax, ymax
 
   render = ->
-    renderPoint records, indices, encoding, baseCanvas.context
-    maskPoint records, indices, encoding, maskCanvas.context, mask
+    renderPoint records, indices, encodings, baseCanvas.context
+    maskPoint records, indices, encodings, maskCanvas.context, mask
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
@@ -1153,12 +1204,11 @@ render = (table, ops) ->
   else
     null #XXX
 
-  debug axisX.computeTicks 10
-  debug axisY.computeTicks 10
+  debug axisX.guide 10
+  debug axisY.guide 10
 
-  layout = new RectangularLayout axisX, axisY
 
-  encoding = encodePoint table, (defaultPointGeometry geom), layout
+  encoding = encodePoint table, (defaultPointGeometry geom), bounds
 
   visualization = createVisualization bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint
 
