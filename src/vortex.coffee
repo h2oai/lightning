@@ -244,9 +244,9 @@ byteToHex = (b) ->
 
 createExtent = (a, b) ->
   if a < b
-    new SequentialRange a, b
+    new Extent a, b
   else
-    new SequentialRange b, a
+    new Extent b, a
 
 class Clip
   constructor: (@put, @test) ->
@@ -973,9 +973,10 @@ plot_position = dispatch(
 
 plot_shape = dispatch(
   [ StringValue, (value) -> new FixedShapeChannel value.value ]
-  [ String, (field) -> new VariableShapeChannel field ]
+  [ String, (name) -> new VariableShapeChannel (new Field name) ]
   [ Field, (field) -> new VariableShapeChannel field ]
-  [ String, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
+  [ String, CategoricalRange, (name, range) -> new VariableShapeChannel (new Field name), range ]
+  [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
 plot_fillColor = dispatch(
