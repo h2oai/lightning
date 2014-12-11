@@ -333,11 +333,9 @@ createLinearColorScale = (label, domain, range) ->
 createCategoricalColorScale = (label, domain, range) ->
 
 createCategoricalScale = (domain, range) ->
-  _lookup = {}
-  _lookup[category] = index for category, index in domain
   _rangeValues = range.values
   _rangeCount = _rangeValues.length
-  (category) -> _rangeValues[ _lookup[category] % _rangeCount ]
+  (category) -> _rangeValues[ category.index % _rangeCount ]
 
 createSequentialLinearScale = (label, domain, range) ->
   d3.scale.linear()
@@ -371,7 +369,10 @@ createTable = (label, variables, rowCount) ->
   table = new Table label, variables, rowCount, schema, indices, null, null
 
   table.get = (field) ->
-    schema[field.name]
+    if field instanceof ComputedField
+      table.get field.evaluate table
+    else
+      schema[field.name]
 
   table.put = (variable) ->
     variables.push variable
@@ -399,7 +400,7 @@ class Field
   constructor: (@name) ->
 
 class ComputedField extends Field
-  constructor: (@compute) ->
+  constructor: (@evaluate) ->
 
 resolveChannels = (geom) ->
   debug geom
@@ -548,15 +549,14 @@ class VariableShapeEncoder extends VariableEncoder
 encodeShape = (table, channel) ->
   if channel instanceof VariableShapeChannel
     variable = table.get channel.field
-    if variable.type isnt TString
-      throw new Error "Cannot map variable '#{variable.label}' to shapes." 
+    unless variable instanceof Factor
+      throw new Error "Could not encode shape. Variable '#{variable.label}' is not a Factor." 
     unless channel.range
       channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length 
     scale = createCategoricalScale variable.domain, channel.range
-    attr = variable.name
     read = variable.read
-    encode = (i) -> scale read i
-    new VariableShapeEncoder variable.label, scale, variable.domain, channel.range, null #XXX
+    encode = (i) -> Shapes[ scale read i ]
+    new VariableShapeEncoder variable.label, encode, variable.domain, channel.range, null #XXX
   else
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
@@ -1197,19 +1197,25 @@ class Bounds
 plot_defaults =
   bounds: new Bounds 400, 400
 
-class Level
+class Category
   constructor: (@index, @value) ->
 
-doFactor = (field) ->
-  compute = (table) ->
+factor = (field) ->
+  new ComputedField (table) ->
     variable = table.get field
-    attr = variable.name
+    if variable instanceof Factor
+      field        
+    else
+      data = new Array variable.data.length
+      for value, i in variable.data
+        data[i] = '' + value #XXX handle undefined
 
-  new ComputedField compute
+      table.put computedVariable = createFactor "FACTOR(#{variable.label})", TString, data
+      new Field computedVariable.name
 
 plot_factor = dispatch(
-  [ String, (name) -> doFactor new Field name ]
-  [ Field, (field) -> doFactor field ]
+  [ String, (name) -> factor new Field name ]
+  [ Field, (field) -> factor field ]
 )
 
 getOp = (ops, type, def) ->
@@ -1281,19 +1287,19 @@ computeExtent = (array) ->
 class Factoring
   constructor: (@data, @domain, @format, @read) ->
 
-factorize = (array, domain) ->
+factorize = (array, categoryNames) ->
   _id = 0
-  _categories = {}
+  _dictionary = {}
   _data = new Array array.length
 
-  _domain = for category in domain
-    _categories[category] = new Level _id++, category
+  _domain = for name in categoryNames
+    _dictionary[name] = new Category _id++, name
 
   for element, index in array
-    category = if element is undefined or element is null then '?' else element
-    unless level = _categories[category]
-      _domain.push _categories[category] = level = new Level _id++, category
-    _data[index] = level
+    name = if element is undefined or element is null then '?' else element
+    unless category = _dictionary[name]
+      _domain.push _dictionary[name] = category = new Category _id++, name
+    _data[index] = category
 
   format = (i) -> _data[i].value
   read = (i) -> _data[i]

@@ -214,11 +214,27 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor value 'black'
-    shape 'cyl', range ['circle', 'triangleUp', 'square']
+    shape factor 'cyl'
   )
 )
 
+###
+plot ll-point-55
+Sample plot
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor value 'black'
+    shape factor('cyl'), range ['circle', 'triangleUp', 'square']
+  )
+)
 
 ###
 plot ll-point-6
