@@ -166,10 +166,16 @@ buildDoc = ->
 
   articles = parseArticles compileScript, (read 'src/doc.coffee').split EOL
 
-  for article in articles
-    write "build/#{article.symbol}.html", renderPage type: 'article', article: article
+  for article, i in articles
+    write "build/#{article.symbol}.html", renderPage
+      type: 'article'
+      article: article
+      previousArticle: if i > 0 then articles[i - 1] else null
+      nextArticle: if i < articles.length - 1 then articles[i + 1] else null
 
-  write 'build/index.html', renderPage type: 'articles', articles: articles
+  write 'build/index.html', renderPage
+    type: 'articles'
+    articles: articles
 
   return
 

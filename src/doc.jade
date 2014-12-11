@@ -20,6 +20,16 @@ html.no-js
     <![endif]-->
 
     if type == 'article'
+      a.paginate.paginate-home(href="index.html") Up
+
+      if previousArticle
+        a.paginate.paginate-previous(href="#{previousArticle.symbol}.html") Prev
+
+      if nextArticle
+        a.paginate.paginate-next(href="#{nextArticle.symbol}.html") Next
+
+
+    if type == 'article'
       .container
         h1=article.title || article.symbol
         .article(id="article-#{article.symbol}")
