@@ -184,7 +184,7 @@ plot(
 
 ###
 plot ll-point-4
-Sample plot
+point + 
 Description goes here.
 ---
 tags:
@@ -202,8 +202,8 @@ plot(
 
 
 ###
-plot ll-point-5
-Sample plot
+plot point-factor-vsh
+point + factor + variable shape
 Description goes here.
 ---
 tags:
@@ -219,8 +219,8 @@ plot(
 )
 
 ###
-plot ll-point-55
-Sample plot
+plot point-factor-vshr
+point + factor + variable shape with custom range
 Description goes here.
 ---
 tags:
@@ -231,14 +231,13 @@ plot(
   data csv 'mtcars'
   point(
     position 'wt', 'mpg'
-    fillColor value 'black'
     shape factor('cyl'), range ['circle', 'triangleUp', 'square']
   )
 )
 
 ###
-plot ll-point-6
-Sample plot
+plot point-vsz
+point + variable size
 Description goes here.
 ---
 tags:
@@ -249,11 +248,26 @@ plot(
   data csv 'mtcars'
   point( 
     position 'wt', 'mpg'
-    fillColor value 'black'
     size 'qsec'
   )
 )
 
+###
+plot point-vszr
+point + variable size with custom range
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point( 
+    position 'wt', 'mpg'
+    size 'qsec', range 4 * 4, 40 * 40
+  )
+)
 
 ###
 plot ll-point-7

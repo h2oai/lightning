@@ -29,6 +29,7 @@ Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
 
 defaultSize = 8
+defaultArea = defaultSize * defaultSize
 
 #
 # Chroma wrappers
@@ -238,6 +239,188 @@ plot_compile = (variables) ->
   createCompiledPrototype (variable.label for variable in variables)
 
 
+class Clip
+  constructor: (@put, @test) ->
+
+class Mask
+  constructor: (@put, @test) ->
+
+class Size
+  constructor: (@width, @height) ->
+
+class Rect
+  constructor: (@left, @top, @width, @height) ->
+
+class Variable
+  constructor: (@name, @label, @type, @data, @domain, @format, @read) ->
+
+class Factor extends Variable
+  constructor: (name, label, type, data, domain, format, read) ->
+    super name, label, type, data, domain, format, read
+
+class Table
+  constructor: (@label, @variables, @rowCount, @schema, @indices, @get, @put) ->
+
+class Value
+  constructor: (@value) ->
+
+class NumberValue extends Value
+  constructor: (value) -> super value
+
+class StringValue extends Value
+  constructor: (value) -> super value
+
+class DateValue extends Value
+  constructor: (value) -> super value
+
+class BooleanValue extends Value
+  constructor: (value) -> super value
+
+class Field
+  constructor: (@name) ->
+
+class ComputedField extends Field
+  constructor: (@evaluate) ->
+
+class Geometry
+
+class PointGeometry extends Geometry
+  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+
+class TextGeometry extends Geometry
+  constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
+
+class PointEncoding
+  constructor: (@positionX, @positionY, @shape, @size, @fill, @stroke, @lineWidth) ->
+
+class Encoder
+  constructor: (@label, @encode) ->
+
+class ConstantEncoder extends Encoder
+  constructor: (@value) ->
+    super 'Constant', always value
+
+class VariableEncoder extends Encoder
+  constructor: (label, encode) ->
+    super label, encode
+
+class LinearAxis extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+class VariableSizeEncoder extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+class VariableShapeEncoder extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+class Channel
+
+class ColorChannel extends Channel
+
+class PointChannel extends Channel
+  constructor: (@fieldX, @fieldY) ->
+
+class PositionChannel extends Channel
+  constructor: (@field) ->
+
+class FillColorChannel extends Channel
+class FillOpacityChannel extends Channel
+class StrokeColorChannel extends Channel
+class StrokeOpacityChannel extends Channel
+class SizeChannel extends Channel
+class LineWidthChannel extends Channel
+class ShapeChannel extends Channel
+
+class FixedFillColorChannel extends FillColorChannel
+  constructor: (@value) ->
+
+class VariableFillColorChannel extends FillColorChannel
+  constructor: (@field, @range) ->
+
+class FixedFillOpacityChannel extends FillOpacityChannel
+  constructor: (@value) ->
+
+class VariableFillOpacityChannel extends FillOpacityChannel
+  constructor: (@field, @range) ->
+
+class FixedStrokeColorChannel extends StrokeColorChannel
+  constructor: (@value) ->
+
+class VariableStrokeColorChannel extends StrokeColorChannel
+  constructor: (@field, @range) ->
+
+class FixedStrokeOpacityChannel extends StrokeOpacityChannel
+  constructor: (@value) ->
+
+class VariableStrokeOpacityChannel extends StrokeOpacityChannel
+  constructor: (@field, @range) ->
+
+class FixedSizeChannel extends SizeChannel
+  constructor: (@value) ->
+
+class VariableSizeChannel extends SizeChannel
+  constructor: (@field, @range) ->
+
+class FixedLineWidthChannel extends LineWidthChannel
+  constructor: (@value) ->
+
+class VariableLineWidthChannel extends LineWidthChannel
+  constructor: (@lineWidth, @range) ->
+
+class FixedShapeChannel extends ShapeChannel
+  constructor: (@value) ->
+
+class VariableShapeChannel extends ShapeChannel
+  constructor: (@field, @range) ->
+
+class Extent
+  constructor: (@min, @max) ->
+
+class Range
+
+class CategoricalRange extends Range
+  constructor: (@values) ->
+
+class QuantitativeRange extends Range
+
+class SequentialRange extends QuantitativeRange
+  constructor: (@min, @max) ->
+
+class DivergingRange extends QuantitativeRange
+  constructor: (@min, @mid, @max) ->
+
+class ColorRange extends Range
+
+class SequentialColorRange extends ColorRange
+  constructor: (@min, @max) ->
+
+class DivergingColorRange extends ColorRange
+  constructor: (@min, @mid, @max) ->
+
+class Datasource
+  constructor: (@read) ->
+
+class Canvas
+  constructor: (@element, @context, @bounds, @ratio) ->
+
+class Viewport
+  constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
+
+class Visualization
+  constructor: (@viewport, @table, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
+
+class Bounds
+  constructor: (@width, @height) ->
+
+class Category
+  constructor: (@index, @value) ->
+
+class Factoring
+  constructor: (@data, @domain, @format, @read) ->
+
 byteToHex = (b) ->
   hex = b.toString 16
   if hex.length is 1 then "0#{hex}" else hex
@@ -247,9 +430,6 @@ createExtent = (a, b) ->
     new Extent a, b
   else
     new Extent b, a
-
-class Clip
-  constructor: (@put, @test) ->
 
 createClip = (canvas) ->
   { context, ratio } = canvas
@@ -261,8 +441,6 @@ createClip = (canvas) ->
 
   new Clip put, test
 
-class Mask
-  constructor: (@put, @test) ->
 
 createMask = (canvas) ->
   { context, ratio } = canvas
@@ -288,27 +466,6 @@ createMask = (canvas) ->
       undefined
 
   new Mask put, test
-
-class Size
-  constructor: (@width, @height) ->
-
-class Rect
-  constructor: (@left, @top, @width, @height) ->
-
-class Encoder
-  constructor: (@label, @encode) ->
-
-class ConstantEncoder extends Encoder
-  constructor: (@value) ->
-    super 'Constant', always value
-
-class VariableEncoder extends Encoder
-  constructor: (label, encode) ->
-    super label, encode
-
-class LinearAxis extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
 
 createNicedLinearScale = (domain, range) ->
   scale = d3.scale.linear()
@@ -337,30 +494,20 @@ createCategoricalScale = (domain, range) ->
   _rangeCount = _rangeValues.length
   (category) -> _rangeValues[ category.index % _rangeCount ]
 
-createSequentialLinearScale = (label, domain, range) ->
+createSequentialLinearScale = (domain, range) ->
   d3.scale.linear()
     .domain [ domain.min, domain.max ]
     .range [ range.min, range.max ]
 
-createDivergingLinearScale = (label, domain, range) ->
+createDivergingLinearScale = (domain, range) ->
   d3.scale.linear()
     .domain [ domain.min, domain.mid, domain.max ]
     .range [ range.min, range.mid, range.max ]
 
 createLinearScale = dispatch(
-  [ String, SequentialRange, SequentialRange, createSequentialLinearScale ]
-  [ String, DivergingRange, DivergingRange, createDivergingLinearScale ]
+  [ SequentialRange, SequentialRange, createSequentialLinearScale ]
+  [ DivergingRange, DivergingRange, createDivergingLinearScale ]
 )
-
-class Variable
-  constructor: (@name, @label, @type, @data, @domain, @format, @read) ->
-
-class Factor extends Variable
-  constructor: (name, label, type, data, domain, format, read) ->
-    super name, label, type, data, domain, format, read
-
-class Table
-  constructor: (@label, @variables, @rowCount, @schema, @indices, @get, @put) ->
 
 createTable = (label, variables, rowCount) ->
   schema = indexBy variables, (variable) -> variable.name
@@ -381,41 +528,11 @@ createTable = (label, variables, rowCount) ->
 
   table
 
-class Value
-  constructor: (@value) ->
-
-class NumberValue extends Value
-  constructor: (value) -> super value
-
-class StringValue extends Value
-  constructor: (value) -> super value
-
-class DateValue extends Value
-  constructor: (value) -> super value
-
-class BooleanValue extends Value
-  constructor: (value) -> super value
-
-class Field
-  constructor: (@name) ->
-
-class ComputedField extends Field
-  constructor: (@evaluate) ->
 
 resolveChannels = (geom) ->
   debug geom
   geom
 
-class Geometry
-
-class PointGeometry extends Geometry
-  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
-
-class TextGeometry extends Geometry
-  constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
-
-class PointEncoding
-  constructor: (@positionX, @positionY, @shape, @size, @fill, @stroke, @lineWidth) ->
 
 drawCircle = (g, x, y, area) ->
   r = sqrt area/π
@@ -542,9 +659,6 @@ pickCategoricalColorPalette = (cardinality) ->
 
 pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
 
-class VariableShapeEncoder extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
 
 encodeShape = (table, channel) ->
   if channel instanceof VariableShapeChannel
@@ -560,11 +674,22 @@ encodeShape = (table, channel) ->
   else
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
-encodeSize = (table, sizeChannel) ->
-  if sizeChannel instanceof VariableSizeChannel
-    throw new Error 'ni'
+encodeSize = (table, channel) ->
+  if channel instanceof VariableSizeChannel
+    variable = table.get channel.field
+    if variable instanceof Factor
+      throw new Error "Could not encode size. Variable '#{variable.label}' is a Factor."
+    domain = new SequentialRange variable.domain.min, variable.domain.max
+    range = if channel.range
+      new SequentialRange channel.range.min, channel.range.max
+    else
+      channel.range = new SequentialRange defaultArea, 30 * 30 
+    scale = createLinearScale domain, range 
+    read = variable.read
+    encode = (i) -> scale read i
+    new VariableSizeEncoder variable.label, encode, domain, range, null #XXX
   else
-    new ConstantEncoder sizeChannel.value
+    new ConstantEncoder channel.value
 
 encodeLineWidth = (table, lineWidthChannel) ->
   if lineWidthChannel instanceof VariableLineWidthChannel
@@ -633,9 +758,8 @@ ColorPalettes =
   ]
 
 defaultPoint = (geom) ->
-
   geom.shape = new FixedShapeChannel 'circle' unless geom.shape
-  geom.size = new FixedSizeChannel defaultSize * defaultSize unless geom.size
+  geom.size = new FixedSizeChannel defaultArea unless geom.size
 
   hasFill = geom.fillColor or geom.fillOpacity
   hasStroke = geom.strokeColor or geom.strokeOpacity or geom.lineWidth
@@ -817,92 +941,6 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 
   return
 
-class Channel
-
-class ColorChannel extends Channel
-
-class PointChannel extends Channel
-  constructor: (@fieldX, @fieldY) ->
-
-class PositionChannel extends Channel
-  constructor: (@field) ->
-
-class FillColorChannel extends Channel
-class FillOpacityChannel extends Channel
-class StrokeColorChannel extends Channel
-class StrokeOpacityChannel extends Channel
-class SizeChannel extends Channel
-class LineWidthChannel extends Channel
-class ShapeChannel extends Channel
-
-class FixedFillColorChannel extends FillColorChannel
-  constructor: (@value) ->
-
-class VariableFillColorChannel extends FillColorChannel
-  constructor: (@field, @range) ->
-
-class FixedFillOpacityChannel extends FillOpacityChannel
-  constructor: (@value) ->
-
-class VariableFillOpacityChannel extends FillOpacityChannel
-  constructor: (@field, @range) ->
-
-class FixedStrokeColorChannel extends StrokeColorChannel
-  constructor: (@value) ->
-
-class VariableStrokeColorChannel extends StrokeColorChannel
-  constructor: (@field, @range) ->
-
-class FixedStrokeOpacityChannel extends StrokeOpacityChannel
-  constructor: (@value) ->
-
-class VariableStrokeOpacityChannel extends StrokeOpacityChannel
-  constructor: (@field, @range) ->
-
-class FixedSizeChannel extends SizeChannel
-  constructor: (@value) ->
-
-class VariableSizeChannel extends SizeChannel
-  constructor: (@field, @range) ->
-
-class FixedLineWidthChannel extends LineWidthChannel
-  constructor: (@value) ->
-
-class VariableLineWidthChannel extends LineWidthChannel
-  constructor: (@lineWidth, @range) ->
-
-class FixedShapeChannel extends ShapeChannel
-  constructor: (@value) ->
-
-class VariableShapeChannel extends ShapeChannel
-  constructor: (@field, @range) ->
-
-class Extent
-  constructor: (@min, @max) ->
-
-class Range
-
-class CategoricalRange extends Range
-  constructor: (@values) ->
-
-class QuantitativeRange extends Range
-
-class SequentialRange extends QuantitativeRange
-  constructor: (@min, @max) ->
-
-class DivergingRange extends QuantitativeRange
-  constructor: (@min, @mid, @max) ->
-
-class ColorRange extends Range
-
-class SequentialColorRange extends ColorRange
-  constructor: (@min, @max) ->
-
-class DivergingColorRange extends ColorRange
-  constructor: (@min, @mid, @max) ->
-
-class Datasource
-  constructor: (@read) ->
 
 plot_data = dispatch(
   [ Table, identity ]
@@ -968,12 +1006,15 @@ plot_range = dispatch(
 )
 
 plot_position = dispatch(
-  [ String, String, (fieldX, fieldY) -> new PointChannel (new Field fieldX), (new Field fieldY) ]
+  [ String, String, (nameX, nameY) -> new PointChannel (new Field nameX), (new Field nameY) ]
+  [ String, Field, (nameX, fieldY) -> new PointChannel (new Field nameX), fieldY ]
+  [ Field, String, (fieldX, nameY) -> new PointChannel fieldX, (new Field nameY) ]
+  [ Field, Field, (fieldX, fieldY) -> new PointChannel fieldX, fieldY ]
 )
 
 plot_shape = dispatch(
   [ StringValue, (value) -> new FixedShapeChannel value.value ]
-  [ String, (name) -> new VariableShapeChannel (new Field name) ]
+  [ String, (name) -> new VariableShapeChannel new Field name ]
   [ Field, (field) -> new VariableShapeChannel field ]
   [ String, CategoricalRange, (name, range) -> new VariableShapeChannel (new Field name), range ]
   [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
@@ -981,37 +1022,49 @@ plot_shape = dispatch(
 
 plot_fillColor = dispatch(
   [ StringValue, (value) -> new FixedFillColorChannel createColor value.value ]
-  [ String, (field) -> new VariableFillColorChannel field ]
-  [ String, ColorRange, (field, range) -> new VariableFillColorChannel field, range ]
+  [ String, (name) -> new VariableFillColorChannel new Field name ]
+  [ Field, (field) -> new VariableFillColorChannel field ]
+  [ String, ColorRange, (name, range) -> new VariableFillColorChannel (new Field name), range ]
+  [ Field, ColorRange, (field, range) -> new VariableFillColorChannel field, range ]
 )
 
 plot_fillOpacity = dispatch(
   [ NumberValue, (value) -> new FixedFillOpacityChannel value.value ]
-  [ String, (field) -> new VariableFillOpacityChannel field ]
-  [ String, SequentialRange, (field, range) -> new VariableFillOpacityChannel field, range ]
+  [ String, (name) -> new VariableFillOpacityChannel new Field name ]
+  [ Field, (field) -> new VariableFillOpacityChannel field ]
+  [ String, SequentialRange, (name, range) -> new VariableFillOpacityChannel (new Field name), range ]
+  [ Field, SequentialRange, (field, range) -> new VariableFillOpacityChannel field, range ]
 )
 
 plot_strokeColor = dispatch(
   [ StringValue, (value) -> new FixedStrokeColorChannel createColor value.value ]
-  [ String, (field) -> new VariableStrokeColorChannel field ]
-  [ String, ColorRange, (field, range) -> new VariableStrokeColorChannel field, range ]
+  [ String, (name) -> new VariableStrokeColorChannel new Field name ]
+  [ Field, (field) -> new VariableStrokeColorChannel field ]
+  [ String, ColorRange, (name, range) -> new VariableStrokeColorChannel (new Field name), range ]
+  [ Field, ColorRange, (field, range) -> new VariableStrokeColorChannel field, range ]
 )
 
 plot_strokeOpacity = dispatch(
   [ NumberValue, (value) -> new FixedStrokeOpacityChannel value.value ]
-  [ String, (field) -> new VariableStrokeOpacityChannel field ]
-  [ String, SequentialRange, (field, range) -> new VariableStrokeOpacityChannel field, range ]
+  [ String, (name) -> new VariableStrokeOpacityChannel new Field name ]
+  [ Field, (field) -> new VariableStrokeOpacityChannel field ]
+  [ String, SequentialRange, (name, range) -> new VariableStrokeOpacityChannel (new Field name), range ]
+  [ Field, SequentialRange, (field, range) -> new VariableStrokeOpacityChannel field, range ]
 )
 
 plot_size = dispatch(
   [ NumberValue, (value) -> new FixedSizeChannel defaultSize * value.value * defaultSize * value.value ]
-  [ String, (field) -> new VariableSizeChannel field ]
-  [ String, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
+  [ String, (name) -> new VariableSizeChannel new Field name ]
+  [ Field, (field) -> new VariableSizeChannel field ]
+  [ String, SequentialRange, (name, range) -> new VariableSizeChannel (new Field name), range ]
+  [ Field, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
 )
 plot_lineWidth = dispatch(
   [ NumberValue, (value) -> new FixedLineWidthChannel value.value ]
-  [ String, (field) -> new VariableLineWidthChannel field ]
-  [ String, SequentialRange, (field, range) -> new VariableLineWidthChannel field, range ]
+  [ String, (name) -> new VariableLineWidthChannel new Field name ]
+  [ Field, (field) -> new VariableLineWidthChannel field ]
+  [ String, SequentialRange, (name, range) -> new VariableLineWidthChannel (new Field name), range ]
+  [ Field, SequentialRange, (field, range) -> new VariableLineWidthChannel field, range ]
 )
 
 plot_parse = (esprima, escodegen) ->
@@ -1044,8 +1097,6 @@ plot_parse = (esprima, escodegen) ->
     escodegen.generate ast
 
 
-class Canvas
-  constructor: (@element, @context, @bounds, @ratio) ->
 
 createCanvas = (bounds) ->
   { width, height } = bounds
@@ -1073,9 +1124,6 @@ createCanvas = (bounds) ->
   new Canvas element, context, bounds, ratio
 
 px = (pixels) -> "#{round pixels}px"
-
-class Viewport
-  constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
 
 
 extractEncodings = (encoding) ->
@@ -1147,9 +1195,6 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
 
   new Visualization viewport, table, test, highlight, hover, selectAt, selectWithin, render
 
-class Visualization
-  constructor: (@viewport, @table, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
-
 createViewport = (bounds) ->
   [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
 
@@ -1192,14 +1237,9 @@ createViewport = (bounds) ->
     clip
   )
 
-class Bounds
-  constructor: (@width, @height) ->
 
 plot_defaults =
   bounds: new Bounds 400, 400
-
-class Category
-  constructor: (@index, @value) ->
 
 factor = (field) ->
   new ComputedField (table) ->
@@ -1285,8 +1325,6 @@ computeExtent = (array) ->
   
   new Extent min, max
 
-class Factoring
-  constructor: (@data, @domain, @format, @read) ->
 
 factorize = (array, values) ->
   _id = 0
