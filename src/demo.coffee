@@ -60,14 +60,14 @@ createVariables = (schema) ->
       switch obj
         when 'string'
           parser = StringParser()
-          new plot.Variable label, 'String', parser.domain, _.identity, parser
+          new plot.Variable label, label, 'String', parser.domain, _.identity, parser
 
         when 'int'
           parser = StringToIntParser()
-          new plot.Variable label, 'Number', parser.domain, _.identity, parser #TODO format
+          new plot.Variable label, label, 'Number', parser.domain, _.identity, parser #TODO format
         when 'real'
           parser = StringToRealParser() 
-          new plot.Variable label, 'Number', parser.domain, _.identity, parser #TODO format #TODO format
+          new plot.Variable label, label, 'Number', parser.domain, _.identity, parser #TODO format #TODO format
 
         #
         #TODO dates
@@ -77,7 +77,7 @@ createVariables = (schema) ->
 
     else if _.isArray obj
       parser = StringParser()
-      new plot.Variable label, 'String', parser.domain, _.identity, parser
+      new plot.Variable label, label, 'String', parser.domain, _.identity, parser
 
     else
       throw new Error "Invalid type #{obj} for schema field #{label}"
@@ -97,7 +97,7 @@ createTable = (label, schema, data) ->
       record[variable.label] = variable.read row[i]
     record
 
-  new plot.Table label, variables, records
+  plot.table label, variables, records
 
 window.csv = (label) ->
   (go) ->

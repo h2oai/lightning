@@ -355,12 +355,26 @@ createLinearScale = dispatch(
 )
 
 class Variable
-  constructor: (@label, @type, @domain, @format, @read) ->
+  constructor: (@name, @label, @type, @domain, @format, @read) ->
 
 class Table
-  constructor: (@label, @variables, @records) ->
-    @schema = indexBy variables, (variable) -> variable.label
-    @indices = sequence records.length
+  constructor: (@label, @variables, @records, @schema, @indices, @get, @put) ->
+
+createTable = (label, variables, records) ->
+  schema = indexBy variables, (variable) -> variable.name
+  indices = sequence records.length
+
+  table = new Table label, variables, records, schema, indices, null, null
+
+  table.get = (field) ->
+    schema[field.name]
+
+  table.put = (variable) ->
+    variables.push variable
+    schema[ variable.name ] = variable
+    variable
+
+  table
 
 class Value
   constructor: (@value) ->
@@ -376,6 +390,14 @@ class DateValue extends Value
 
 class BooleanValue extends Value
   constructor: (value) -> super value
+
+class Field
+  constructor: (@name) ->
+
+class ComputedField extends Field
+
+resolveChannels = (geom) ->
+  geom
 
 class Geometry
 
@@ -519,11 +541,13 @@ class VariableShapeEncoder extends VariableEncoder
 
 encodeShape = (table, channel) ->
   if channel instanceof VariableShapeChannel
-    field = channel.field
-    variable = table.schema[field]
-    throw new Error "Cannot map field '#{field}' to shapes." if variable.type isnt TString
+    variable = table.get channel.field
+
+    throw new Error "Cannot map variable '#{variable.label}' to shapes." if variable.type isnt TString
     channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length unless channel.range
     scale = createCategoricalScale variable.domain, channel.range
+    attr = variable.name
+    encode = (d) -> scale d[attr]
     new VariableShapeEncoder variable.label, scale, variable.domain, channel.range, null #XXX
   else
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
@@ -600,7 +624,7 @@ ColorPalettes =
     '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'
   ]
 
-defaultPointGeometry = (geom) ->
+defaultPoint = (geom) ->
 
   geom.shape = new FixedShapeChannel 'circle' unless geom.shape
   geom.size = new FixedSizeChannel defaultSize * defaultSize unless geom.size
@@ -622,7 +646,7 @@ defaultPointGeometry = (geom) ->
 
 encodePosition = (table, channel, range) ->
   field = channel.field
-  variable = table.schema[field]
+  variable = table.get field
   { domain } = variable
 
   switch variable.type
@@ -631,7 +655,8 @@ encodePosition = (table, channel, range) ->
         new SequentialRange domain[0], domain[1]
         range
       )
-      encode = (d) -> scale d[field]
+      attr = variable.name
+      encode = (d) -> scale d[attr]
       guide = (count) ->
         format = scale.tickFormat count
         scale.ticks count
@@ -940,12 +965,13 @@ plot_range = dispatch(
 )
 
 plot_position = dispatch(
-  [ String, String, (fieldX, fieldY) -> new PointChannel fieldX, fieldY ]
+  [ String, String, (fieldX, fieldY) -> new PointChannel (new Field fieldX), (new Field fieldY) ]
 )
 
 plot_shape = dispatch(
   [ StringValue, (value) -> new FixedShapeChannel value.value ]
   [ String, (field) -> new VariableShapeChannel field ]
+  [ Field, (field) -> new VariableShapeChannel field ]
   [ String, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
@@ -1184,31 +1210,12 @@ render = (table, ops) ->
   bounds = getOp ops, Bounds, plot_defaults.bounds
   geoms = filterByType ops, Geometry
 
-  #positions = map geoms, (geom) -> geom.position
-  #variablesX = map positions, (position) -> table.schema[position.fieldX]
-  #variablesY = map positions, (position) -> table.schema[position.fieldY]
-
   #TODO handle layers
 
   geom = head geoms
-  variableX = table.schema[geom.positionX.field]
-  variableY = table.schema[geom.positionY.field]
 
-  axisX = if variableX.type is TNumber
-    createLinearAxis variableX.label, new SequentialRange(variableX.domain[0], variableX.domain[1]), new SequentialRange 0, bounds.width  
-  else
-    null #XXX
-
-  axisY = if variableY.type is TNumber
-    createLinearAxis variableY.label, new SequentialRange(variableY.domain[0], variableY.domain[1]), new SequentialRange bounds.height, 0
-  else
-    null #XXX
-
-  debug axisX.guide 10
-  debug axisY.guide 10
-
-
-  encoding = encodePoint table, (defaultPointGeometry geom), bounds
+  resolvedGeom = resolveChannels defaultPoint geom
+  encoding = encodePoint table, resolvedGeom, bounds
 
   visualization = createVisualization bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint
 
@@ -1259,7 +1266,7 @@ plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
 plot.parse = plot_parse
 plot.compile = plot_compile
-plot.Table = Table
+plot.table = createTable
 plot.Variable = Variable
 
 

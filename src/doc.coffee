@@ -215,7 +215,7 @@ plot(
   point(
     position 'wt', 'mpg'
     fillColor value 'black'
-    shape 'cyl', range ['circle', 'triangle', 'square']
+    shape 'cyl', range ['circle', 'triangleUp', 'square']
   )
 )
 
