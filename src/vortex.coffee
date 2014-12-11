@@ -1287,24 +1287,24 @@ computeExtent = (array) ->
 class Factoring
   constructor: (@data, @domain, @format, @read) ->
 
-factorize = (array, categoryNames) ->
+factorize = (array, values) ->
   _id = 0
   _dictionary = {}
-  _data = new Array array.length
+  data = new Array array.length
 
-  _domain = for name in categoryNames
-    _dictionary[name] = new Category _id++, name
+  domain = for value in values
+    _dictionary[value] = new Category _id++, value
 
   for element, index in array
-    name = if element is undefined or element is null then '?' else element
-    unless category = _dictionary[name]
-      _domain.push _dictionary[name] = category = new Category _id++, name
-    _data[index] = category
+    value = if element is undefined or element is null then '?' else element
+    unless category = _dictionary[value]
+      domain.push _dictionary[value] = category = new Category _id++, value
+    data[index] = category
 
-  format = (i) -> _data[i].value
-  read = (i) -> _data[i]
+  format = (i) -> data[i].value
+  read = (i) -> data[i]
 
-  new Factoring _data, _domain, format, read
+  new Factoring data, domain, format, read
 
 createFactor = (label, type, data, domain) ->
   factoring = factorize data, domain or []
