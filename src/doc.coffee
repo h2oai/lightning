@@ -331,7 +331,7 @@ plot(
   point(
     position 'carat', 'price'
     fillColor value 'black'
-    fillOpacity opacity 1/10
+    fillOpacity value 1/10
   )
 )
 
@@ -351,7 +351,7 @@ plot(
   point(
     position 'carat', 'price'
     fillColor value 'black'
-    fillOpacity opacity 1/20
+    fillOpacity value 1/20
   )
 )
 
@@ -371,7 +371,7 @@ plot(
   point(
     position 'carat', 'price'
     fillColor value 'black'
-    fillOpacity opacity 1/100
+    fillOpacity value 1/100
   )
 )
 

@@ -355,16 +355,20 @@ createLinearScale = dispatch(
 )
 
 class Variable
-  constructor: (@name, @label, @type, @domain, @format, @read) ->
+  constructor: (@name, @label, @type, @data, @domain, @format, @read) ->
+
+class Factor extends Variable
+  constructor: (name, label, type, data, domain, format, read) ->
+    super name, label, type, data, domain, format, read
 
 class Table
-  constructor: (@label, @variables, @records, @schema, @indices, @get, @put) ->
+  constructor: (@label, @variables, @rowCount, @schema, @indices, @get, @put) ->
 
-createTable = (label, variables, records) ->
+createTable = (label, variables, rowCount) ->
   schema = indexBy variables, (variable) -> variable.name
-  indices = sequence records.length
+  indices = sequence rowCount
 
-  table = new Table label, variables, records, schema, indices, null, null
+  table = new Table label, variables, rowCount, schema, indices, null, null
 
   table.get = (field) ->
     schema[field.name]
@@ -395,8 +399,10 @@ class Field
   constructor: (@name) ->
 
 class ComputedField extends Field
+  constructor: (@compute) ->
 
 resolveChannels = (geom) ->
+  debug geom
   geom
 
 class Geometry
@@ -542,12 +548,14 @@ class VariableShapeEncoder extends VariableEncoder
 encodeShape = (table, channel) ->
   if channel instanceof VariableShapeChannel
     variable = table.get channel.field
-
-    throw new Error "Cannot map variable '#{variable.label}' to shapes." if variable.type isnt TString
-    channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length unless channel.range
+    if variable.type isnt TString
+      throw new Error "Cannot map variable '#{variable.label}' to shapes." 
+    unless channel.range
+      channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length 
     scale = createCategoricalScale variable.domain, channel.range
     attr = variable.name
-    encode = (d) -> scale d[attr]
+    read = variable.read
+    encode = (i) -> scale read i
     new VariableShapeEncoder variable.label, scale, variable.domain, channel.range, null #XXX
   else
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
@@ -651,12 +659,9 @@ encodePosition = (table, channel, range) ->
 
   switch variable.type
     when TNumber
-      scale = createNicedLinearScale(
-        new SequentialRange domain[0], domain[1]
-        range
-      )
-      attr = variable.name
-      encode = (d) -> scale d[attr]
+      scale = createNicedLinearScale domain, range
+      read = variable.read
+      encode = (i) -> scale read i
       guide = (count) ->
         format = scale.tickFormat count
         scale.ticks count
@@ -683,93 +688,88 @@ encodePoint = (table, geom, bounds) ->
   new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
 
 
-highlightPoint = (data, indices, encoding, g) ->
+highlightPoint = (indices, encoding, g) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
-  for index in indices
-    d = data[index]
-    x = positionX d
-    y = positionY d
+  for i in indices
+    x = positionX i
+    y = positionY i
     if x isnt null and y isnt null
-      (shape d) g, x, y, size d
+      (shape i) g, x, y, size i
 
-      g.lineWidth = 2 + if stroke then lineWidth d else 1
+      g.lineWidth = 2 + if stroke then lineWidth i else 1
       g.stroke()
   g.restore()
 
   g.save()
   g.globalCompositeOperation = 'destination-out'
   g.fillStyle = g.strokeStyle = 'black'
-  for index in indices
-    d = data[index]
-    x = positionX d
-    y = positionY d
+  for i in indices
+    x = positionX i
+    y = positionY i
     if x isnt null and y isnt null
-      (shape d) g, x, y, size d
+      (shape i) g, x, y, size i
       if stroke
-        g.lineWidth = lineWidth d
+        g.lineWidth = lineWidth i
         g.stroke()
       if fill
         g.fill()
   g.restore()
 
 
-maskPoint = (data, indices, encoding, g, mask) ->
+maskPoint = (indices, encoding, g, mask) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
-  for index in indices
-    d = data[index]
-    x = positionX d
-    y = positionY d
+  for i in indices
+    x = positionX i
+    y = positionY i
 
     if x isnt null and y isnt null
-      maskStyle = mask.put index
-      (shape d) g, x, y, size d
+      maskStyle = mask.put i
+      (shape i) g, x, y, size i
       g.fillStyle = maskStyle
       g.fill()
       if stroke
-        g.lineWidth = lineWidth d
+        g.lineWidth = lineWidth i
         g.strokeStyle = maskStyle
         g.stroke()
   g.restore()
 
-renderPoint = (data, indices, encoding, g) ->
+renderPoint = (indices, encoding, g) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
-  for index in indices
-    d = data[index]
-    x = positionX d
-    y = positionY d
+  for i in indices
+    x = positionX i
+    y = positionY i
 
     if x isnt null and y isnt null
-      (shape d) g, x, y, size d
+      (shape i) g, x, y, size i
 
       if stroke
-        g.lineWidth = lineWidth d
-        g.strokeStyle = stroke d
+        g.lineWidth = lineWidth i
+        g.strokeStyle = stroke i
         g.stroke()
 
       if fill
-        g.fillStyle = fill d
+        g.fillStyle = fill i
         g.fill()
 
   g.restore()
 
 # XXX Naive, need some kind of memoization during rendering.
-selectPoint = (data, indices, encoding, xmin, ymin, xmax, ymax) ->
+selectPoint = (indices, encoding, xmin, ymin, xmax, ymax) ->
   { positionX, positionY } = encoding
 
   selectedIndices = []
 
-  for index in indices
-    d = data[index]
-    x = positionX d
-    y = positionY d
+  for i in indices
+    x = positionX i
+    y = positionY i
     if x isnt null and y isnt null and xmin <= x <= xmax and ymin <= y <= ymax
-      selectedIndices.push index
+      selectedIndices.push i
 
   selectedIndices
 
@@ -876,6 +876,9 @@ class FixedShapeChannel extends ShapeChannel
 
 class VariableShapeChannel extends ShapeChannel
   constructor: (@field, @range) ->
+
+class Extent
+  constructor: (@min, @max) ->
 
 class Range
 
@@ -1085,44 +1088,47 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
   viewport = createViewport bounds
 
   { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
-  { records, indices } = table
+  { indices } = table
   encodings = extractEncodings encoding
 
   _index = undefined
 
   test = (x, y) ->
-    index = mask.test x, y
-    if index isnt undefined
+    i = mask.test x, y
+    if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      maskPoint records, [ index ], encodings, clipCanvas.context, clip
-      return index if clip.test x, y
+      maskPoint [ i ], encodings, clipCanvas.context, clip
+      return i if clip.test x, y
     return
 
   hover = (x, y) ->
     debug x, y
-    index = test x, y
-    if index isnt _index
-      _index = index
+    i = test x, y
+    if i isnt _index
+      _index = i
       hoverCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      if index isnt undefined
-        debug records[index]
-        highlightPoint records, [ index ], encodings, hoverCanvas.context
+      if i isnt undefined
+        tooltip = {}
+        for variable in table.variables
+          tooltip[variable.name] = variable.format i
+        debug tooltip
+        highlightPoint [ i ], encodings, hoverCanvas.context
     return
 
   highlight = (indices) ->
     highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
-      highlightPoint records, indices, encodings, highlightCanvas.context
-      renderPoint records, indices, encodings, highlightCanvas.context
+      highlightPoint indices, encodings, highlightCanvas.context
+      renderPoint indices, encodings, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
 
   selectAt = (x, y) ->
-    index = test x, y
+    i = test x, y
     debug 'selectAt', x, y
-    highlight if index isnt undefined then [ index ] else []
+    highlight if i isnt undefined then [ i ] else []
 
   selectWithin = (x1, y1, x2, y2) ->
     xmin = if x1 > x2 then x2 else x1
@@ -1130,11 +1136,11 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    highlight selectPoint records, indices, encodings, xmin, ymin, xmax, ymax
+    highlight selectPoint indices, encodings, xmin, ymin, xmax, ymax
 
   render = ->
-    renderPoint records, indices, encodings, baseCanvas.context
-    maskPoint records, indices, encodings, maskCanvas.context, mask
+    renderPoint indices, encodings, baseCanvas.context
+    maskPoint indices, encodings, maskCanvas.context, mask
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
@@ -1190,6 +1196,21 @@ class Bounds
 
 plot_defaults =
   bounds: new Bounds 400, 400
+
+class Level
+  constructor: (@index, @value) ->
+
+doFactor = (field) ->
+  compute = (table) ->
+    variable = table.get field
+    attr = variable.name
+
+  new ComputedField compute
+
+plot_factor = dispatch(
+  [ String, (name) -> doFactor new Field name ]
+  [ Field, (field) -> doFactor field ]
+)
 
 getOp = (ops, type, def) ->
   if op = findByType ops, type
@@ -1247,6 +1268,47 @@ plot = (ops...) ->
   else
     (more...) -> apply plot, null, concat ops, more
 
+computeExtent = (array) ->
+  min = Number.POSITIVE_INFINITY
+  max = Number.NEGATIVE_INFINITY
+  for value in array
+    if value isnt null
+      min = value if value <= min 
+      max = value if value >= max
+  
+  new Extent min, max
+
+class Factoring
+  constructor: (@data, @domain, @format, @read) ->
+
+factorize = (array, domain) ->
+  _id = 0
+  _categories = {}
+  _data = new Array array.length
+
+  _domain = for category in domain
+    _categories[category] = new Level _id++, category
+
+  for element, index in array
+    category = if element is undefined or element is null then '?' else element
+    unless level = _categories[category]
+      _domain.push _categories[category] = level = new Level _id++, category
+    _data[index] = level
+
+  format = (i) -> _data[i].value
+  read = (i) -> _data[i]
+
+  new Factoring _data, _domain, format, read
+
+createFactor = (label, type, data, domain) ->
+  factoring = factorize data, domain or []
+  new Factor label, label, type, factoring.data, factoring.domain, factoring.format, factoring.read
+
+createVariable = (label, type, data, format) ->
+  domain = computeExtent data
+  read = (i) -> data[i]
+  _format = (i) -> format data[i]
+  new Variable label, label, type, data, domain, _format, read
 
 plot.data = plot_data
 plot.rectangular = plot_rectangular
@@ -1264,10 +1326,12 @@ plot.strokeOpacity = plot_strokeOpacity
 plot.size = plot_size
 plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
+plot.factor = plot_factor
 plot.parse = plot_parse
 plot.compile = plot_compile
-plot.table = createTable
-plot.Variable = Variable
+plot.createTable = createTable
+plot.createVariable = createVariable
+plot.createFactor = createFactor
 
 
 if module?.exports? then module.exports = plot else window.plot = plot

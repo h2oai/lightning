@@ -7,67 +7,36 @@ read = (type, url, go) ->
     success: (data, status, xhr) -> go null, data
     error: (xhr, status, error) -> go error
 
+asReal = (datum) ->
+  value = parseFloat datum
+  if isNaN value then null else value
 
+asInt = (datum) ->
+  value = parseInt datum, 10
+  if isNaN value then null else value
 
-#
-# Streaming parsers
-#
-NumberParser = (domain=[Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) ->
-  self = (datum) ->
-    domain[0] = datum if datum < domain[0]
-    domain[1] = datum if datum > domain[1]
-    datum
-  self.domain = domain
-  self
+asString = (datum) ->
+  if datum? then datum else null
 
-StringToIntParser = (domain) ->
-  parse = NumberParser domain
-  self = (datum) -> 
-    value = parseInt datum, 10
-    if isNaN value then null else parse value
-  self.domain = parse.domain
-  self
-
-StringToRealParser = (domain) ->
-  parse = NumberParser domain
-  self = (datum) -> 
-    value = parseFloat datum
-    if isNaN value then null else parse value
-  self.domain = parse.domain
-  self
-
-StringParser = (domain=[]) ->
-  _id = 0
-  _levels = {}
-
-  if domain.length
-    for level in domain
-      _levels[level] = _id++
-
-  self = (datum) ->
-    level = if datum is undefined or datum is null then 'null' else datum
-    unless undefined isnt id = _levels[level]
-      _levels[level] = id = _id++
-      self.domain.push level
-    id
-
-  self.domain = domain
-  self
-
-createVariables = (schema) ->
+identifyColumns = (schema) ->
   for label, obj of schema
     if _.isString obj
       switch obj
         when 'string'
-          parser = StringParser()
-          new plot.Variable label, label, 'String', parser.domain, _.identity, parser
+          label: label
+          type: 'String'
+          domain: []
+          parse: asString
 
         when 'int'
-          parser = StringToIntParser()
-          new plot.Variable label, label, 'Number', parser.domain, _.identity, parser #TODO format
+          label: label
+          type: 'Number'
+          parse: asInt
+
         when 'real'
-          parser = StringToRealParser() 
-          new plot.Variable label, label, 'Number', parser.domain, _.identity, parser #TODO format #TODO format
+          label: label
+          type: 'Number'
+          parse: asReal
 
         #
         #TODO dates
@@ -76,28 +45,43 @@ createVariables = (schema) ->
           throw new Error "Invalid type #{obj} for schema field #{label}"
 
     else if _.isArray obj
-      parser = StringParser()
-      new plot.Variable label, label, 'String', parser.domain, _.identity, parser
+      label: label
+      type: 'String'
+      domain: obj
+      parse: asString
 
     else
       throw new Error "Invalid type #{obj} for schema field #{label}"
 
 createTable = (label, schema, data) ->
-  variables = createVariables schema
-
-  Record = plot.compile variables
-
+  columns = identifyColumns schema
   rows = CSV.parse data,
     header: no
     cast: no
 
-  records = for row in rows
-    record = new Record()
-    for variable, i in variables
-      record[variable.label] = variable.read row[i]
-    record
+  variables = for column, offset in columns
+    data = new Array rows.length
+    for row, index in rows
+      data[index] = column.parse row[offset]
 
-  plot.table label, variables, records
+    switch column.type
+      when 'String'
+        plot.createFactor(
+          column.label   
+          column.type
+          data
+          column.domain
+        )
+      when 'Number'
+        plot.createVariable(
+          column.label
+          column.type
+          data
+          _.identity #TODO
+        )
+      #TODO Date
+
+  plot.createTable label, variables, rows.length
 
 window.csv = (label) ->
   (go) ->
