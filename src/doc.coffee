@@ -136,7 +136,7 @@ plot(
     position 'wt', 'mpg'
     fillColor value 'red'
     fillOpacity value 0.5
-    size value 2 
+    size value 16
   )
 )
 ###
@@ -155,7 +155,7 @@ plot(
     position 'wt', 'mpg'
     fillColor value 'red'
     fillOpacity value 0.25
-    size value 2 
+    size value 16
     strokeColor value 'purple'
     strokeOpacity value 0.5
     lineWidth value 5
@@ -265,7 +265,43 @@ plot(
   data csv 'mtcars'
   point( 
     position 'wt', 'mpg'
-    size 'qsec', range 4 * 4, 40 * 40
+    size 'qsec', range 4, 40
+  )
+)
+
+###
+plot point-vlw
+point + variable lineWidth
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point( 
+    position 'wt', 'mpg'
+    lineWidth 'qsec'
+  )
+)
+
+###
+plot point-vlwr
+point + variable lineWidth with custom range
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point( 
+    position 'wt', 'mpg'
+    lineWidth 'qsec', range 2, 20
+    size value 20
+    strokeOpacity value 0.4
   )
 )
 
@@ -321,7 +357,7 @@ plot(
   point(
     position 'wt', 'mpg'
     fillColor value 'red'
-    size value 3
+    size value 16
   )
 )
 
@@ -340,7 +376,7 @@ plot(
   point(
     position 'wt', 'mpg'
     fillColor value 'red'
-    size value 3
+    size value 16
     shape shapes.square
   )
 )

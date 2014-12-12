@@ -27,9 +27,9 @@ Degrees = 180 / π
 Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
+sq = (x) -> x * x
 
 defaultSize = 8
-defaultArea = defaultSize * defaultSize
 
 #
 # Chroma wrappers
@@ -368,7 +368,7 @@ class FixedLineWidthChannel extends LineWidthChannel
   constructor: (@value) ->
 
 class VariableLineWidthChannel extends LineWidthChannel
-  constructor: (@lineWidth, @range) ->
+  constructor: (@field, @range) ->
 
 class FixedShapeChannel extends ShapeChannel
   constructor: (@value) ->
@@ -681,21 +681,32 @@ encodeSize = (table, channel) ->
       throw new Error "Could not encode size. Variable '#{variable.label}' is a Factor."
     domain = new SequentialRange variable.domain.min, variable.domain.max
     range = if channel.range
+      new SequentialRange (sq channel.range.min), (sq channel.range.max)
+    else
+      channel.range = new SequentialRange (sq defaultSize), (sq 30)
+    scale = createLinearScale domain, range 
+    read = variable.read
+    encode = (i) -> scale read i
+    new VariableSizeEncoder variable.label, encode, domain, range, null #XXX
+  else
+    new ConstantEncoder sq channel.value
+
+encodeLineWidth = (table, channel) ->
+  if channel instanceof VariableLineWidthChannel
+    variable = table.get channel.field
+    if variable instanceof Factor
+      throw new Error "Could not encode lineWidth. Variable '#{variable.label}' is a Factor."
+    domain = new SequentialRange variable.domain.min, variable.domain.max
+    range = if channel.range
       new SequentialRange channel.range.min, channel.range.max
     else
-      channel.range = new SequentialRange defaultArea, 30 * 30 
+      channel.range = new SequentialRange 1.5, 15
     scale = createLinearScale domain, range 
     read = variable.read
     encode = (i) -> scale read i
     new VariableSizeEncoder variable.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
-
-encodeLineWidth = (table, lineWidthChannel) ->
-  if lineWidthChannel instanceof VariableLineWidthChannel
-    throw new Error 'ni'
-  else
-    new ConstantEncoder lineWidthChannel.value
 
 encodeColor = (table, colorChannel, opacityChannel) ->
   isVariableColor = colorChannel instanceof VariableFillColorChannel or colorChannel instanceof VariableStrokeColorChannel
@@ -759,7 +770,7 @@ ColorPalettes =
 
 defaultPoint = (geom) ->
   geom.shape = new FixedShapeChannel 'circle' unless geom.shape
-  geom.size = new FixedSizeChannel defaultArea unless geom.size
+  geom.size = new FixedSizeChannel defaultSize unless geom.size
 
   hasFill = geom.fillColor or geom.fillOpacity
   hasStroke = geom.strokeColor or geom.strokeOpacity or geom.lineWidth
@@ -1053,7 +1064,7 @@ plot_strokeOpacity = dispatch(
 )
 
 plot_size = dispatch(
-  [ NumberValue, (value) -> new FixedSizeChannel defaultSize * value.value * defaultSize * value.value ]
+  [ NumberValue, (value) -> new FixedSizeChannel value.value ]
   [ String, (name) -> new VariableSizeChannel new Field name ]
   [ Field, (field) -> new VariableSizeChannel field ]
   [ String, SequentialRange, (name, range) -> new VariableSizeChannel (new Field name), range ]
