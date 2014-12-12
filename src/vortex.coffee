@@ -28,6 +28,14 @@ Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
 sq = (x) -> x * x
+clamp_ = (min, max) -> (value) ->
+  if value < min
+    min
+  else if value > max
+    max
+  else
+    value
+clampOpacity = clamp_ 0, 1
 
 defaultSize = 8
 
@@ -291,7 +299,7 @@ class TextGeometry extends Geometry
   constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
 
 class PointEncoding
-  constructor: (@positionX, @positionY, @shape, @size, @fill, @stroke, @lineWidth) ->
+  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
 class Encoder
   constructor: (@label, @encode) ->
@@ -305,6 +313,10 @@ class VariableEncoder extends Encoder
     super label, encode
 
 class LinearAxis extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+class VariableOpacityEncoder extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
@@ -672,6 +684,7 @@ encodeShape = (table, channel) ->
     encode = (i) -> Shapes[ scale read i ]
     new VariableShapeEncoder variable.label, encode, variable.domain, channel.range, null #XXX
   else
+    #REVIEW: throw error or switch to circle?
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
 encodeSize = (table, channel) ->
@@ -708,41 +721,31 @@ encodeLineWidth = (table, channel) ->
   else
     new ConstantEncoder channel.value
 
-encodeColor = (table, colorChannel, opacityChannel) ->
-  isVariableColor = colorChannel instanceof VariableFillColorChannel or colorChannel instanceof VariableStrokeColorChannel
-  isVariableOpacity = opacityChannel instanceof VariableFillOpacityChannel or opacityChannel instanceof VariableStrokeOpacityChannel
-
-  if isVariableColor
-    colorField = colorChannel.field
-    scaleColor = null #XXX
-    if isVariableOpacity
-      opacityField = opacityChannel.field
-      scaleOpacity = null #XXX
-      (d) ->
-        color = scaleColor d[colorField]
-        opacity = scaleOpacity d[opacityField]
-        colorToStyleA color, opacity
+encodeOpacity = (table, channel) ->
+  if channel instanceof VariableFillOpacityChannel or channel instanceof VariableStrokeOpacityChannel
+    variable = table.get channel.field
+    if variable instanceof Factor
+      throw new Error "Could not encode opacity. Variable '#{variable.label}' is a Factor."
+    domain = new SequentialRange variable.domain.min, variable.domain.max
+    range = if channel.range
+      new SequentialRange (clampOpacity channel.range.min), (clampOpacity channel.range.max)
     else
-      opacity = opacityChannel.value
-      if 0 <= opacity < 1
-        (d) ->
-          color = scaleColor d[colorField]
-          colorToStyleA color, opacity
-      else
-        (d) ->
-          colorToStyle scaleColor d[colorField]
+      channel.range = new SequentialRange 0.05, 1
+    scale = createLinearScale domain, range
+    read = variable.read
+    encode = (i) -> scale read i
+    new VariableOpacityEncoder variable.label, encode, domain, range, null #XXX
   else
-    color = colorChannel.value
-    if isVariableOpacity
-      opacityField = opacityChannel.field
-      scaleOpacity = null #XXX
-      (d) -> colorToStyleA color, scaleOpacity d[opacityField]
-    else
-      opacity = opacityChannel.value
-      if 0 <= opacity < 1
-        new ConstantEncoder colorToStyleA color, opacity
-      else
-        new ConstantEncoder colorToStyle color
+    new ConstantEncoder clampOpacity channel.value
+
+encodeColor = (table, channel) ->
+  if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
+    variable = table.get channel.field
+    scale = null #XXX
+    read = variable.read
+    encode = (i) -> scale read i
+  else
+    new ConstantEncoder channel.value
 
 ColorPalettes =
   c10: [
@@ -805,8 +808,19 @@ encodePosition = (table, channel, range) ->
     else
       throw new Error 'ni'
 
-encodePoint = (table, geom, bounds) ->
+composeStyle = (encodeColor, encodeOpacity) ->
+  if encodeColor and encodeOpacity
+    (i) ->
+      color = encodeColor i
+      opacity = encodeOpacity i
+      if 0 <= opacity < 1
+        colorToStyleA color, opacity
+      else
+        colorToStyle color
+  else
+    undefined
 
+encodePoint = (table, geom, bounds) ->
   positionX = encodePosition table, geom.positionX, new SequentialRange 0, bounds.width
   positionY = encodePosition table, geom.positionY, new SequentialRange bounds.height, 0
 
@@ -814,13 +828,15 @@ encodePoint = (table, geom, bounds) ->
   size = encodeSize table, geom.size
 
   if geom.fillColor or geom.fillOpacity
-    fill = encodeColor table, geom.fillColor, geom.fillOpacity
+    fillColor = encodeColor table, geom.fillColor
+    fillOpacity = encodeOpacity table, geom.fillOpacity
 
   if geom.strokeColor or geom.strokeOpacity or geom.lineWidth
-    stroke = encodeColor table, geom.strokeColor, geom.strokeOpacity
+    strokeColor = encodeColor table, geom.strokeColor
+    strokeOpacity = encodeOpacity table, geom.strokeOpacity
     lineWidth = encodeLineWidth table, geom.lineWidth
 
-  new PointEncoding positionX, positionY, shape, size, fill, stroke, lineWidth
+  new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 
 highlightPoint = (indices, encoding, g) ->
@@ -1136,11 +1152,16 @@ createCanvas = (bounds) ->
 
 px = (pixels) -> "#{round pixels}px"
 
-
 extractEncodings = (encoding) ->
   encodings = {}
   for own attr, encoder of encoding
     encodings[attr] = if encoder then encoder.encode else undefined
+
+  { fillColor, fillOpacity, strokeColor, strokeOpacity } = encodings
+
+  encodings.fill = composeStyle fillColor, fillOpacity
+  encodings.stroke = composeStyle strokeColor, strokeOpacity
+
   encodings
 
 createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint) ->

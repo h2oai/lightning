@@ -270,6 +270,41 @@ plot(
 )
 
 ###
+plot point-vfo
+point + variable fillOpacity
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point( 
+    position 'wt', 'mpg'
+    fillColor value 'red'
+    fillOpacity 'qsec'
+  )
+)
+
+###
+plot point-vfor
+point + variable fillOpacity with custom range
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point( 
+    position 'wt', 'mpg'
+    fillColor value 'red'
+    fillOpacity 'qsec', range 0.25, 1
+  )
+)
+###
 plot point-vlw
 point + variable lineWidth
 Description goes here.
@@ -305,82 +340,6 @@ plot(
   )
 )
 
-###
-plot ll-point-7
-Sample plot
-Description goes here.
----
-tags:
- - point
- - ll
-###
-plot(
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    strokeColor value 'black'
-    shape 'cyl', range ['circle', 'triangle', 'square']
-  )
-)
-
-
-###
-plot ll-point-8
-Sample plot
-Description goes here.
----
-tags:
- - point
- - ll
-###
-plot(
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    strokeColor value 'black'
-    size 'qsec'
-  )
-)
-
-
-###
-plot ll-point-9
-Sample plot
-Description goes here.
----
-tags:
- - point
- - ll
-###
-plot(
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    fillColor value 'red'
-    size value 16
-  )
-)
-
-
-###
-plot ll-point-10
-Sample plot
-Description goes here.
----
-tags:
- - point
- - ll
-###
-plot(
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    fillColor value 'red'
-    size value 16
-    shape shapes.square
-  )
-)
-
 
 ###
 plot ll-point-11
@@ -396,7 +355,6 @@ plot(
   data csv 'diamonds'
   point(
     position 'carat', 'price'
-    fillColor value 'black'
     fillOpacity value 1/10
   )
 )
@@ -416,7 +374,6 @@ plot(
   data csv 'diamonds'
   point(
     position 'carat', 'price'
-    fillColor value 'black'
     fillOpacity value 1/20
   )
 )
@@ -436,7 +393,6 @@ plot(
   data csv 'diamonds'
   point(
     position 'carat', 'price'
-    fillColor value 'black'
     fillOpacity value 1/100
   )
 )
