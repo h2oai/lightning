@@ -4,7 +4,7 @@
 
 # TODO fix mmin, mmax, vvalues in shorthand
 # Tooltips
-# Variable encoding:
+# Vector encoding:
 #   fill color
 #   fill opacity
 #   stroke color
@@ -201,51 +201,6 @@ dispatch = do ->
         
       throw new Error "Pattern match failure for args [ #{join (map args, (arg) -> '' + arg + ':' + typeOf arg), ', '} ]" #TODO improve message
 
-#
-# Data
-#
-
-#
-# Insane hack to compress large 2D data tables.
-# The basis for doing this is described here:
-# http://www.html5rocks.com/en/tutorials/speed/v8/
-# See Tip #1 "Hidden Classes"
-#
-# Applies to IE as well:
-# http://msdn.microsoft.com/en-us/library/windows/apps/hh781219.aspx#optimize_property_access
-#
-# http://jsperf.com/big-data-matrix/3
-# As of 31 Oct 2014, for a 10000 row, 100 column table in Chrome,
-#   retained memory sizes:
-# raw json: 31,165 KB
-# array of objects: 41,840 KB
-# array of arrays: 14,960 KB
-# array of prototyped instances: 14,840 KB
-#
-# Usage:
-# Record = plot.compile [ 'bar', 'baz', 'qux', ... ]
-# record = new Record args...
-#
-
-_prototypeId = 0
-nextPrototypeName = -> "Rec#{++_prototypeId}"
-_prototypeCache = {}
-createCompiledPrototype = (attrs) ->
-  # Since the prototype depends only on attribute names,
-  #  return a cached prototype, if any.
-  cacheKey = join attrs, '\0'
-  return proto if proto = _prototypeCache[cacheKey]
-
-  params = ( "a#{i}" for i in [0 ... attrs.length] )
-  inits = ( "this[#{JSON.stringify attr}]=a#{i};" for attr, i in attrs )
-
-  prototypeName = nextPrototypeName()
-  _prototypeCache[cacheKey] = (new Function "function #{prototypeName}(#{params.join ','}){#{inits.join ''}} return #{prototypeName};")()
-
-plot_compile = (variables) ->
-  createCompiledPrototype (variable.label for variable in variables)
-
-
 class Clip
   constructor: (@put, @test) ->
 
@@ -258,15 +213,15 @@ class Size
 class Rect
   constructor: (@left, @top, @width, @height) ->
 
-class Variable
+class Vector
   constructor: (@name, @label, @type, @data, @domain, @format, @read) ->
 
-class Factor extends Variable
+class Factor extends Vector
   constructor: (name, label, type, data, domain, format, read) ->
     super name, label, type, data, domain, format, read
 
-class Table
-  constructor: (@label, @variables, @rowCount, @schema, @indices, @get, @put) ->
+class Frame
+  constructor: (@label, @vectors, @rowCount, @schema, @indices, @get, @put) ->
 
 class Value
   constructor: (@value) ->
@@ -349,43 +304,43 @@ class SizeChannel extends Channel
 class LineWidthChannel extends Channel
 class ShapeChannel extends Channel
 
-class FixedFillColorChannel extends FillColorChannel
+class ConstantFillColorChannel extends FillColorChannel
   constructor: (@value) ->
 
 class VariableFillColorChannel extends FillColorChannel
   constructor: (@field, @range) ->
 
-class FixedFillOpacityChannel extends FillOpacityChannel
+class ConstantFillOpacityChannel extends FillOpacityChannel
   constructor: (@value) ->
 
 class VariableFillOpacityChannel extends FillOpacityChannel
   constructor: (@field, @range) ->
 
-class FixedStrokeColorChannel extends StrokeColorChannel
+class ConstantStrokeColorChannel extends StrokeColorChannel
   constructor: (@value) ->
 
 class VariableStrokeColorChannel extends StrokeColorChannel
   constructor: (@field, @range) ->
 
-class FixedStrokeOpacityChannel extends StrokeOpacityChannel
+class ConstantStrokeOpacityChannel extends StrokeOpacityChannel
   constructor: (@value) ->
 
 class VariableStrokeOpacityChannel extends StrokeOpacityChannel
   constructor: (@field, @range) ->
 
-class FixedSizeChannel extends SizeChannel
+class ConstantSizeChannel extends SizeChannel
   constructor: (@value) ->
 
 class VariableSizeChannel extends SizeChannel
   constructor: (@field, @range) ->
 
-class FixedLineWidthChannel extends LineWidthChannel
+class ConstantLineWidthChannel extends LineWidthChannel
   constructor: (@value) ->
 
 class VariableLineWidthChannel extends LineWidthChannel
   constructor: (@field, @range) ->
 
-class FixedShapeChannel extends ShapeChannel
+class ConstantShapeChannel extends ShapeChannel
   constructor: (@value) ->
 
 class VariableShapeChannel extends ShapeChannel
@@ -425,7 +380,7 @@ class Viewport
   constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
 
 class Visualization
-  constructor: (@viewport, @table, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
+  constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
 
 class Bounds
   constructor: (@width, @height) ->
@@ -552,24 +507,24 @@ createLinearScale = dispatch(
   [ DivergingRange, DivergingRange, createDivergingLinearScale ]
 )
 
-createTable = (label, variables, rowCount) ->
-  schema = indexBy variables, (variable) -> variable.name
+createFrame = (label, vectors, rowCount) ->
+  schema = indexBy vectors, (vector) -> vector.name
   indices = sequence rowCount
 
-  table = new Table label, variables, rowCount, schema, indices, null, null
+  frame = new Frame label, vectors, rowCount, schema, indices, null, null
 
-  table.get = (field) ->
+  frame.get = (field) ->
     if field instanceof ComputedField
-      table.get field.evaluate table
+      frame.get field.evaluate frame
     else
       schema[field.name]
 
-  table.put = (variable) ->
-    variables.push variable
-    schema[ variable.name ] = variable
-    variable
+  frame.put = (vector) ->
+    vectors.push vector
+    schema[ vector.name ] = vector
+    vector
 
-  table
+  frame
 
 ColorPalettes =
   c10: [
@@ -721,25 +676,25 @@ pickCategoricalColorPalette = (cardinality) ->
 
 pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
 
-encodeColor = (table, channel) ->
+encodeColor = (frame, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
-    variable = table.get channel.field
-    if variable instanceof Factor
+    vector = frame.get channel.field
+    if vector instanceof Factor
       unless channel.range
-        channel.range = new CategoricalRange pickCategoricalColorPalette variable.domain.length
-      scale = createCategoricalScale variable.domain, channel.range
-      read = variable.read
+        channel.range = new CategoricalRange pickCategoricalColorPalette vector.domain.length
+      scale = createCategoricalScale vector.domain, channel.range
+      read = vector.read
       encode = (i) -> chroma scale read i
-      new ColorEncoder variable.label, encode, variable.domain, channel.range, null #XXX
+      new ColorEncoder vector.label, encode, vector.domain, channel.range, null #XXX
     else
-      domain = switch computeSkew0 variable.domain
+      domain = switch computeSkew0 vector.domain
         when 1
-          new SequentialRange variable.domain.min, variable.domain.max
+          new SequentialRange vector.domain.min, vector.domain.max
         when -1
-          new SequentialRange variable.domain.min, variable.domain.max
+          new SequentialRange vector.domain.min, vector.domain.max
         else
           #TODO origin should be a parameter
-          new DivergingRange variable.domain.min, 0, variable.domain.max
+          new DivergingRange vector.domain.min, 0, vector.domain.max
 
       skew = computeSkew0 domain
       range = if channel.range
@@ -775,131 +730,131 @@ encodeColor = (table, channel) ->
           new DivergingColorRange '#fc8d59', '#ffffbf'
 
       scale = createColorScale domain, range
-      read = variable.read
+      read = vector.read
       encode = (i) -> scale read i
-      new ColorEncoder variable.label, encode, domain, range, null #XXX
+      new ColorEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
 
-encodeOpacity = (table, channel) ->
+encodeOpacity = (frame, channel) ->
   if channel instanceof VariableFillOpacityChannel or channel instanceof VariableStrokeOpacityChannel
-    variable = table.get channel.field
-    if variable instanceof Factor
-      throw new Error "Could not encode opacity. Variable '#{variable.label}' is a Factor."
-    domain = new SequentialRange variable.domain.min, variable.domain.max
+    vector = frame.get channel.field
+    if vector instanceof Factor
+      throw new Error "Could not encode opacity. Vector '#{vector.label}' is a Factor."
+    domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
       new SequentialRange (clampOpacity channel.range.min), (clampOpacity channel.range.max)
     else
       channel.range = new SequentialRange 0.05, 1
     scale = createLinearScale domain, range
-    read = variable.read
+    read = vector.read
     encode = (i) -> scale read i
-    new OpacityEncoder variable.label, encode, domain, range, null #XXX
+    new OpacityEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder clampOpacity channel.value
 
-encodeSize = (table, channel) ->
+encodeSize = (frame, channel) ->
   if channel instanceof VariableSizeChannel
-    variable = table.get channel.field
-    if variable instanceof Factor
-      throw new Error "Could not encode size. Variable '#{variable.label}' is a Factor."
-    domain = new SequentialRange variable.domain.min, variable.domain.max
+    vector = frame.get channel.field
+    if vector instanceof Factor
+      throw new Error "Could not encode size. Vector '#{vector.label}' is a Factor."
+    domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
       new SequentialRange (sq channel.range.min), (sq channel.range.max)
     else
       channel.range = new SequentialRange (sq defaultSize), (sq 30)
     scale = createLinearScale domain, range 
-    read = variable.read
+    read = vector.read
     encode = (i) -> scale read i
-    new SizeEncoder variable.label, encode, domain, range, null #XXX
+    new SizeEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder sq channel.value
 
-encodeLineWidth = (table, channel) ->
+encodeLineWidth = (frame, channel) ->
   if channel instanceof VariableLineWidthChannel
-    variable = table.get channel.field
-    if variable instanceof Factor
-      throw new Error "Could not encode lineWidth. Variable '#{variable.label}' is a Factor."
-    domain = new SequentialRange variable.domain.min, variable.domain.max
+    vector = frame.get channel.field
+    if vector instanceof Factor
+      throw new Error "Could not encode lineWidth. Vector '#{vector.label}' is a Factor."
+    domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
       new SequentialRange channel.range.min, channel.range.max
     else
       channel.range = new SequentialRange 1.5, 15
     scale = createLinearScale domain, range 
-    read = variable.read
+    read = vector.read
     encode = (i) -> scale read i
-    new SizeEncoder variable.label, encode, domain, range, null #XXX
+    new SizeEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
 
-encodeShape = (table, channel) ->
+encodeShape = (frame, channel) ->
   if channel instanceof VariableShapeChannel
-    variable = table.get channel.field
-    unless variable instanceof Factor
-      throw new Error "Could not encode shape. Variable '#{variable.label}' is not a Factor." 
+    vector = frame.get channel.field
+    unless vector instanceof Factor
+      throw new Error "Could not encode shape. Vector '#{vector.label}' is not a Factor." 
     unless channel.range
-      channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length 
-    scale = createCategoricalScale variable.domain, channel.range
-    read = variable.read
+      channel.range = new CategoricalRange pickCategoricalShapePalette vector.domain.length 
+    scale = createCategoricalScale vector.domain, channel.range
+    read = vector.read
     encode = (i) -> Shapes[ scale read i ]
-    new ShapeEncoder variable.label, encode, variable.domain, channel.range, null #XXX
+    new ShapeEncoder vector.label, encode, vector.domain, channel.range, null #XXX
   else
     #REVIEW: throw error or switch to circle?
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
 
 defaultPoint = (geom) ->
-  geom.shape = new FixedShapeChannel 'circle' unless geom.shape
-  geom.size = new FixedSizeChannel defaultSize unless geom.size
+  geom.shape = new ConstantShapeChannel 'circle' unless geom.shape
+  geom.size = new ConstantSizeChannel defaultSize unless geom.size
 
   hasFill = geom.fillColor or geom.fillOpacity
   hasStroke = geom.strokeColor or geom.strokeOpacity or geom.lineWidth
   hasStroke = yes unless hasFill or hasStroke
 
   if hasFill
-    geom.fillColor = new FixedFillColorChannel chroma head ColorPalettes.c10 unless geom.fillColor
-    geom.fillOpacity = new FixedFillOpacityChannel 1 unless geom.fillOpacity
+    geom.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless geom.fillColor
+    geom.fillOpacity = new ConstantFillOpacityChannel 1 unless geom.fillOpacity
 
   if hasStroke
-    geom.strokeColor = new FixedStrokeColorChannel chroma head ColorPalettes.c10 unless geom.strokeColor
-    geom.strokeOpacity = new FixedStrokeOpacityChannel 1 unless geom.strokeOpacity
-    geom.lineWidth = new FixedLineWidthChannel 1.5 unless geom.lineWidth
+    geom.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless geom.strokeColor
+    geom.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless geom.strokeOpacity
+    geom.lineWidth = new ConstantLineWidthChannel 1.5 unless geom.lineWidth
 
   geom
 
-encodePosition = (table, channel, range) ->
+encodePosition = (frame, channel, range) ->
   field = channel.field
-  variable = table.get field
-  { domain } = variable
+  vector = frame.get field
+  { domain } = vector
 
-  switch variable.type
+  switch vector.type
     when TNumber
       scale = createNicedLinearScale domain, range
-      read = variable.read
+      read = vector.read
       encode = (i) -> scale read i
       guide = (count) ->
         format = scale.tickFormat count
         scale.ticks count
 
-      new LinearAxis variable.label, encode, domain, range, guide
+      new LinearAxis vector.label, encode, domain, range, guide
     else
       throw new Error 'ni'
 
-encodePoint = (table, geom, bounds) ->
-  positionX = encodePosition table, geom.positionX, new SequentialRange 0, bounds.width
-  positionY = encodePosition table, geom.positionY, new SequentialRange bounds.height, 0
+encodePoint = (frame, geom, bounds) ->
+  positionX = encodePosition frame, geom.positionX, new SequentialRange 0, bounds.width
+  positionY = encodePosition frame, geom.positionY, new SequentialRange bounds.height, 0
 
-  shape = encodeShape table, geom.shape
-  size = encodeSize table, geom.size
+  shape = encodeShape frame, geom.shape
+  size = encodeSize frame, geom.size
 
   if geom.fillColor or geom.fillOpacity
-    fillColor = encodeColor table, geom.fillColor
-    fillOpacity = encodeOpacity table, geom.fillOpacity
+    fillColor = encodeColor frame, geom.fillColor
+    fillOpacity = encodeOpacity frame, geom.fillOpacity
 
   if geom.strokeColor or geom.strokeOpacity or geom.lineWidth
-    strokeColor = encodeColor table, geom.strokeColor
-    strokeOpacity = encodeOpacity table, geom.strokeOpacity
-    lineWidth = encodeLineWidth table, geom.lineWidth
+    strokeColor = encodeColor frame, geom.strokeColor
+    strokeOpacity = encodeOpacity frame, geom.strokeOpacity
+    lineWidth = encodeLineWidth frame, geom.lineWidth
 
   new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
@@ -1035,7 +990,7 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 
 
 plot_data = dispatch(
-  [ Table, identity ]
+  [ Frame, identity ]
   [ Function, (read) -> new Datasource read ]
 )
 plot_rectangular = (scaleX, scaleY) ->
@@ -1105,7 +1060,7 @@ plot_position = dispatch(
 )
 
 plot_shape = dispatch(
-  [ StringValue, (value) -> new FixedShapeChannel value.value ]
+  [ StringValue, (value) -> new ConstantShapeChannel value.value ]
   [ String, (name) -> new VariableShapeChannel new Field name ]
   [ Field, (field) -> new VariableShapeChannel field ]
   [ String, CategoricalRange, (name, range) -> new VariableShapeChannel (new Field name), range ]
@@ -1113,7 +1068,7 @@ plot_shape = dispatch(
 )
 
 plot_fillColor = dispatch(
-  [ StringValue, (value) -> new FixedFillColorChannel chroma value.value ]
+  [ StringValue, (value) -> new ConstantFillColorChannel chroma value.value ]
   [ String, (name) -> new VariableFillColorChannel new Field name ]
   [ Field, (field) -> new VariableFillColorChannel field ]
   [ String, ColorRange, (name, range) -> new VariableFillColorChannel (new Field name), range ]
@@ -1123,7 +1078,7 @@ plot_fillColor = dispatch(
 )
 
 plot_fillOpacity = dispatch(
-  [ NumberValue, (value) -> new FixedFillOpacityChannel value.value ]
+  [ NumberValue, (value) -> new ConstantFillOpacityChannel value.value ]
   [ String, (name) -> new VariableFillOpacityChannel new Field name ]
   [ Field, (field) -> new VariableFillOpacityChannel field ]
   [ String, SequentialRange, (name, range) -> new VariableFillOpacityChannel (new Field name), range ]
@@ -1131,7 +1086,7 @@ plot_fillOpacity = dispatch(
 )
 
 plot_strokeColor = dispatch(
-  [ StringValue, (value) -> new FixedStrokeColorChannel chroma value.value ]
+  [ StringValue, (value) -> new ConstantStrokeColorChannel chroma value.value ]
   [ String, (name) -> new VariableStrokeColorChannel new Field name ]
   [ Field, (field) -> new VariableStrokeColorChannel field ]
   [ String, ColorRange, (name, range) -> new VariableStrokeColorChannel (new Field name), range ]
@@ -1141,7 +1096,7 @@ plot_strokeColor = dispatch(
 )
 
 plot_strokeOpacity = dispatch(
-  [ NumberValue, (value) -> new FixedStrokeOpacityChannel value.value ]
+  [ NumberValue, (value) -> new ConstantStrokeOpacityChannel value.value ]
   [ String, (name) -> new VariableStrokeOpacityChannel new Field name ]
   [ Field, (field) -> new VariableStrokeOpacityChannel field ]
   [ String, SequentialRange, (name, range) -> new VariableStrokeOpacityChannel (new Field name), range ]
@@ -1149,14 +1104,14 @@ plot_strokeOpacity = dispatch(
 )
 
 plot_size = dispatch(
-  [ NumberValue, (value) -> new FixedSizeChannel value.value ]
+  [ NumberValue, (value) -> new ConstantSizeChannel value.value ]
   [ String, (name) -> new VariableSizeChannel new Field name ]
   [ Field, (field) -> new VariableSizeChannel field ]
   [ String, SequentialRange, (name, range) -> new VariableSizeChannel (new Field name), range ]
   [ Field, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
 )
 plot_lineWidth = dispatch(
-  [ NumberValue, (value) -> new FixedLineWidthChannel value.value ]
+  [ NumberValue, (value) -> new ConstantLineWidthChannel value.value ]
   [ String, (name) -> new VariableLineWidthChannel new Field name ]
   [ Field, (field) -> new VariableLineWidthChannel field ]
   [ String, SequentialRange, (name, range) -> new VariableLineWidthChannel (new Field name), range ]
@@ -1245,12 +1200,12 @@ extractEncodings = (encoding) ->
 
   encodings
 
-createVisualization = (bounds, table, encoding, maskMarks, highlightMarks, renderMarks, selectMarks) ->
+createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, renderMarks, selectMarks) ->
 
   viewport = createViewport bounds
 
   { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
-  { indices } = table
+  { indices } = frame
   encodings = extractEncodings encoding
 
   _index = undefined
@@ -1272,8 +1227,8 @@ createVisualization = (bounds, table, encoding, maskMarks, highlightMarks, rende
       hoverCanvas.context.clearRect 0, 0, bounds.width, bounds.height
       if i isnt undefined
         tooltip = {}
-        for variable in table.variables
-          tooltip[variable.name] = variable.format i
+        for vector in frame.vectors
+          tooltip[vector.name] = vector.format i
         debug tooltip
         highlightMarks [ i ], encodings, hoverCanvas.context
     return
@@ -1306,7 +1261,7 @@ createVisualization = (bounds, table, encoding, maskMarks, highlightMarks, rende
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
-  new Visualization viewport, table, test, highlight, hover, selectAt, selectWithin, render
+  new Visualization viewport, frame, test, highlight, hover, selectAt, selectWithin, render
 
 createViewport = (bounds) ->
   [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
@@ -1355,17 +1310,17 @@ plot_defaults =
   bounds: new Bounds 400, 400
 
 factor = (field) ->
-  new ComputedField (table) ->
-    variable = table.get field
-    if variable instanceof Factor
+  new ComputedField (frame) ->
+    vector = frame.get field
+    if vector instanceof Factor
       field        
     else
-      data = new Array variable.data.length
-      for value, i in variable.data
+      data = new Array vector.data.length
+      for value, i in vector.data
         data[i] = '' + value #XXX handle undefined
 
-      table.put computedVariable = createFactor "FACTOR(#{variable.label})", TString, data
-      new Field computedVariable.name
+      frame.put computedVector = createFactor "FACTOR(#{vector.label})", TString, data
+      new Field computedVector.name
 
 plot_factor = dispatch(
   [ String, (name) -> factor new Field name ]
@@ -1378,16 +1333,16 @@ getOp = (ops, type, def) ->
   else
     def
 
-arePositionVariablesCompatible = (variables) ->
-  top = head variables
+arePositionVectorsCompatible = (vectors) ->
+  top = head vectors
 
-  for variable in rest variables
-    if (top.type isnt variable.type) or (top.type is TString and top.label isnt variable.label)
-      throw new Error "Variable '#{variable.label}' of type '#{variable.type}' cannot be plotted on the same axis as variable '#{top.label}' of type '#{top.type}'" 
+  for vector in rest vectors
+    if (top.type isnt vector.type) or (top.type is TString and top.label isnt vector.label)
+      throw new Error "Vector '#{vector.label}' of type '#{vector.type}' cannot be plotted on the same axis as vector '#{top.label}' of type '#{top.type}'" 
 
   return yes
 
-render = (table, ops) ->
+render = (frame, ops) ->
   bounds = getOp ops, Bounds, plot_defaults.bounds
   geoms = filterByType ops, Geometry
 
@@ -1395,9 +1350,9 @@ render = (table, ops) ->
 
   geom = head geoms
 
-  encoding = encodePoint table, (defaultPoint geom), bounds
+  encoding = encodePoint frame, (defaultPoint geom), bounds
 
-  visualization = createVisualization bounds, table, encoding, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
+  visualization = createVisualization bounds, frame, encoding, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
 
   visualization.render()
   
@@ -1406,23 +1361,23 @@ render = (table, ops) ->
 _plot = dispatch(
   [ 
     Datasource, Array, Function, (ds, ops, go) -> 
-      ds.read (error, table) -> 
+      ds.read (error, frame) -> 
         if error
           go error
         else
-          _plot table, ops, go
+          _plot frame, ops, go
   ] 
   [
-    Table, Array, Function, (table, ops, go) ->
+    Frame, Array, Function, (frame, ops, go) ->
       try
-        go null, render table, ops
+        go null, render frame, ops
       catch error
         go error
   ]
 )
 
 plot = (ops...) ->
-  if datasource = findByType ops, Datasource, Table
+  if datasource = findByType ops, Datasource, Frame
     (go) -> _plot datasource, (without ops, datasource), go
   else
     (more...) -> apply plot, null, concat ops, more
@@ -1470,11 +1425,11 @@ createFactor = (label, type, data, domain) ->
   factoring = factorize data, domain or []
   new Factor label, label, type, factoring.data, factoring.domain, factoring.format, factoring.read
 
-createVariable = (label, type, data, format) ->
+createVector = (label, type, data, format) ->
   domain = computeExtent data
   read = (i) -> data[i]
   _format = (i) -> format data[i]
-  new Variable label, label, type, data, domain, _format, read
+  new Vector label, label, type, data, domain, _format, read
 
 plot.data = plot_data
 plot.rectangular = plot_rectangular
@@ -1494,9 +1449,8 @@ plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
 plot.factor = plot_factor
 plot.parse = plot_parse
-plot.compile = plot_compile
-plot.createTable = createTable
-plot.createVariable = createVariable
+plot.createFrame = createFrame
+plot.createVector = createVector
 plot.createFactor = createFactor
 
 

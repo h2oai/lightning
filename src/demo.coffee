@@ -53,13 +53,13 @@ identifyColumns = (schema) ->
     else
       throw new Error "Invalid type #{obj} for schema field #{label}"
 
-createTable = (label, schema, data) ->
+createFrame = (label, schema, data) ->
   columns = identifyColumns schema
   rows = CSV.parse data,
     header: no
     cast: no
 
-  variables = for column, offset in columns
+  vectors = for column, offset in columns
     data = new Array rows.length
     for row, index in rows
       data[index] = column.parse row[offset]
@@ -73,7 +73,7 @@ createTable = (label, schema, data) ->
           column.domain
         )
       when 'Number'
-        plot.createVariable(
+        plot.createVector(
           column.label
           column.type
           data
@@ -81,7 +81,7 @@ createTable = (label, schema, data) ->
         )
       #TODO Date
 
-  plot.createTable label, variables, rows.length
+  plot.createFrame label, vectors, rows.length
 
 window.csv = (label) ->
   (go) ->
@@ -94,7 +94,7 @@ window.csv = (label) ->
             go error
           else
             try
-              go null, createTable label, schema, data
+              go null, createFrame label, schema, data
             catch error
               go error
 
