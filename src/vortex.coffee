@@ -42,11 +42,10 @@ defaultSize = 8
 #
 # Chroma wrappers
 #
-createColor = chroma
 
 cloneColor = (color) ->
   [ r, g, b ] = color.rgb()
-  createColor.rgb r, g, b
+  chroma.rgb r, g, b
 
 colorToStyle = (color) -> color.css()
 
@@ -316,15 +315,19 @@ class LinearAxis extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
-class VariableOpacityEncoder extends VariableEncoder
+class ColorEncoder extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
-class VariableSizeEncoder extends VariableEncoder
+class OpacityEncoder extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
-class VariableShapeEncoder extends VariableEncoder
+class SizeEncoder extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+class ShapeEncoder extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
@@ -516,6 +519,34 @@ createDivergingLinearScale = (domain, range) ->
     .domain [ domain.min, domain.mid, domain.max ]
     .range [ range.min, range.mid, range.max ]
 
+createSequentialColorScale = (domain, range) ->
+  chroma
+    .scale [ range.min, range.max ]
+    .domain [ domain.min, domain.max ]
+    .mode 'lch'
+
+createDivergingColorScale = (domain, range) ->
+  left = chroma
+    .scale [ range.min, range.mid ]
+    .domain [ domain.min, domain.mid ]
+    .mode 'lch'
+
+  right = chroma
+    .scale [ range.mid, range.max ]
+    .domain [ domain.mid, domain.max ]
+    .mode 'lch'
+
+  (value) ->
+    if value < domain.mid
+      left value
+    else
+      right value
+
+createColorScale = dispatch(
+  [ SequentialRange, ColorRange, createSequentialColorScale ]
+  [ DivergingRange, ColorRange, createDivergingColorScale ]
+)
+
 createLinearScale = dispatch(
   [ SequentialRange, SequentialRange, createSequentialLinearScale ]
   [ DivergingRange, DivergingRange, createDivergingLinearScale ]
@@ -540,10 +571,29 @@ createTable = (label, variables, rowCount) ->
 
   table
 
-
-resolveChannels = (geom) ->
-  debug geom
-  geom
+ColorPalettes =
+  c10: [
+    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'
+    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
+  ]
+  c20: [
+    '#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c'
+    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5'
+    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f'
+    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5'
+  ]
+  c20b: [
+    '#393b79', '#5254a3', '#6b6ecf', '#9c9ede', '#637939'
+    '#8ca252', '#b5cf6b', '#cedb9c', '#8c6d31', '#bd9e39'
+    '#e7ba52', '#e7cb94', '#843c39', '#ad494a', '#d6616b'
+    '#e7969c', '#7b4173', '#a55194', '#ce6dbd', '#de9ed6'
+  ]
+  c20c: [
+    '#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d'
+    '#fd8d3c', '#fdae6b', '#fdd0a2', '#31a354', '#74c476'
+    '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc'
+    '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'
+  ]
 
 
 drawCircle = (g, x, y, area) ->
@@ -671,53 +721,58 @@ pickCategoricalColorPalette = (cardinality) ->
 
 pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
 
-
-encodeShape = (table, channel) ->
-  if channel instanceof VariableShapeChannel
-    variable = table.get channel.field
-    unless variable instanceof Factor
-      throw new Error "Could not encode shape. Variable '#{variable.label}' is not a Factor." 
-    unless channel.range
-      channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length 
-    scale = createCategoricalScale variable.domain, channel.range
-    read = variable.read
-    encode = (i) -> Shapes[ scale read i ]
-    new VariableShapeEncoder variable.label, encode, variable.domain, channel.range, null #XXX
-  else
-    #REVIEW: throw error or switch to circle?
-    new ConstantEncoder Shapes[channel.value] or Shapes.circle
-
-encodeSize = (table, channel) ->
-  if channel instanceof VariableSizeChannel
+encodeColor = (table, channel) ->
+  if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
     variable = table.get channel.field
     if variable instanceof Factor
-      throw new Error "Could not encode size. Variable '#{variable.label}' is a Factor."
-    domain = new SequentialRange variable.domain.min, variable.domain.max
-    range = if channel.range
-      new SequentialRange (sq channel.range.min), (sq channel.range.max)
+      throw new Error 'ni'
     else
-      channel.range = new SequentialRange (sq defaultSize), (sq 30)
-    scale = createLinearScale domain, range 
-    read = variable.read
-    encode = (i) -> scale read i
-    new VariableSizeEncoder variable.label, encode, domain, range, null #XXX
-  else
-    new ConstantEncoder sq channel.value
+      domain = switch computeSkew0 variable.domain
+        when 1
+          new SequentialRange variable.domain.min, variable.domain.max
+        when -1
+          new SequentialRange variable.domain.min, variable.domain.max
+        else
+          #TODO origin should be a parameter
+          new DivergingRange variable.domain.min, 0, variable.domain.max
 
-encodeLineWidth = (table, channel) ->
-  if channel instanceof VariableLineWidthChannel
-    variable = table.get channel.field
-    if variable instanceof Factor
-      throw new Error "Could not encode lineWidth. Variable '#{variable.label}' is a Factor."
-    domain = new SequentialRange variable.domain.min, variable.domain.max
-    range = if channel.range
-      new SequentialRange channel.range.min, channel.range.max
-    else
-      channel.range = new SequentialRange 1.5, 15
-    scale = createLinearScale domain, range 
-    read = variable.read
-    encode = (i) -> scale read i
-    new VariableSizeEncoder variable.label, encode, domain, range, null #XXX
+      skew = computeSkew0 domain
+      range = if channel.range
+        if channel.range instanceof DivergingColorRange
+          if domain instanceof SequentialRange
+            # Caller specified a diverging color range, but the domain is skewed, so treat the domain as sequential
+            if skew is 1
+              new SequentialColorRange channel.range.mid, channel.range.max
+
+            else
+              new SequentialColorRange channel.range.min, channel.range.mid
+
+          else # DivergingRange
+            channel.range
+        else # SequentialColorRange
+          if domain instanceof DivergingRange
+            # Caller specified a sequential color range, but the domain is diverging, so treat the domain as sequential
+            domain = new SequentialRange domain.min, domain.max
+          channel.range
+      else
+        if domain instanceof SequentialRange
+          if skew is 1
+            # REVIEW
+            # Color brewer, 3-class blues
+            new SequentialColorRange '#deebf7', '#3182bd'   
+          else
+            # REVIEW
+            # Color brewer, 3-class oranges
+            new SequentialColorRange '#e6550d', '#fee6ce'
+        else # DivergingRange
+          # REVIEW
+          # Color brewer, 3-class spectral
+          new DivergingColorRange '#fc8d59', '#ffffbf'
+
+      scale = createColorScale domain, range
+      read = variable.read
+      encode = (i) -> scale read i
+      new ColorEncoder variable.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
 
@@ -734,42 +789,59 @@ encodeOpacity = (table, channel) ->
     scale = createLinearScale domain, range
     read = variable.read
     encode = (i) -> scale read i
-    new VariableOpacityEncoder variable.label, encode, domain, range, null #XXX
+    new OpacityEncoder variable.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder clampOpacity channel.value
 
-encodeColor = (table, channel) ->
-  if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
+encodeSize = (table, channel) ->
+  if channel instanceof VariableSizeChannel
     variable = table.get channel.field
-    scale = null #XXX
+    if variable instanceof Factor
+      throw new Error "Could not encode size. Variable '#{variable.label}' is a Factor."
+    domain = new SequentialRange variable.domain.min, variable.domain.max
+    range = if channel.range
+      new SequentialRange (sq channel.range.min), (sq channel.range.max)
+    else
+      channel.range = new SequentialRange (sq defaultSize), (sq 30)
+    scale = createLinearScale domain, range 
     read = variable.read
     encode = (i) -> scale read i
+    new SizeEncoder variable.label, encode, domain, range, null #XXX
+  else
+    new ConstantEncoder sq channel.value
+
+encodeLineWidth = (table, channel) ->
+  if channel instanceof VariableLineWidthChannel
+    variable = table.get channel.field
+    if variable instanceof Factor
+      throw new Error "Could not encode lineWidth. Variable '#{variable.label}' is a Factor."
+    domain = new SequentialRange variable.domain.min, variable.domain.max
+    range = if channel.range
+      new SequentialRange channel.range.min, channel.range.max
+    else
+      channel.range = new SequentialRange 1.5, 15
+    scale = createLinearScale domain, range 
+    read = variable.read
+    encode = (i) -> scale read i
+    new SizeEncoder variable.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
 
-ColorPalettes =
-  c10: [
-    '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'
-    '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'
-  ]
-  c20: [
-    '#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c'
-    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5'
-    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f'
-    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5'
-  ]
-  c20b: [
-    '#393b79', '#5254a3', '#6b6ecf', '#9c9ede', '#637939'
-    '#8ca252', '#b5cf6b', '#cedb9c', '#8c6d31', '#bd9e39'
-    '#e7ba52', '#e7cb94', '#843c39', '#ad494a', '#d6616b'
-    '#e7969c', '#7b4173', '#a55194', '#ce6dbd', '#de9ed6'
-  ]
-  c20c: [
-    '#3182bd', '#6baed6', '#9ecae1', '#c6dbef', '#e6550d'
-    '#fd8d3c', '#fdae6b', '#fdd0a2', '#31a354', '#74c476'
-    '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc'
-    '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'
-  ]
+encodeShape = (table, channel) ->
+  if channel instanceof VariableShapeChannel
+    variable = table.get channel.field
+    unless variable instanceof Factor
+      throw new Error "Could not encode shape. Variable '#{variable.label}' is not a Factor." 
+    unless channel.range
+      channel.range = new CategoricalRange pickCategoricalShapePalette variable.domain.length 
+    scale = createCategoricalScale variable.domain, channel.range
+    read = variable.read
+    encode = (i) -> Shapes[ scale read i ]
+    new ShapeEncoder variable.label, encode, variable.domain, channel.range, null #XXX
+  else
+    #REVIEW: throw error or switch to circle?
+    new ConstantEncoder Shapes[channel.value] or Shapes.circle
+
 
 defaultPoint = (geom) ->
   geom.shape = new FixedShapeChannel 'circle' unless geom.shape
@@ -780,11 +852,11 @@ defaultPoint = (geom) ->
   hasStroke = yes unless hasFill or hasStroke
 
   if hasFill
-    geom.fillColor = new FixedFillColorChannel createColor head ColorPalettes.c10 unless geom.fillColor
+    geom.fillColor = new FixedFillColorChannel chroma head ColorPalettes.c10 unless geom.fillColor
     geom.fillOpacity = new FixedFillOpacityChannel 1 unless geom.fillOpacity
 
   if hasStroke
-    geom.strokeColor = new FixedStrokeColorChannel createColor head ColorPalettes.c10 unless geom.strokeColor
+    geom.strokeColor = new FixedStrokeColorChannel chroma head ColorPalettes.c10 unless geom.strokeColor
     geom.strokeOpacity = new FixedStrokeOpacityChannel 1 unless geom.strokeOpacity
     geom.lineWidth = new FixedLineWidthChannel 1.5 unless geom.lineWidth
 
@@ -1048,7 +1120,7 @@ plot_shape = dispatch(
 )
 
 plot_fillColor = dispatch(
-  [ StringValue, (value) -> new FixedFillColorChannel createColor value.value ]
+  [ StringValue, (value) -> new FixedFillColorChannel chroma value.value ]
   [ String, (name) -> new VariableFillColorChannel new Field name ]
   [ Field, (field) -> new VariableFillColorChannel field ]
   [ String, ColorRange, (name, range) -> new VariableFillColorChannel (new Field name), range ]
@@ -1064,7 +1136,7 @@ plot_fillOpacity = dispatch(
 )
 
 plot_strokeColor = dispatch(
-  [ StringValue, (value) -> new FixedStrokeColorChannel createColor value.value ]
+  [ StringValue, (value) -> new FixedStrokeColorChannel chroma value.value ]
   [ String, (name) -> new VariableStrokeColorChannel new Field name ]
   [ Field, (field) -> new VariableStrokeColorChannel field ]
   [ String, ColorRange, (name, range) -> new VariableStrokeColorChannel (new Field name), range ]
@@ -1314,8 +1386,7 @@ render = (table, ops) ->
 
   geom = head geoms
 
-  resolvedGeom = resolveChannels defaultPoint geom
-  encoding = encodePoint table, resolvedGeom, bounds
+  encoding = encodePoint table, (defaultPoint geom), bounds
 
   visualization = createVisualization bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint
 
@@ -1357,6 +1428,15 @@ computeExtent = (array) ->
   
   new Extent min, max
 
+computeSkew_ = (origin) -> (extent) ->
+  if extent.min >= origin and extent.max > origin
+    1
+  else if extent.min < origin and extent.max <= origin
+    -1
+  else
+    0
+
+computeSkew0 = computeSkew_ 0
 
 factorize = (array, values) ->
   _id = 0

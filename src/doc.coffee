@@ -163,24 +163,6 @@ plot(
   )
 )
 
-###
-plot ll-point-2
-Sample plot
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    fillColor 'qsec', range '#13263a', '#47a0ea'
-  )
-)
-
 
 ###
 plot ll-point-4
@@ -200,6 +182,39 @@ plot(
   )
 )
 
+###
+plot point-vfc
+point + variable fillColor
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor 'qsec'
+  )
+)
+
+###
+plot point-vfcr
+point + variable fillColor with custom range
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor 'qsec', range 'blue', 'red'
+  )
+)
 
 ###
 plot point-factor-vsh
