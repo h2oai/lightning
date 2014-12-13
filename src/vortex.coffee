@@ -725,7 +725,12 @@ encodeColor = (table, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
     variable = table.get channel.field
     if variable instanceof Factor
-      throw new Error 'ni'
+      unless channel.range
+        channel.range = new CategoricalRange pickCategoricalColorPalette variable.domain.length
+      scale = createCategoricalScale variable.domain, channel.range
+      read = variable.read
+      encode = (i) -> chroma scale read i
+      new ColorEncoder variable.label, encode, variable.domain, channel.range, null #XXX
     else
       domain = switch computeSkew0 variable.domain
         when 1
@@ -1125,6 +1130,8 @@ plot_fillColor = dispatch(
   [ Field, (field) -> new VariableFillColorChannel field ]
   [ String, ColorRange, (name, range) -> new VariableFillColorChannel (new Field name), range ]
   [ Field, ColorRange, (field, range) -> new VariableFillColorChannel field, range ]
+  [ String, CategoricalRange, (name, range) -> new VariableFillColorChannel (new Field name), range ]
+  [ Field, CategoricalRange, (field, range) -> new VariableFillColorChannel field, range ]
 )
 
 plot_fillOpacity = dispatch(
@@ -1141,6 +1148,8 @@ plot_strokeColor = dispatch(
   [ Field, (field) -> new VariableStrokeColorChannel field ]
   [ String, ColorRange, (name, range) -> new VariableStrokeColorChannel (new Field name), range ]
   [ Field, ColorRange, (field, range) -> new VariableStrokeColorChannel field, range ]
+  [ String, CategoricalRange, (name, range) -> new VariableStrokeColorChannel (new Field name), range ]
+  [ Field, CategoricalRange, (field, range) -> new VariableStrokeColorChannel field, range ]
 )
 
 plot_strokeOpacity = dispatch(

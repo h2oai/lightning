@@ -249,6 +249,39 @@ plot(
     fillColor 'qsec', range 'blue', 'red'
   )
 )
+###
+plot point-factor-vfc
+point + factor + variable fillColor
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor factor 'cyl'
+  )
+)
+
+###
+plot point-factor-vfcr
+point + factor + variable fillColor with custom range
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    fillColor factor('cyl'), range ['red', 'green', 'blue']
+  )
+)
 
 ###
 plot point-factor-vsh
