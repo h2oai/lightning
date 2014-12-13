@@ -183,6 +183,40 @@ plot(
 )
 
 ###
+plot point-vsc
+point + variable strokeColor
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    strokeColor 'qsec'
+  )
+)
+
+###
+plot point-vscr
+point + variable strokeColor with custom range
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point(
+    position 'wt', 'mpg'
+    strokeColor 'qsec', range 'blue', 'red'
+  )
+)
+
+###
 plot point-vfc
 point + variable fillColor
 Description goes here.
