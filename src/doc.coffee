@@ -165,24 +165,6 @@ plot(
 
 
 ###
-plot ll-point-4
-point + 
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  data csv 'mtcars'
-  point(
-    position 'wt', 'mpg'
-    fillColor 'cyl', range ['red', 'green', 'blue']
-  )
-)
-
-###
 plot point-vsc
 point + variable strokeColor
 Description goes here.

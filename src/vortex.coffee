@@ -885,18 +885,6 @@ encodePosition = (table, channel, range) ->
     else
       throw new Error 'ni'
 
-composeStyle = (encodeColor, encodeOpacity) ->
-  if encodeColor and encodeOpacity
-    (i) ->
-      color = encodeColor i
-      opacity = encodeOpacity i
-      if 0 <= opacity < 1
-        colorToStyleA color, opacity
-      else
-        colorToStyle color
-  else
-    undefined
-
 encodePoint = (table, geom, bounds) ->
   positionX = encodePosition table, geom.positionX, new SequentialRange 0, bounds.width
   positionY = encodePosition table, geom.positionY, new SequentialRange bounds.height, 0
@@ -916,7 +904,7 @@ encodePoint = (table, geom, bounds) ->
   new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 
-highlightPoint = (indices, encoding, g) ->
+highlightPointMarks = (indices, encoding, g) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
@@ -946,7 +934,7 @@ highlightPoint = (indices, encoding, g) ->
   g.restore()
 
 
-maskPoint = (indices, encoding, g, mask) ->
+maskPointMarks = (indices, encoding, g, mask) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
@@ -965,7 +953,7 @@ maskPoint = (indices, encoding, g, mask) ->
         g.stroke()
   g.restore()
 
-renderPoint = (indices, encoding, g) ->
+renderPointMarks = (indices, encoding, g) ->
   { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
 
   g.save()
@@ -988,7 +976,7 @@ renderPoint = (indices, encoding, g) ->
   g.restore()
 
 # XXX Naive, need some kind of memoization during rendering.
-selectPoint = (indices, encoding, xmin, ymin, xmax, ymax) ->
+selectPointMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   { positionX, positionY } = encoding
 
   selectedIndices = []
@@ -1233,6 +1221,18 @@ createCanvas = (bounds) ->
 
 px = (pixels) -> "#{round pixels}px"
 
+composeStyle = (encodeColor, encodeOpacity) ->
+  if encodeColor and encodeOpacity
+    (i) ->
+      color = encodeColor i
+      opacity = encodeOpacity i
+      if 0 <= opacity < 1
+        colorToStyleA color, opacity
+      else
+        colorToStyle color
+  else
+    undefined
+
 extractEncodings = (encoding) ->
   encodings = {}
   for own attr, encoder of encoding
@@ -1245,7 +1245,7 @@ extractEncodings = (encoding) ->
 
   encodings
 
-createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint) ->
+createVisualization = (bounds, table, encoding, maskMarks, highlightMarks, renderMarks, selectMarks) ->
 
   viewport = createViewport bounds
 
@@ -1260,7 +1260,7 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
     if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      maskPoint [ i ], encodings, clipCanvas.context, clip
+      maskMarks [ i ], encodings, clipCanvas.context, clip
       return i if clip.test x, y
     return
 
@@ -1275,15 +1275,15 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
         for variable in table.variables
           tooltip[variable.name] = variable.format i
         debug tooltip
-        highlightPoint [ i ], encodings, hoverCanvas.context
+        highlightMarks [ i ], encodings, hoverCanvas.context
     return
 
   highlight = (indices) ->
     highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
-      highlightPoint indices, encodings, highlightCanvas.context
-      renderPoint indices, encodings, highlightCanvas.context
+      highlightMarks indices, encodings, highlightCanvas.context
+      renderMarks indices, encodings, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
 
@@ -1298,11 +1298,11 @@ createVisualization = (bounds, table, encoding, maskPoint, highlightPoint, rende
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    highlight selectPoint indices, encodings, xmin, ymin, xmax, ymax
+    highlight selectMarks indices, encodings, xmin, ymin, xmax, ymax
 
   render = ->
-    renderPoint indices, encodings, baseCanvas.context
-    maskPoint indices, encodings, maskCanvas.context, mask
+    renderMarks indices, encodings, baseCanvas.context
+    maskMarks indices, encodings, maskCanvas.context, mask
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
@@ -1397,7 +1397,7 @@ render = (table, ops) ->
 
   encoding = encodePoint table, (defaultPoint geom), bounds
 
-  visualization = createVisualization bounds, table, encoding, maskPoint, highlightPoint, renderPoint, selectPoint
+  visualization = createVisualization bounds, table, encoding, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
 
   visualization.render()
   
