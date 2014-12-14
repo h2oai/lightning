@@ -1385,7 +1385,7 @@ computeExtent = (array) ->
   min = Number.POSITIVE_INFINITY
   max = Number.NEGATIVE_INFINITY
   for value in array
-    if value isnt null
+    if value isnt undefined
       min = value if value <= min 
       max = value if value >= max
   
@@ -1410,7 +1410,7 @@ factorize = (array, values) ->
     _dictionary[value] = new Category _id++, value
 
   for element, index in array
-    value = if element is undefined or element is null then '?' else element
+    value = if element isnt undefined then element else '?'
     unless category = _dictionary[value]
       domain.push _dictionary[value] = category = new Category _id++, value
     data[index] = category

@@ -9,14 +9,14 @@ read = (type, url, go) ->
 
 asReal = (datum) ->
   value = parseFloat datum
-  if isNaN value then null else value
+  if isNaN value then undefined else value
 
 asInt = (datum) ->
   value = parseInt datum, 10
-  if isNaN value then null else value
+  if isNaN value then undefined else value
 
 asString = (datum) ->
-  if datum? then datum else null
+  if datum? then datum else undefined
 
 identifyColumns = (schema) ->
   for label, obj of schema
@@ -62,7 +62,8 @@ createFrame = (label, schema, data) ->
   vectors = for column, offset in columns
     data = new Array rows.length
     for row, index in rows
-      data[index] = column.parse row[offset]
+      if undefined isnt value = column.parse row[offset]
+        data[index] = value
 
     switch column.type
       when 'String'
