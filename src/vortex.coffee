@@ -550,7 +550,6 @@ ColorPalettes =
     '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'
   ]
 
-
 drawCircle = (g, x, y, area) ->
   r = sqrt area/π
   g.beginPath()
@@ -1205,7 +1204,7 @@ createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, rende
   viewport = createViewport bounds
 
   { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
-  { indices } = frame
+  _indices = frame.indices
   encodings = extractEncodings encoding
 
   _index = undefined
@@ -1253,11 +1252,11 @@ createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, rende
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    highlight selectMarks indices, encodings, xmin, ymin, xmax, ymax
+    highlight selectMarks _indices, encodings, xmin, ymin, xmax, ymax
 
   render = ->
-    renderMarks indices, encodings, baseCanvas.context
-    maskMarks indices, encodings, maskCanvas.context, mask
+    renderMarks _indices, encodings, baseCanvas.context
+    maskMarks _indices, encodings, maskCanvas.context, mask
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
