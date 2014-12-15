@@ -244,12 +244,12 @@ class Field
 class ComputedField extends Field
   constructor: (@evaluate) ->
 
-class Geometry
+class Mark
 
-class PointGeometry extends Geometry
+class PointMark extends Mark
   constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
-class TextGeometry extends Geometry
+class TextMark extends Mark
   constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
 
 class PointEncoding
@@ -805,24 +805,24 @@ encodeShape = (frame, channel) ->
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
 
-defaultPoint = (geom) ->
-  geom.shape = new ConstantShapeChannel 'circle' unless geom.shape
-  geom.size = new ConstantSizeChannel defaultSize unless geom.size
+defaultPoint = (mark) ->
+  mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
+  mark.size = new ConstantSizeChannel defaultSize unless mark.size
 
-  hasFill = geom.fillColor or geom.fillOpacity
-  hasStroke = geom.strokeColor or geom.strokeOpacity or geom.lineWidth
+  hasFill = mark.fillColor or mark.fillOpacity
+  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
   hasStroke = yes unless hasFill or hasStroke
 
   if hasFill
-    geom.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless geom.fillColor
-    geom.fillOpacity = new ConstantFillOpacityChannel 1 unless geom.fillOpacity
+    mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
+    mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
 
   if hasStroke
-    geom.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless geom.strokeColor
-    geom.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless geom.strokeOpacity
-    geom.lineWidth = new ConstantLineWidthChannel 1.5 unless geom.lineWidth
+    mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
+    mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
+    mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
 
-  geom
+  mark
 
 encodePosition = (frame, channel, range) ->
   field = channel.field
@@ -842,18 +842,18 @@ encodePosition = (frame, channel, range) ->
     else
       throw new Error 'ni'
 
-encodePoint = (frame, geom, bounds, positionX, positionY) ->
-  shape = encodeShape frame, geom.shape
-  size = encodeSize frame, geom.size
+encodePoint = (frame, mark, bounds, positionX, positionY) ->
+  shape = encodeShape frame, mark.shape
+  size = encodeSize frame, mark.size
 
-  if geom.fillColor or geom.fillOpacity
-    fillColor = encodeColor frame, geom.fillColor
-    fillOpacity = encodeOpacity frame, geom.fillOpacity
+  if mark.fillColor or mark.fillOpacity
+    fillColor = encodeColor frame, mark.fillColor
+    fillOpacity = encodeOpacity frame, mark.fillOpacity
 
-  if geom.strokeColor or geom.strokeOpacity or geom.lineWidth
-    strokeColor = encodeColor frame, geom.strokeColor
-    strokeOpacity = encodeOpacity frame, geom.strokeOpacity
-    lineWidth = encodeLineWidth frame, geom.lineWidth
+  if mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+    strokeColor = encodeColor frame, mark.strokeColor
+    strokeOpacity = encodeOpacity frame, mark.strokeOpacity
+    lineWidth = encodeLineWidth frame, mark.lineWidth
 
   new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
@@ -1010,7 +1010,7 @@ plot_point = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new PointGeometry positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 plot_value = (value) -> new Value value
 
@@ -1355,17 +1355,17 @@ createLayer = (encoders, mask, highlight, render, select) ->
 
 render = (frame, ops) ->
   bounds = getOp ops, Bounds, plot_defaults.bounds
-  geoms = filterByType ops, Geometry
+  marks = filterByType ops, Mark
 
 
-  #XXX coalesce (x, y) from all geoms + validation
-  geom = head geoms
-  positionX = encodePosition frame, geom.positionX, new SequentialRange 0, bounds.width
-  positionY = encodePosition frame, geom.positionY, new SequentialRange bounds.height, 0
+  #XXX coalesce (x, y) from all marks + validation
+  mark = head marks
+  positionX = encodePosition frame, mark.positionX, new SequentialRange 0, bounds.width
+  positionY = encodePosition frame, mark.positionY, new SequentialRange bounds.height, 0
 
 
-  layers = map geoms, (geom) ->
-    encoders = encodePoint frame, (defaultPoint geom), bounds, positionX, positionY
+  layers = map marks, (mark) ->
+    encoders = encodePoint frame, (defaultPoint mark), bounds, positionX, positionY
     createLayer encoders, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
 
   visualization = createVisualization bounds, frame, layers
