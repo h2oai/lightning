@@ -1202,13 +1202,11 @@ extractEncodings = (encoders) ->
 
   encodings
 
-createVisualization = (bounds, frame, layer) ->
+createVisualization = (bounds, frame, layers) ->
   viewport = createViewport bounds
 
   { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
   _indices = frame.indices
-  encodings = layer.encodings
-
   _index = undefined
 
   test = (x, y) ->
@@ -1216,8 +1214,9 @@ createVisualization = (bounds, frame, layer) ->
     if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      layer.mask [ i ], encodings, clipCanvas.context, clip
-      return i if clip.test x, y
+      for layer in layers
+        layer.mask [ i ], layer.encodings, clipCanvas.context, clip
+        return i if clip.test x, y
     return
 
   hover = (x, y) ->
@@ -1231,22 +1230,26 @@ createVisualization = (bounds, frame, layer) ->
         for vector in frame.vectors
           tooltip[vector.name] = vector.format i
         debug tooltip
-        layer.highlight [ i ], encodings, hoverCanvas.context
+        for layer in layers
+          layer.highlight [ i ], layer.encodings, hoverCanvas.context
     return
 
   highlight = (indices) ->
     highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
-      layer.highlight indices, encodings, highlightCanvas.context
-      layer.render indices, encodings, highlightCanvas.context
+      for layer in layers
+        layer.highlight indices, layer.encodings, highlightCanvas.context
+        layer.render indices, layer.encodings, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
+    return
 
   selectAt = (x, y) ->
     i = test x, y
     debug 'selectAt', x, y
     highlight if i isnt undefined then [ i ] else []
+    return
 
   selectWithin = (x1, y1, x2, y2) ->
     xmin = if x1 > x2 then x2 else x1
@@ -1254,11 +1257,15 @@ createVisualization = (bounds, frame, layer) ->
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    highlight layer.select _indices, encodings, xmin, ymin, xmax, ymax
+    for layer in layers
+      highlight layer.select _indices, layer.encodings, xmin, ymin, xmax, ymax
+    return
 
   render = ->
-    layer.render _indices, encodings, baseCanvas.context
-    layer.mask _indices, encodings, maskCanvas.context, mask
+    for layer in layers
+      layer.render _indices, layer.encodings, baseCanvas.context
+      layer.mask _indices, layer.encodings, maskCanvas.context, mask
+    return
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
@@ -1361,7 +1368,9 @@ render = (frame, ops) ->
 
   layer = createLayer encoders, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
 
-  visualization = createVisualization bounds, frame, layer
+  layers = [ layer ]
+
+  visualization = createVisualization bounds, frame, layers
 
   visualization.render()
   
