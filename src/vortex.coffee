@@ -1152,20 +1152,23 @@ plot_lineWidth = dispatch(
 )
 
 plot_parse = (esprima, escodegen) ->
-  walkAst = (node, f) ->
-    f node
-    for own key, child of node
-      if isObject child
-        if isArray child
-          for childNode in child
-            walkAst childNode, f
-        else
-          walkAst child, f
-    return
+  traverse = (node, f) ->
+    if isArray node
+      i = node.length
+      while i--
+        child = node[i]
+        if child isnt null and isObject child
+          traverse child, f
+          f child
+    else
+      for own i, child of node
+        if child isnt null and isObject child
+          traverse child, f
+          f child
 
   (js) ->
     ast = esprima.parse js
-    walkAst ast, (node) ->
+    traverse ast, (node) ->
       if node.type is 'CallExpression' and node.callee.type is 'Identifier'
         if isFunction plot[name = node.callee.name]
           node.callee =
@@ -1177,6 +1180,17 @@ plot_parse = (esprima, escodegen) ->
             property:
               type: 'Identifier'
               name: name
+      else if node.type is 'Identifier'
+        if isFunction plot[name = node.name]
+          delete node.name
+          node.type = 'MemberExpression'
+          node.computed = no
+          node.object =
+            type: 'Identifier'
+            name: 'plot'
+          node.property =
+            type: 'Identifier'
+            name: name
       return
     escodegen.generate ast
 
