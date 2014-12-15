@@ -214,11 +214,11 @@ class Rect
   constructor: (@left, @top, @width, @height) ->
 
 class Vector
-  constructor: (@name, @label, @type, @data, @domain, @format, @read) ->
+  constructor: (@name, @label, @type, @read, @count, @domain, @format) ->
 
 class Factor extends Vector
-  constructor: (name, label, type, data, domain, format, read) ->
-    super name, label, type, data, domain, format, read
+  constructor: (name, label, type, read, count, domain, format) ->
+    super name, label, type, read, count, domain, format
 
 class Frame
   constructor: (@label, @vectors, @rowCount, @schema, @indices, @get, @put) ->
@@ -389,7 +389,7 @@ class Category
   constructor: (@index, @value) ->
 
 class Factoring
-  constructor: (@data, @domain, @format, @read) ->
+  constructor: (@read, @count, @domain, @format) ->
 
 byteToHex = (b) ->
   hex = b.toString 16
@@ -1314,9 +1314,11 @@ factor = (field) ->
     if vector instanceof Factor
       field        
     else
-      data = new Array vector.data.length
-      for value, i in vector.data
-        data[i] = '' + value #XXX handle undefined
+      length = vector.count()
+      read = vector.read
+      data = new Array length
+      for i in [ 0 ... length ]
+        data[i] = '' + read i #XXX handle undefined
 
       frame.put computedVector = createFactor "FACTOR(#{vector.label})", TString, data
       new Field computedVector.name
@@ -1401,34 +1403,39 @@ computeSkew_ = (origin) -> (extent) ->
 
 computeSkew0 = computeSkew_ 0
 
-factorize = (array, values) ->
+factorize = (_read, count, values) ->
   _id = 0
   _dictionary = {}
-  data = new Array array.length
+  length = count()
+  data = new Array length
 
   domain = for value in values
     _dictionary[value] = new Category _id++, value
 
-  for element, index in array
+  for i in [ 0 ... length ]
+    element = _read i
     value = if element isnt undefined then element else '?'
     unless category = _dictionary[value]
       domain.push _dictionary[value] = category = new Category _id++, value
-    data[index] = category
+    data[i] = category
 
   format = (i) -> data[i].value
   read = (i) -> data[i]
 
-  new Factoring data, domain, format, read
+  new Factoring read, count, domain, format
 
 createFactor = (label, type, data, domain) ->
-  factoring = factorize data, domain or []
-  new Factor label, label, type, factoring.data, factoring.domain, factoring.format, factoring.read
+  count = -> data.length
+  read = (i) -> data[i]
+  factoring = factorize read, count, domain or []
+  new Factor label, label, type, factoring.read, count, factoring.domain, factoring.format
 
 createVector = (label, type, data, format) ->
   domain = computeExtent data
+  count = -> data.length
   read = (i) -> data[i]
   _format = (i) -> format data[i]
-  new Vector label, label, type, data, domain, _format, read
+  new Vector label, label, type, read, count, domain, _format
 
 plot.data = plot_data
 plot.rectangular = plot_rectangular
