@@ -461,3 +461,25 @@ plot(
   )
 )
 
+###
+plot two-point-layers
+Multiple point layers
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  data csv 'mtcars'
+  point( 
+    position 'wt', 'mpg'
+    fillColor value 'red'
+    size value 15
+  )
+  point(
+    position 'wt', 'mpg'
+    fillColor value 'white'
+    shape factor 'cyl'
+  )
+)

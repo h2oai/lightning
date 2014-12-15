@@ -842,10 +842,7 @@ encodePosition = (frame, channel, range) ->
     else
       throw new Error 'ni'
 
-encodePoint = (frame, geom, bounds) ->
-  positionX = encodePosition frame, geom.positionX, new SequentialRange 0, bounds.width
-  positionY = encodePosition frame, geom.positionY, new SequentialRange bounds.height, 0
-
+encodePoint = (frame, geom, bounds, positionX, positionY) ->
   shape = encodeShape frame, geom.shape
   size = encodeSize frame, geom.size
 
@@ -1360,15 +1357,16 @@ render = (frame, ops) ->
   bounds = getOp ops, Bounds, plot_defaults.bounds
   geoms = filterByType ops, Geometry
 
-  #TODO handle layers
 
+  #XXX coalesce (x, y) from all geoms + validation
   geom = head geoms
+  positionX = encodePosition frame, geom.positionX, new SequentialRange 0, bounds.width
+  positionY = encodePosition frame, geom.positionY, new SequentialRange bounds.height, 0
 
-  encoders = encodePoint frame, (defaultPoint geom), bounds
 
-  layer = createLayer encoders, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
-
-  layers = [ layer ]
+  layers = map geoms, (geom) ->
+    encoders = encodePoint frame, (defaultPoint geom), bounds, positionX, positionY
+    createLayer encoders, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
 
   visualization = createVisualization bounds, frame, layers
 
