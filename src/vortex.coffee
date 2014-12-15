@@ -1318,7 +1318,8 @@ factor = (field) ->
       read = vector.read
       data = new Array length
       for i in [ 0 ... length ]
-        data[i] = '' + read i #XXX handle undefined
+        if undefined isnt value = read i
+          data[i] = '' + value
 
       frame.put computedVector = createFactor "FACTOR(#{vector.label})", TString, data
       new Field computedVector.name
