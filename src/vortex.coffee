@@ -161,7 +161,15 @@ dispatch = do ->
       when TDate
         (a) -> pattern is Date or a is pattern
       when TArray
-        (a) -> pattern is Array or arrayElementsAreEqual pattern, a
+        if pattern.length is 1 and TFunction is (type1 = typeOf pattern[0])
+          matchElement = matchPattern_ pattern[0]
+          (xs) ->
+            return no if TArray isnt typeOf xs 
+            for x in xs
+              return no unless matchElement x
+            return yes
+        else
+          (a) -> pattern is Array or arrayElementsAreEqual pattern, a
       when TFunction
         (a) ->
           return yes if a instanceof pattern
