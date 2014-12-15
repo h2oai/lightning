@@ -370,6 +370,9 @@ class SequentialColorRange extends ColorRange
 class DivergingColorRange extends ColorRange
   constructor: (@min, @mid, @max) ->
 
+class Geometry
+  constructor: (@init, @encode, @mask, @highlight, @render, @select) ->
+
 class Datasource
   constructor: (@read) ->
 
@@ -805,25 +808,6 @@ encodeShape = (frame, channel) ->
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
 
-defaultPoint = (mark) ->
-  mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
-  mark.size = new ConstantSizeChannel defaultSize unless mark.size
-
-  hasFill = mark.fillColor or mark.fillOpacity
-  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
-  hasStroke = yes unless hasFill or hasStroke
-
-  if hasFill
-    mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
-    mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
-
-  if hasStroke
-    mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
-    mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
-    mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
-
-  mark
-
 encodePosition = (frame, channel, range) ->
   field = channel.field
   vector = frame.get field
@@ -842,7 +826,26 @@ encodePosition = (frame, channel, range) ->
     else
       throw new Error 'ni'
 
-encodePoint = (frame, mark, bounds, positionX, positionY) ->
+initPointMark = (mark) ->
+  mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
+  mark.size = new ConstantSizeChannel defaultSize unless mark.size
+
+  hasFill = mark.fillColor or mark.fillOpacity
+  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+  hasStroke = yes unless hasFill or hasStroke
+
+  if hasFill
+    mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
+    mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
+
+  if hasStroke
+    mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
+    mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
+    mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+
+  mark
+
+encodePointMark = (frame, mark, bounds, positionX, positionY) ->
   shape = encodeShape frame, mark.shape
   size = encodeSize frame, mark.size
 
@@ -942,6 +945,29 @@ selectPointMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
       selectedIndices.push i
 
   selectedIndices
+
+Geometries = [
+  [
+    PointMark
+  ,
+    new Geometry(
+      initPointMark
+      encodePointMark
+      maskPointMarks
+      highlightPointMarks
+      renderPointMarks
+      selectPointMarks
+    )
+  ]
+]
+
+getGeometry = (mark) ->
+  for [ type, geom ] in Geometries when mark instanceof type
+    return geom
+  return
+
+registerGeometry = (type, geom) ->
+  Geometries.push [ type, geom ]
 
 # XXX disable RMB
 # TODO implement additive selections
@@ -1363,10 +1389,10 @@ render = (frame, ops) ->
   positionX = encodePosition frame, mark.positionX, new SequentialRange 0, bounds.width
   positionY = encodePosition frame, mark.positionY, new SequentialRange bounds.height, 0
 
-
   layers = map marks, (mark) ->
-    encoders = encodePoint frame, (defaultPoint mark), bounds, positionX, positionY
-    createLayer encoders, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
+    geom = getGeometry mark
+    encoders = geom.encode frame, (geom.init mark), bounds, positionX, positionY
+    createLayer encoders, geom.mask, geom.highlight, geom.render, geom.select
 
   visualization = createVisualization bounds, frame, layers
 
