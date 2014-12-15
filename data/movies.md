@@ -6,7 +6,7 @@ The internet movie database, http://imdb.com/, is a website devoted to collectin
 
 ## Format
 
-A data frame with 28819 rows and 24 variables
+A data frame with 58788 rows and 24 variables
 
 ## Details
 
