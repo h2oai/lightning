@@ -73,6 +73,8 @@ test 'dispatch', (t) ->
     [ { type: 'foo' }, { type: 'foo', mode: 'bar' } ]
     [ Dispatch_Sample_Class, new Dispatch_Sample_Class() ]
     [ Array, [], [ 4, 2 ] ]
+    [ [String], [ 'foo', 'bar' ] ]
+    [ [Number], [ 41, 42, 43 ] ]
     [ [], [] ]
     [ [ 4, 2 ], [ 4, 2 ] ]
     [ Date, new Date() ]
