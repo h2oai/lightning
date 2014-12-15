@@ -379,6 +379,9 @@ class Canvas
 class Viewport
   constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
 
+class Layer
+  constructor: (@encoders, @encodings, @mask, @highlight, @render, @select) ->
+
 class Visualization
   constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
 
@@ -1187,9 +1190,9 @@ composeStyle = (encodeColor, encodeOpacity) ->
   else
     undefined
 
-extractEncodings = (encoding) ->
+extractEncodings = (encoders) ->
   encodings = {}
-  for own attr, encoder of encoding
+  for own attr, encoder of encoders
     encodings[attr] = if encoder then encoder.encode else undefined
 
   { fillColor, fillOpacity, strokeColor, strokeOpacity } = encodings
@@ -1199,13 +1202,12 @@ extractEncodings = (encoding) ->
 
   encodings
 
-createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, renderMarks, selectMarks) ->
-
+createVisualization = (bounds, frame, layer) ->
   viewport = createViewport bounds
 
   { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
   _indices = frame.indices
-  encodings = extractEncodings encoding
+  encodings = layer.encodings
 
   _index = undefined
 
@@ -1214,7 +1216,7 @@ createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, rende
     if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      maskMarks [ i ], encodings, clipCanvas.context, clip
+      layer.mask [ i ], encodings, clipCanvas.context, clip
       return i if clip.test x, y
     return
 
@@ -1229,15 +1231,15 @@ createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, rende
         for vector in frame.vectors
           tooltip[vector.name] = vector.format i
         debug tooltip
-        highlightMarks [ i ], encodings, hoverCanvas.context
+        layer.highlight [ i ], encodings, hoverCanvas.context
     return
 
   highlight = (indices) ->
     highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
-      highlightMarks indices, encodings, highlightCanvas.context
-      renderMarks indices, encodings, highlightCanvas.context
+      layer.highlight indices, encodings, highlightCanvas.context
+      layer.render indices, encodings, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
 
@@ -1252,11 +1254,11 @@ createVisualization = (bounds, frame, encoding, maskMarks, highlightMarks, rende
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    highlight selectMarks _indices, encodings, xmin, ymin, xmax, ymax
+    highlight layer.select _indices, encodings, xmin, ymin, xmax, ymax
 
   render = ->
-    renderMarks _indices, encodings, baseCanvas.context
-    maskMarks _indices, encodings, maskCanvas.context, mask
+    layer.render _indices, encodings, baseCanvas.context
+    layer.mask _indices, encodings, maskCanvas.context, mask
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
@@ -1344,6 +1346,9 @@ arePositionVectorsCompatible = (vectors) ->
 
   return yes
 
+createLayer = (encoders, mask, highlight, render, select) ->
+  new Layer encoders, (extractEncodings encoders), mask, highlight, render, select
+
 render = (frame, ops) ->
   bounds = getOp ops, Bounds, plot_defaults.bounds
   geoms = filterByType ops, Geometry
@@ -1352,9 +1357,11 @@ render = (frame, ops) ->
 
   geom = head geoms
 
-  encoding = encodePoint frame, (defaultPoint geom), bounds
+  encoders = encodePoint frame, (defaultPoint geom), bounds
 
-  visualization = createVisualization bounds, frame, encoding, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
+  layer = createLayer encoders, maskPointMarks, highlightPointMarks, renderPointMarks, selectPointMarks
+
+  visualization = createVisualization bounds, frame, layer
 
   visualization.render()
   
