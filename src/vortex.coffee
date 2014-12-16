@@ -247,7 +247,7 @@ class Factor extends Vector
 class Group
 
 class Frame
-  constructor: (@label, @vectors, @schema, @indices, @cube, @has, @get, @put) ->
+  constructor: (@label, @vectors, @schema, @indices, @cube, @read, @eval, @attach) ->
 
 class Value
   constructor: (@value) ->
@@ -573,24 +573,24 @@ createFrame = (label, vectors, indices, cube) ->
 
   frame = new Frame label, vectors, schema, indices, cube, null, null, null
 
-  frame.get = (field) ->
+  frame.eval = (field) ->
     if field instanceof MappedField
-      frame.get field.evaluate frame
+      frame.eval field.evaluate frame
     else if field instanceof ReducedField
       throw new Error "Cannot compute aggregate #{field.name} on an unaggregated frame." unless cube
-      frame.get field.evaluate frame, cube
+      frame.eval field.evaluate frame, cube
     else
       if vector = schema[field.name]
         vector
       else
         throw new Error "Vector '#{field.name}' does not exist in frame '#{frame.label}'."
 
-  frame.put = (vector) ->
+  frame.attach = (vector) ->
     vectors.push vector
     schema[ vector.name ] = vector
     vector
 
-  frame.has = (name) ->
+  frame.read = (name) ->
     if schema[ name ] then yes else no
 
   frame
@@ -746,7 +746,7 @@ pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
 
 encodeColor = (frame, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
-    vector = frame.get channel.field
+    vector = frame.eval channel.field
     if vector instanceof Factor
       unless channel.range
         channel.range = new CategoricalRange pickCategoricalColorPalette vector.domain.length
@@ -806,7 +806,7 @@ encodeColor = (frame, channel) ->
 
 encodeOpacity = (frame, channel) ->
   if channel instanceof VariableFillOpacityChannel or channel instanceof VariableStrokeOpacityChannel
-    vector = frame.get channel.field
+    vector = frame.eval channel.field
     if vector instanceof Factor
       throw new Error "Could not encode opacity. Vector '#{vector.label}' is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -823,7 +823,7 @@ encodeOpacity = (frame, channel) ->
 
 encodeSize = (frame, channel) ->
   if channel instanceof VariableSizeChannel
-    vector = frame.get channel.field
+    vector = frame.eval channel.field
     if vector instanceof Factor
       throw new Error "Could not encode size. Vector '#{vector.label}' is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -840,7 +840,7 @@ encodeSize = (frame, channel) ->
 
 encodeLineWidth = (frame, channel) ->
   if channel instanceof VariableLineWidthChannel
-    vector = frame.get channel.field
+    vector = frame.eval channel.field
     if vector instanceof Factor
       throw new Error "Could not encode lineWidth. Vector '#{vector.label}' is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -857,7 +857,7 @@ encodeLineWidth = (frame, channel) ->
 
 encodeShape = (frame, channel) ->
   if channel instanceof VariableShapeChannel
-    vector = frame.get channel.field
+    vector = frame.eval channel.field
     unless vector instanceof Factor
       throw new Error "Could not encode shape. Vector '#{vector.label}' is not a Factor." 
     unless channel.range
@@ -873,7 +873,7 @@ encodeShape = (frame, channel) ->
 
 encodePosition = (frame, channel, range) ->
   field = channel.field
-  vector = frame.get field
+  vector = frame.eval field
   { domain } = vector
 
   switch vector.type
@@ -1429,7 +1429,7 @@ plot_defaults =
 
 factor = (field) ->
   new MappedField (frame) ->
-    vector = frame.get field
+    vector = frame.eval field
     if vector instanceof Factor
       field        
     else
@@ -1440,7 +1440,7 @@ factor = (field) ->
         if undefined isnt value = read i
           data[i] = '' + value
 
-      frame.put computedVector = createFactor "factor(#{vector.label})", TString, data
+      frame.attach computedVector = createFactor "factor(#{vector.label})", TString, data
       new Field computedVector.name
 
 plot_factor = dispatch(
@@ -1468,10 +1468,10 @@ plot__select = dispatch(
 createAggregateField = (field, symbol, type, format, f) ->
   new ReducedField (frame, cube) ->
     name = "#{symbol}(#{field.name})"
-    if cube.frame.has name
+    if cube.frame.read name
       new Field name
     else
-      vector = cube.frame.get field
+      vector = cube.frame.eval field
       read = vector.read
       data = new Array cube.cells.length
       for cell, j in cube.cells
@@ -1479,7 +1479,7 @@ createAggregateField = (field, symbol, type, format, f) ->
         for i in cell.indices
           values.push value if (value = read i) isnt undefined
         data[j] = f values
-      frame.put computedVector = createVector name, type, data, format
+      frame.attach computedVector = createVector name, type, data, format
       new Field computedVector.name
 
 plot_select = (target, sources..., func) ->
@@ -1497,50 +1497,50 @@ plot__having = dispatch(
 
 plot_having = (names..., func) -> plot__having names, func
 
-plot_eq = (a) -> (b) -> a is b
-plot_ne = (a) -> (b) -> a isnt b
-plot_lt = (a) -> (b) -> a < b
-plot_gt = (a) -> (b) -> a > b
-plot_le = (a) -> (b) -> a <= b
-plot_ge = (a) -> (b) -> a >= b
-plot_like = (a) ->
-  throw new Error "like '#{a}': expecting RegExp" if TRegExp isnt typeOf a
-  (b) -> a.test b
-plot_in = (as...) -> (b) ->
-  return yes for a in as when a is b
+plot_eq = (expected) -> (actual) -> expected is actual
+plot_ne = (expected) -> (actual) -> expected isnt actual
+plot_lt = (expected) -> (actual) -> expected < actual
+plot_gt = (expected) -> (actual) -> expected > actual
+plot_le = (expected) -> (actual) -> expected <= actual
+plot_ge = (expected) -> (actual) -> expected >= actual
+plot_like = (regex) ->
+  throw new Error "like '#{regex}': expecting RegExp" if TRegExp isnt typeOf regex
+  (actual) -> regex.test actual
+plot_in = (expecteds...) -> (actual) ->
+  return yes for expected in expecteds when expected is actual
   no
-plot_notIn = (as...) -> (b) -> 
-  return no for a in as when a is b
+plot_notIn = (expecteds...) -> (actual) -> 
+  return no for expected in expecteds when expected is actual
   yes
 
 aggregate_avg = (array) ->
   total = 0
-  for a in array when a isnt undefined
-    total += a
+  for value in array when value isnt undefined
+    total += value
   total / array.length
 
 aggregate_count = (array) -> 
   count = 0
-  for a in array when a isnt undefined
+  for value in array when value isnt undefined
     count++
   count
 
 aggregate_max = (array) ->
   max = Number.NEGATIVE_INFINITY
-  for a in array when a isnt undefined
-    max = a if a >= max
+  for value in array when value isnt undefined
+    max = value if value >= max
   max
 
 aggregate_min = (array) ->
   min = Number.POSITIVE_INFINITY
-  for a in array when a isnt undefined
-    min = a if a <= min
+  for value in array when value isnt undefined
+    min = value if value <= min
   min
 
 aggregate_sum = (array) ->
   total = 0
-  for a in array when a isnt undefined
-    total += a
+  for value in array when value isnt undefined
+    total += value
   total
 
 aggregate_stddev = (array) -> #XXX
@@ -1551,10 +1551,10 @@ aggregate_variance = (array) -> #XXX
 
 aggregate_varianceP = (array) -> #XXX
 
-aggregate = (title, type, format, f) ->
+aggregate = (title, type, format, func) ->
   dispatch(
-    [ String, (name) -> createAggregateField (new Field name), title, type, format, f ]
-    [ Field, (field) -> createAggregateField field, title, type, format, f ]
+    [ String, (name) -> createAggregateField (new Field name), title, type, format, func ]
+    [ Field, (field) -> createAggregateField field, title, type, format, func ]
   )
 
 plot_avg = aggregate 'avg', TNumber, identity, aggregate_avg
@@ -1624,7 +1624,7 @@ filterFrame = (frame, ops) ->
   for op in ops
     indices = []
     vectors = for field in op.fields
-      frame.get field
+      frame.eval field
     reads = map vectors, (vector) ->
       if vector instanceof Factor then vector.at else vector.read
 
@@ -1658,7 +1658,7 @@ queryFrame = (frame, ops) ->
   if groupOps.length
     fields = flatMap groupOps, (op) -> op.fields
     factors = for field in fields
-      vector = filteredFrame.get field
+      vector = filteredFrame.eval field
       if vector instanceof Factor
         vector
       else
