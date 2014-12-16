@@ -247,7 +247,7 @@ class Factor extends Vector
 class Group
 
 class Frame
-  constructor: (@label, @vectors, @schema, @indices, @cube, @get, @put) ->
+  constructor: (@label, @vectors, @schema, @indices, @cube, @has, @get, @put) ->
 
 class Value
   constructor: (@value) ->
@@ -571,7 +571,7 @@ createLinearScale = dispatch(
 createFrame = (label, vectors, indices, cube) ->
   schema = indexBy vectors, (vector) -> vector.name
 
-  frame = new Frame label, vectors, schema, indices, cube, null, null
+  frame = new Frame label, vectors, schema, indices, cube, null, null, null
 
   frame.get = (field) ->
     if field instanceof MappedField
@@ -589,6 +589,9 @@ createFrame = (label, vectors, indices, cube) ->
     vectors.push vector
     schema[ vector.name ] = vector
     vector
+
+  frame.has = (name) ->
+    if schema[ name ] then yes else no
 
   frame
 
@@ -1462,18 +1465,22 @@ plot__select = dispatch(
   [ String, [String], Function, (target, sources, func) -> new SelectOp target, (createFields sources), func ]
 )
 
-createRollupField = (field, name, type, format, f) ->
+createAggregateField = (field, symbol, type, format, f) ->
   new ReducedField (frame, cube) ->
-    vector = cube.frame.get field
-    read = vector.read
-    data = new Array cube.cells.length
-    for cell, j in cube.cells
-      values = []
-      for i in cell.indices
-        values.push value if (value = read i) isnt undefined
-      data[j] = f values
-    frame.put computedVector = createVector "#{name}(#{field.name})", type, data, format
-    new Field computedVector.name
+    name = "#{symbol}(#{field.name})"
+    if cube.frame.has name
+      new Field name
+    else
+      vector = cube.frame.get field
+      read = vector.read
+      data = new Array cube.cells.length
+      for cell, j in cube.cells
+        values = []
+        for i in cell.indices
+          values.push value if (value = read i) isnt undefined
+        data[j] = f values
+      frame.put computedVector = createVector name, type, data, format
+      new Field computedVector.name
 
 plot_select = (target, sources..., func) ->
   plot__select target, (if sources.length then sources else [target]), func
@@ -1506,59 +1513,59 @@ plot_notIn = (as...) -> (b) ->
   return no for a in as when a is b
   yes
 
-rollup_avg = (array) ->
+aggregate_avg = (array) ->
   total = 0
   for a in array when a isnt undefined
     total += a
   total / array.length
 
-rollup_count = (array) -> 
+aggregate_count = (array) -> 
   count = 0
   for a in array when a isnt undefined
     count++
   count
 
-rollup_max = (array) ->
+aggregate_max = (array) ->
   max = Number.NEGATIVE_INFINITY
   for a in array when a isnt undefined
     max = a if a >= max
   max
 
-rollup_min = (array) ->
+aggregate_min = (array) ->
   min = Number.POSITIVE_INFINITY
   for a in array when a isnt undefined
     min = a if a <= min
   min
 
-rollup_sum = (array) ->
+aggregate_sum = (array) ->
   total = 0
   for a in array when a isnt undefined
     total += a
   total
 
-rollup_stddev = (array) -> #XXX
+aggregate_stddev = (array) -> #XXX
 
-rollup_stddevP = (array) -> #XXX
+aggregate_stddevP = (array) -> #XXX
 
-rollup_variance = (array) -> #XXX
+aggregate_variance = (array) -> #XXX
 
-rollup_varianceP = (array) -> #XXX
+aggregate_varianceP = (array) -> #XXX
 
-rollup = (title, type, format, f) ->
+aggregate = (title, type, format, f) ->
   dispatch(
-    [ String, (name) -> createRollupField (new Field name), title, type, format, f ]
-    [ Field, (field) -> createRollupField field, title, type, format, f ]
+    [ String, (name) -> createAggregateField (new Field name), title, type, format, f ]
+    [ Field, (field) -> createAggregateField field, title, type, format, f ]
   )
 
-plot_avg = rollup 'avg', TNumber, identity, rollup_avg
-plot_count = rollup 'count', TNumber, identity, rollup_count
-plot_max = rollup 'max', TNumber, identity, rollup_max
-plot_min = rollup 'min', TNumber, identity, rollup_min
-plot_sum = rollup 'sum', TNumber, identity, rollup_sum
-plot_stddev = rollup 'stddev', TNumber, identity, rollup_stddev
-plot_stddevP = rollup 'stddevP', TNumber, identity, rollup_stddevP
-plot_variance = rollup 'variance', TNumber, identity, rollup_variance
-plot_varianceP = rollup 'varianceP', TNumber, identity, rollup_varianceP
+plot_avg = aggregate 'avg', TNumber, identity, aggregate_avg
+plot_count = aggregate 'count', TNumber, identity, aggregate_count
+plot_max = aggregate 'max', TNumber, identity, aggregate_max
+plot_min = aggregate 'min', TNumber, identity, aggregate_min
+plot_sum = aggregate 'sum', TNumber, identity, aggregate_sum
+plot_stddev = aggregate 'stddev', TNumber, identity, aggregate_stddev
+plot_stddevP = aggregate 'stddevP', TNumber, identity, aggregate_stddevP
+plot_variance = aggregate 'variance', TNumber, identity, aggregate_variance
+plot_varianceP = aggregate 'varianceP', TNumber, identity, aggregate_varianceP
 
 arePositionVectorsCompatible = (vectors) ->
   top = head vectors
@@ -1631,7 +1638,7 @@ filterFrame = (frame, ops) ->
     _indices = indices
   _indices
 
-rollupFrame = (label, cube, sourceFactors) ->
+aggregateFrame = (label, cube, sourceFactors) ->
   indices = sequence cube.cells.length
   targetFactors = for offset in [ 0 ... cube.dimension ]
     sliceFactor cube, sourceFactors[offset], offset
@@ -1665,12 +1672,12 @@ queryFrame = (frame, ops) ->
 
     cube = new Cube filteredFrame, tree, cells, fields.length
 
-    rolledUpFrame = rollupFrame filteredFrame.label, cube, factors
+    aggregatedFrame = aggregateFrame filteredFrame.label + "'", cube, factors
 
     if havingOps.length
-      createFrame rolledUpFrame.label, rolledUpFrame.vectors, (filterFrame rolledUpFrame, havingOps), rolledUpFrame.cube
+      createFrame aggregatedFrame.label, aggregatedFrame.vectors, (filterFrame aggregatedFrame, havingOps), aggregatedFrame.cube
     else
-      rolledUpFrame
+      aggregatedFrame
   else
     filteredFrame
 
