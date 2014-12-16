@@ -82,7 +82,7 @@ createFrame = (label, schema, data) ->
         )
       #TODO Date
 
-  plot.createFrame label, vectors, rows.length
+  plot.createFrame label, vectors, _.range rows.length
 
 window.csv = (label) ->
   (go) ->

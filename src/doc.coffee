@@ -1,4 +1,23 @@
 ###
+plot point2
+point
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  data csv 'mtcars'
+  #where 'model', like /Merc/
+  group factor 'cyl'
+  group factor 'carb'
+  point(
+    position 'wt', 'mpg'
+  )
+)
+###
 plot point
 point
 Description goes here.
@@ -481,5 +500,26 @@ plot(
     position 'wt', 'mpg'
     fillColor value 'white'
     shape factor 'cyl'
+  )
+)
+
+
+###
+plot line
+Line
+Line
+---
+tags:
+ - line
+###
+plot(
+  data csv 'movies'
+  where 'movie', ne '' 
+  where 'mpaa', eq 'PG-13'
+  group 'year'
+  select 'number', count
+  having 'number', le 10
+  line(
+    position 'year', 'number'
   )
 )

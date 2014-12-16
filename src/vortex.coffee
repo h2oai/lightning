@@ -4,18 +4,18 @@
 
 # TODO fix mmin, mmax, vvalues in shorthand
 # Tooltips
-# Vector encoding:
-#   fill color
-#   fill opacity
-#   stroke color
-#   stroke opacity
-#   linewidth
-#   size
-#   shape
 # Stack
 # Jitter
+# Missing value handling for all aes encodings
+# Axes
+# Legends
+# Bar
+# Line
+# Area
+# Polygon
+# Path
+# Detail
 # Events (selection, hover)
-
 
 π = Math.PI
 τ = 2 * π
@@ -38,6 +38,15 @@ clamp_ = (min, max) -> (value) ->
 clampOpacity = clamp_ 0, 1
 
 defaultSize = 8
+
+copy = (a) -> slice a, 0
+
+flatMap = (xs, f) ->
+  ys = []
+  for x in xs
+    for y in f x
+      ys.push y
+  ys
 
 #
 # Chroma wrappers
@@ -77,6 +86,13 @@ findByType = (args, types...) ->
     return arg for type in types when arg instanceof type
   return
 
+getOp = (ops, type, def) ->
+  if op = findByType ops, type
+    op
+  else
+    def
+
+getOps = filterByType
 
 #
 # Pseudo-types
@@ -225,11 +241,13 @@ class Vector
   constructor: (@name, @label, @type, @read, @count, @domain, @format) ->
 
 class Factor extends Vector
-  constructor: (name, label, type, read, count, domain, format) ->
+  constructor: (name, label, type, read, @at, count, domain, format) ->
     super name, label, type, read, count, domain, format
 
+class Group
+
 class Frame
-  constructor: (@label, @vectors, @rowCount, @schema, @indices, @get, @put) ->
+  constructor: (@label, @vectors, @schema, @indices, @get, @put) ->
 
 class Value
   constructor: (@value) ->
@@ -256,6 +274,9 @@ class Mark
 
 class PointMark extends Mark
   constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+
+class LineMark extends Mark
+  constructor: (@positionX, @positionY, @strokeColor, @strokeOpacity, @lineWidth) ->
 
 class TextMark extends Mark
   constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
@@ -298,10 +319,10 @@ class Channel
 
 class ColorChannel extends Channel
 
-class PointChannel extends Channel
+class PositionChannel extends Channel
   constructor: (@fieldX, @fieldY) ->
 
-class PositionChannel extends Channel
+class CoordChannel extends Channel
   constructor: (@field) ->
 
 class FillColorChannel extends Channel
@@ -400,10 +421,33 @@ class Bounds
   constructor: (@width, @height) ->
 
 class Category
-  constructor: (@index, @value) ->
+  constructor: (@key, @value) ->
+
+All = new Category 0, 'All'
+
+class Cube
+  constructor: (@tree, @cells) ->
+
+class Level
+  constructor: (@category, @indices, @children) ->
+
+class Cell
+  constructor: (@levels, @indices) ->
 
 class Factoring
-  constructor: (@read, @count, @domain, @format) ->
+  constructor: (@read, @at, @count, @domain, @format) ->
+
+class GroupOp
+  constructor: (@fields) ->
+
+class SelectOp
+  constructor: (@name, @fields, @func) ->
+
+class WhereOp
+  constructor: (@fields, @predicate) ->
+
+class HavingOp
+  constructor: (@fields, @predicate) ->
 
 byteToHex = (b) ->
   hex = b.toString 16
@@ -476,7 +520,7 @@ createCategoricalColorScale = (label, domain, range) ->
 createCategoricalScale = (domain, range) ->
   _rangeValues = range.values
   _rangeCount = _rangeValues.length
-  (category) -> _rangeValues[ category.index % _rangeCount ]
+  (category) -> _rangeValues[ category.key % _rangeCount ]
 
 createSequentialLinearScale = (domain, range) ->
   d3.scale.linear()
@@ -521,17 +565,19 @@ createLinearScale = dispatch(
   [ DivergingRange, DivergingRange, createDivergingLinearScale ]
 )
 
-createFrame = (label, vectors, rowCount) ->
+createFrame = (label, vectors, indices) ->
   schema = indexBy vectors, (vector) -> vector.name
-  indices = sequence rowCount
 
-  frame = new Frame label, vectors, rowCount, schema, indices, null, null
+  frame = new Frame label, vectors, schema, indices, null, null
 
   frame.get = (field) ->
     if field instanceof ComputedField
       frame.get field.evaluate frame
     else
-      schema[field.name]
+      if vector = schema[field.name]
+        vector
+      else
+        throw new Error "Vector '#{field.name}' does not exist."
 
   frame.put = (vector) ->
     vectors.push vector
@@ -1033,9 +1079,9 @@ plot_polar = (scaleR, scaleA) ->
 plot_parallel = (scales...) ->
 
 plot_point = (ops...) ->
-  point = getOp ops, PointChannel
-  positionX = new PositionChannel point.fieldX
-  positionY = new PositionChannel point.fieldY
+  position = getOp ops, PositionChannel
+  positionX = new CoordChannel position.fieldX
+  positionY = new CoordChannel position.fieldY
   shape = getOp ops, ShapeChannel
   size = getOp ops, SizeChannel
   fillColor = getOp ops, FillColorChannel
@@ -1045,6 +1091,16 @@ plot_point = (ops...) ->
   lineWidth = getOp ops, LineWidthChannel
 
   new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+
+plot_line = (ops...) ->
+  position = getOp ops, PositionChannel
+  positionX = new CoordChannel position.fieldX
+  positionY = new CoordChannel position.fieldY
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new LineMark positionX, positionY, strokeColor, strokeOpacity, lineWidth
 
 plot_value = (value) -> new Value value
 
@@ -1086,10 +1142,10 @@ plot_range = dispatch(
 )
 
 plot_position = dispatch(
-  [ String, String, (nameX, nameY) -> new PointChannel (new Field nameX), (new Field nameY) ]
-  [ String, Field, (nameX, fieldY) -> new PointChannel (new Field nameX), fieldY ]
-  [ Field, String, (fieldX, nameY) -> new PointChannel fieldX, (new Field nameY) ]
-  [ Field, Field, (fieldX, fieldY) -> new PointChannel fieldX, fieldY ]
+  [ String, String, (nameX, nameY) -> new PositionChannel (new Field nameX), (new Field nameY) ]
+  [ String, Field, (nameX, fieldY) -> new PositionChannel (new Field nameX), fieldY ]
+  [ Field, String, (fieldX, nameY) -> new PositionChannel fieldX, (new Field nameY) ]
+  [ Field, Field, (fieldX, fieldY) -> new PositionChannel fieldX, fieldY ]
 )
 
 plot_shape = dispatch(
@@ -1383,11 +1439,120 @@ plot_factor = dispatch(
   [ Field, (field) -> factor field ]
 )
 
-getOp = (ops, type, def) ->
-  if op = findByType ops, type
-    op
-  else
-    def
+createFields = (names) ->
+  map names, (name) -> new Field name
+
+plot_group = (args...) ->
+  fields = for arg in args
+    if arg instanceof Field
+      arg
+    else if isString arg
+      new Field arg
+    else
+      throw new Error "Cannot group by '#{arg}'"
+  new GroupOp fields
+
+plot__select = dispatch(
+  [ String, [String], Function, (target, sources, func) -> new SelectOp target, (createFields sources), func ]
+)
+
+createRollupField = (field, name, type, format, f) ->
+  new ComputedField (frame, cube) ->
+    vector = frame.get field
+    read = vector.read
+    data = new Array cube.cells.length
+    for cell, cellIndex in cube.cells
+      values = []
+      for i in cell.indices
+        values.push read i
+      data[cellIndex] = f values
+    frame.put computedVector = createVector "#{name}(#{field.name})", type, data, format
+    new Field computedVector.name
+
+plot_reduce = dispatch(
+  [ String, Function, (name, f) -> ]
+  [ Field, Function, (field, f) -> ]
+)
+
+plot_select = (target, sources..., func) ->
+  plot__select target, (if sources.length then sources else [target]), func
+
+plot__where = dispatch(
+  [ [String], Function, (names, func) -> new WhereOp (createFields names), func ]
+)
+
+plot_where = (names..., func) -> plot__where names, func
+
+plot__having = dispatch(
+  [ [String], Function, (names, func) -> new HavingOp (createFields names), func ]
+)
+
+plot_having = (names..., func) -> plot__having names, func
+
+
+plot_eq = (a) -> (b) -> a is b
+plot_ne = (a) -> (b) -> a isnt b
+plot_lt = (a) -> (b) -> a < b
+plot_gt = (a) -> (b) -> a > b
+plot_le = (a) -> (b) -> a <= b
+plot_ge = (a) -> (b) -> a >= b
+plot_like = (a) ->
+  throw new Error "like '#{a}': expecting RegExp" if TRegExp isnt typeOf a
+  (b) -> a.test b
+
+rollup_avg = (array) ->
+  total = 0
+  for a in array when a isnt undefined
+    total += a
+  total / array.length
+
+rollup_count = (array) -> 
+  count = 0
+  for a in array when a isnt undefined
+    count++
+  count
+
+rollup_max = (array) ->
+  max = Number.NEGATIVE_INFINITY
+  for a in array when a isnt undefined
+    max = a if a >= max
+  max
+
+rollup_min = (array) ->
+  min = Number.POSITIVE_INFINITY
+  for a in array when a isnt undefined
+    min = a if a <= min
+  min
+
+rollup_sum = (array) ->
+  total = 0
+  for a in array when a isnt undefined
+    total += a
+  total
+
+rollup_stddev = (array) -> #XXX
+
+rollup_stddevP = (array) -> #XXX
+
+rollup_variance = (array) -> #XXX
+
+rollup_varianceP = (array) -> #XXX
+
+rollup = (title, type, format, f) ->
+  dispatch(
+    [ String, (name) -> createRollupField (new Field name), title, type, format, f ]
+    [ Field, (field) -> createRollupField field, title, type, format, f ]
+  )
+
+plot_avg = rollup 'avg', TNumber, identity, rollup_avg
+plot_count = rollup 'count', TNumber, identity, rollup_count
+plot_max = rollup 'max', TNumber, identity, rollup_max
+plot_min = rollup 'min', TNumber, identity, rollup_min
+plot_sum = rollup 'sum', TNumber, identity, rollup_sum
+plot_stddev = rollup 'stddev', TNumber, identity, rollup_stddev
+plot_stddevP = rollup 'stddevP', TNumber, identity, rollup_stddevP
+plot_variance = rollup 'variance', TNumber, identity, rollup_variance
+plot_varianceP = rollup 'varianceP', TNumber, identity, rollup_varianceP
 
 arePositionVectorsCompatible = (vectors) ->
   top = head vectors
@@ -1401,10 +1566,91 @@ arePositionVectorsCompatible = (vectors) ->
 createLayer = (encoders, mask, highlight, render, select) ->
   new Layer encoders, (extractEncodings encoders), mask, highlight, render, select
 
-render = (frame, ops) ->
-  bounds = getOp ops, Bounds, plot_defaults.bounds
-  marks = filterByType ops, Mark
+subdivide = (tree, vectors, offset) ->
+  read = vectors[offset].read
+  for key, level of tree
+    children = level.children
+    for i in level.indices
+      category = read i
+      unless child = children[category.key]
+        children[category.key] = child = new Level category, [], {}
+      child.indices.push i
 
+    if offset < vectors.length - 1
+      subdivide children, vectors, offset + 1
+  return
+
+collapse = (tree, depth, cells, offset, coord) ->
+  for key, level of tree
+    coord[offset] = level
+    if offset is depth
+      cells.push new Cell (copy coord), level.indices
+    else
+      collapse level.children, depth, cells, offset + 1, coord
+  return
+
+aggregateFrame = (frame, ops) ->
+  groupOps = getOps ops, GroupOp
+  selectOps = getOps ops, SelectOp
+  whereOps = getOps ops, WhereOp
+  havingOps = getOps ops, HavingOp
+
+  _indices = frame.indices
+  if whereOps.length
+    for op in whereOps
+      indices = []
+      vectors = for field in op.fields
+        frame.get field
+      reads = map vectors, (vector) ->
+        if vector instanceof Factor then vector.at else vector.read
+
+      for i in _indices
+        args = new Array vectors.length
+        for read, j in reads
+          args[j] = read i
+        if apply op.predicate, null, args #TODO Optimize
+          indices.push i
+
+      _indices = indices
+  
+  if groupOps.length
+    fields = flatMap groupOps, (op) -> op.fields
+    vectors = for field in fields
+      vector = frame.get field
+      if vector instanceof Factor
+        vector
+      else
+        throw new Error "Cannot group by '#{field.name}' - not a Factor"
+
+    tree = 0: new Level All, _indices, {}
+    subdivide tree, vectors, 0
+
+    cells = []
+    collapse tree[0].children, fields.length - 1, cells, 0, new Array fields.length
+
+    cube = new Cube tree, cells
+
+    throw new Error()
+
+  else  
+    createFrame frame.label, frame.vectors, _indices
+
+dumpFrame = (frame) ->
+  rows = new Array frame.indices.length
+  reads = map frame.vectors, (vector) -> if vector instanceof Factor then vector.at else vector.read
+  for i in frame.indices
+    rows[i] = row = new Array frame.vectors.length
+    for read, offset in reads
+      row[offset] = read i
+  rows
+
+render = (sourceFrame, ops) ->
+  bounds = getOp ops, Bounds, plot_defaults.bounds
+  marks = getOps ops, Mark
+
+  frame = aggregateFrame sourceFrame, ops
+  
+  debug dumpFrame frame
 
   #XXX coalesce (x, y) from all marks + validation
   mark = head marks
@@ -1418,7 +1664,7 @@ render = (frame, ops) ->
 
   visualization = createVisualization bounds, frame, layers
 
-  visualization.render()
+  visualization.render() #TODO should be callable externally, with indices.
   
   visualization.viewport.container
 
@@ -1484,14 +1730,15 @@ factorize = (_read, count, values) ->
 
   format = (i) -> data[i].value
   read = (i) -> data[i]
+  at = (i) -> data[i].value
 
-  new Factoring read, count, domain, format
+  new Factoring read, at, count, domain, format
 
 createFactor = (label, type, data, domain) ->
   count = -> data.length
   read = (i) -> data[i]
   factoring = factorize read, count, domain or []
-  new Factor label, label, type, factoring.read, count, factoring.domain, factoring.format
+  new Factor label, label, type, factoring.read, factoring.at, count, factoring.domain, factoring.format
 
 createVector = (label, type, data, format) ->
   domain = computeExtent data
@@ -1504,7 +1751,6 @@ plot.data = plot_data
 plot.rectangular = plot_rectangular
 plot.polar = plot_polar
 plot.parallel = plot_parallel
-plot.point = plot_point
 plot.value = plot_value
 plot.domain = plot_domain
 plot.range = plot_range
@@ -1517,7 +1763,29 @@ plot.size = plot_size
 plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
 plot.factor = plot_factor
+plot.group = plot_group
+plot.select = plot_select
+plot.where = plot_where
+plot.having = plot_having
+plot.eq = plot_eq
+plot.ne = plot_ne
+plot.lt = plot_lt
+plot.gt = plot_gt
+plot.le = plot_le
+plot.ge = plot_ge
+plot.like = plot_like
+plot.avg = plot_avg
+plot.count = plot_count
+plot.max = plot_max
+plot.min = plot_min
+plot.sum = plot_sum
+plot.stddev = plot_stddev
+plot.stddevP = plot_stddevP
+plot.variance = plot_variance
+plot.varianceP = plot_varianceP
 plot.parse = plot_parse
+plot.point = plot_point
+plot.line = plot_line
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createFactor = createFactor
