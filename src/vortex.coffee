@@ -247,7 +247,7 @@ class Factor extends Vector
 class Group
 
 class Frame
-  constructor: (@label, @vectors, @schema, @indices, @get, @put) ->
+  constructor: (@label, @vectors, @schema, @indices, @cube, @get, @put) ->
 
 class Value
   constructor: (@value) ->
@@ -267,7 +267,10 @@ class BooleanValue extends Value
 class Field
   constructor: (@name) ->
 
-class ComputedField extends Field
+class MappedField extends Field
+  constructor: (@evaluate) ->
+
+class ReducedField extends Field
   constructor: (@evaluate) ->
 
 class Mark
@@ -426,7 +429,7 @@ class Category
 All = new Category 0, 'All'
 
 class Cube
-  constructor: (@tree, @cells) ->
+  constructor: (@frame, @tree, @cells, @dimension) ->
 
 class Level
   constructor: (@category, @indices, @children) ->
@@ -565,19 +568,22 @@ createLinearScale = dispatch(
   [ DivergingRange, DivergingRange, createDivergingLinearScale ]
 )
 
-createFrame = (label, vectors, indices) ->
+createFrame = (label, vectors, indices, cube) ->
   schema = indexBy vectors, (vector) -> vector.name
 
-  frame = new Frame label, vectors, schema, indices, null, null
+  frame = new Frame label, vectors, schema, indices, cube, null, null
 
   frame.get = (field) ->
-    if field instanceof ComputedField
+    if field instanceof MappedField
       frame.get field.evaluate frame
+    else if field instanceof ReducedField
+      throw new Error "Cannot compute aggregate #{field.name} on an unaggregated frame." unless cube
+      frame.get field.evaluate frame, cube
     else
       if vector = schema[field.name]
         vector
       else
-        throw new Error "Vector '#{field.name}' does not exist."
+        throw new Error "Vector '#{field.name}' does not exist in frame '#{frame.label}'."
 
   frame.put = (vector) ->
     vectors.push vector
@@ -1419,7 +1425,7 @@ plot_defaults =
   bounds: new Bounds 400, 400
 
 factor = (field) ->
-  new ComputedField (frame) ->
+  new MappedField (frame) ->
     vector = frame.get field
     if vector instanceof Factor
       field        
@@ -1431,7 +1437,7 @@ factor = (field) ->
         if undefined isnt value = read i
           data[i] = '' + value
 
-      frame.put computedVector = createFactor "FACTOR(#{vector.label})", TString, data
+      frame.put computedVector = createFactor "factor(#{vector.label})", TString, data
       new Field computedVector.name
 
 plot_factor = dispatch(
@@ -1457,22 +1463,17 @@ plot__select = dispatch(
 )
 
 createRollupField = (field, name, type, format, f) ->
-  new ComputedField (frame, cube) ->
-    vector = frame.get field
+  new ReducedField (frame, cube) ->
+    vector = cube.frame.get field
     read = vector.read
     data = new Array cube.cells.length
-    for cell, cellIndex in cube.cells
+    for cell, j in cube.cells
       values = []
       for i in cell.indices
-        values.push read i
-      data[cellIndex] = f values
+        values.push value if (value = read i) isnt undefined
+      data[j] = f values
     frame.put computedVector = createVector "#{name}(#{field.name})", type, data, format
     new Field computedVector.name
-
-plot_reduce = dispatch(
-  [ String, Function, (name, f) -> ]
-  [ Field, Function, (field, f) -> ]
-)
 
 plot_select = (target, sources..., func) ->
   plot__select target, (if sources.length then sources else [target]), func
@@ -1489,7 +1490,6 @@ plot__having = dispatch(
 
 plot_having = (names..., func) -> plot__having names, func
 
-
 plot_eq = (a) -> (b) -> a is b
 plot_ne = (a) -> (b) -> a isnt b
 plot_lt = (a) -> (b) -> a < b
@@ -1499,6 +1499,12 @@ plot_ge = (a) -> (b) -> a >= b
 plot_like = (a) ->
   throw new Error "like '#{a}': expecting RegExp" if TRegExp isnt typeOf a
   (b) -> a.test b
+plot_in = (as...) -> (b) ->
+  return yes for a in as when a is b
+  no
+plot_notIn = (as...) -> (b) -> 
+  return no for a in as when a is b
+  yes
 
 rollup_avg = (array) ->
   total = 0
@@ -1589,51 +1595,84 @@ collapse = (tree, depth, cells, offset, coord) ->
       collapse level.children, depth, cells, offset + 1, coord
   return
 
-aggregateFrame = (frame, ops) ->
+sliceFactor = (cube, vector, offset) ->
+  data = new Array cube.cells.length
+  dictionary = {}
+  domain = []
+  for cell, i in cube.cells
+    data[i] = category = cell.levels[offset].category
+    unless dictionary[category.value]
+      dictionary[category.value] = category
+      domain.push category
+
+  read = (i) -> data[i]
+  at = (i) -> data[i].value
+  format = (i) -> data[i].value
+  count = -> data.length
+
+  new Factor vector.label, vector.label, vector.type, read, at, count, domain, format
+
+filterFrame = (frame, ops) ->
+  _indices = frame.indices # transient!
+  for op in ops
+    indices = []
+    vectors = for field in op.fields
+      frame.get field
+    reads = map vectors, (vector) ->
+      if vector instanceof Factor then vector.at else vector.read
+
+    for i in _indices
+      args = new Array vectors.length
+      for read, j in reads
+        args[j] = read i
+      if apply op.predicate, null, args #TODO Optimize
+        indices.push i
+
+    _indices = indices
+  _indices
+
+rollupFrame = (label, cube, sourceFactors) ->
+  indices = sequence cube.cells.length
+  targetFactors = for offset in [ 0 ... cube.dimension ]
+    sliceFactor cube, sourceFactors[offset], offset
+  createFrame label, targetFactors, indices, cube
+
+queryFrame = (frame, ops) ->
   groupOps = getOps ops, GroupOp
   selectOps = getOps ops, SelectOp
   whereOps = getOps ops, WhereOp
   havingOps = getOps ops, HavingOp
 
-  _indices = frame.indices
-  if whereOps.length
-    for op in whereOps
-      indices = []
-      vectors = for field in op.fields
-        frame.get field
-      reads = map vectors, (vector) ->
-        if vector instanceof Factor then vector.at else vector.read
-
-      for i in _indices
-        args = new Array vectors.length
-        for read, j in reads
-          args[j] = read i
-        if apply op.predicate, null, args #TODO Optimize
-          indices.push i
-
-      _indices = indices
+  filteredFrame = if whereOps.length
+    createFrame frame.label, frame.vectors, filterFrame frame, whereOps
+  else
+    frame
   
   if groupOps.length
     fields = flatMap groupOps, (op) -> op.fields
-    vectors = for field in fields
-      vector = frame.get field
+    factors = for field in fields
+      vector = filteredFrame.get field
       if vector instanceof Factor
         vector
       else
-        throw new Error "Cannot group by '#{field.name}' - not a Factor"
+        throw new Error "Cannot group by '#{field.name}' - not a Factor."
 
-    tree = 0: new Level All, _indices, {}
-    subdivide tree, vectors, 0
+    tree = 0: new Level All, filteredFrame.indices, {}
+    subdivide tree, factors, 0
 
     cells = []
     collapse tree[0].children, fields.length - 1, cells, 0, new Array fields.length
 
-    cube = new Cube tree, cells
+    cube = new Cube filteredFrame, tree, cells, fields.length
 
-    throw new Error()
+    rolledUpFrame = rollupFrame filteredFrame.label, cube, factors
 
-  else  
-    createFrame frame.label, frame.vectors, _indices
+    if havingOps.length
+      createFrame rolledUpFrame.label, rolledUpFrame.vectors, (filterFrame rolledUpFrame, havingOps), rolledUpFrame.cube
+    else
+      rolledUpFrame
+  else
+    filteredFrame
 
 dumpFrame = (frame) ->
   rows = new Array frame.indices.length
@@ -1644,13 +1683,12 @@ dumpFrame = (frame) ->
       row[offset] = read i
   rows
 
-render = (sourceFrame, ops) ->
+render = (_frame, ops) ->
+  frame = queryFrame _frame, ops
+  debug dumpFrame frame
+
   bounds = getOp ops, Bounds, plot_defaults.bounds
   marks = getOps ops, Mark
-
-  frame = aggregateFrame sourceFrame, ops
-  
-  debug dumpFrame frame
 
   #XXX coalesce (x, y) from all marks + validation
   mark = head marks
@@ -1728,9 +1766,9 @@ factorize = (_read, count, values) ->
       domain.push _dictionary[value] = category = new Category _id++, value
     data[i] = category
 
-  format = (i) -> data[i].value
   read = (i) -> data[i]
   at = (i) -> data[i].value
+  format = (i) -> data[i].value
 
   new Factoring read, at, count, domain, format
 

@@ -14,7 +14,7 @@ plot(
   group factor 'cyl'
   group factor 'carb'
   point(
-    position 'wt', 'mpg'
+    position avg('wt'), avg('mpg')
   )
 )
 ###
