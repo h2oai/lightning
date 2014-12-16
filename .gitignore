@@ -4,6 +4,7 @@ node_modules/
 lib/
 build/
 dist/
+doc/
 *.swp
 *.log
 .gradle
