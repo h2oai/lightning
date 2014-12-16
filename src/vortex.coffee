@@ -268,10 +268,10 @@ class Field
   constructor: (@name) ->
 
 class MappedField extends Field
-  constructor: (@evaluate) ->
+  constructor: (@eval) ->
 
 class ReducedField extends Field
-  constructor: (@evaluate) ->
+  constructor: (@eval) ->
 
 class Mark
 
@@ -422,6 +422,9 @@ class Visualization
 
 class Bounds
   constructor: (@width, @height) ->
+
+class Query
+  constructor: (@select, @where, @group, @having) ->
 
 class Category
   constructor: (@key, @value) ->
@@ -575,10 +578,10 @@ createFrame = (label, vectors, indices, cube) ->
 
   frame.eval = (field) ->
     if field instanceof MappedField
-      frame.eval field.evaluate frame
+      frame.eval field.eval frame
     else if field instanceof ReducedField
       throw new Error "Cannot compute aggregate #{field.name} on an unaggregated frame." unless cube
-      frame.eval field.evaluate frame, cube
+      frame.eval field.eval frame, cube
     else
       if vector = schema[field.name]
         vector
@@ -1602,7 +1605,7 @@ collapse = (tree, depth, cells, offset, coord) ->
       collapse level.children, depth, cells, offset + 1, coord
   return
 
-sliceFactor = (cube, vector, offset) ->
+extractFactor = (cube, vector, offset) ->
   data = new Array cube.cells.length
   dictionary = {}
   domain = []
@@ -1641,22 +1644,18 @@ filterFrame = (frame, ops) ->
 aggregateFrame = (label, cube, sourceFactors) ->
   indices = sequence cube.cells.length
   targetFactors = for offset in [ 0 ... cube.dimension ]
-    sliceFactor cube, sourceFactors[offset], offset
+    extractFactor cube, sourceFactors[offset], offset
   createFrame label, targetFactors, indices, cube
 
-queryFrame = (frame, ops) ->
-  groupOps = getOps ops, GroupOp
-  selectOps = getOps ops, SelectOp
-  whereOps = getOps ops, WhereOp
-  havingOps = getOps ops, HavingOp
+queryFrame = (frame, query) ->
 
-  filteredFrame = if whereOps.length
-    createFrame frame.label, frame.vectors, filterFrame frame, whereOps
+  filteredFrame = if query.where.length
+    createFrame frame.label, frame.vectors, filterFrame frame, query.where
   else
     frame
   
-  if groupOps.length
-    fields = flatMap groupOps, (op) -> op.fields
+  if query.group.length
+    fields = flatMap query.group, (op) -> op.fields
     factors = for field in fields
       vector = filteredFrame.eval field
       if vector instanceof Factor
@@ -1674,8 +1673,8 @@ queryFrame = (frame, ops) ->
 
     aggregatedFrame = aggregateFrame filteredFrame.label + "'", cube, factors
 
-    if havingOps.length
-      createFrame aggregatedFrame.label, aggregatedFrame.vectors, (filterFrame aggregatedFrame, havingOps), aggregatedFrame.cube
+    if query.having.length
+      createFrame aggregatedFrame.label, aggregatedFrame.vectors, (filterFrame aggregatedFrame, query.having), aggregatedFrame.cube
     else
       aggregatedFrame
   else
@@ -1690,8 +1689,17 @@ dumpFrame = (frame) ->
       row[offset] = read i
   rows
 
+createQuery = (ops) ->
+  new Query(
+    getOps ops, SelectOp
+    getOps ops, WhereOp
+    getOps ops, GroupOp
+    getOps ops, HavingOp
+  )
+
 render = (_frame, ops) ->
-  frame = queryFrame _frame, ops
+  query = createQuery ops
+  frame = queryFrame _frame, query
   debug dumpFrame frame
 
   bounds = getOp ops, Bounds, plot_defaults.bounds

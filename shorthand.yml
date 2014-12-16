@@ -171,9 +171,6 @@ find:
 filter:
   type: qualify
   object: _
-where:
-  type: qualify
-  object: _
 findWhere:
   type: qualify
   object: _
