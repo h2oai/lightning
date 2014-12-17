@@ -184,16 +184,16 @@ class Rect
   constructor: (@left, @top, @width, @height) ->
 
 class Vector
-  constructor: (@name, @label, @type, @read, @count, @domain, @format) ->
+  constructor: (@name, @label, @type, @at, @count, @domain, @format) ->
 
 class Factor extends Vector
-  constructor: (name, label, type, read, @at, count, domain, format) ->
-    super name, label, type, read, count, domain, format
+  constructor: (name, label, type, at, @read, count, domain, format) ->
+    super name, label, type, at, count, domain, format
 
 class Group
 
 class Frame
-  constructor: (@label, @vectors, @schema, @indices, @cube, @read, @eval, @attach) ->
+  constructor: (@label, @vectors, @schema, @indices, @cube, @at, @eval, @attach) ->
 
 class Value
   constructor: (@value) ->
@@ -387,7 +387,7 @@ class Cell
   constructor: (@levels, @indices) ->
 
 class Factoring
-  constructor: (@read, @at, @count, @domain, @format) ->
+  constructor: (@at, @read, @count, @domain, @format) ->
 
 class GroupOp
   constructor: (@fields) ->
@@ -489,9 +489,9 @@ computeSkew0 = computeSkew_ 0
 createVector = (label, type, data, format) ->
   domain = computeExtent data
   count = -> data.length
-  read = (i) -> data[i]
+  at = (i) -> data[i]
   _format = (i) -> format data[i]
-  new Vector label, label, type, read, count, domain, _format
+  new Vector label, label, type, at, count, domain, _format
 
 #
 # # Factor
@@ -512,17 +512,17 @@ factorize = (_read, count, values) ->
       domain.push _dictionary[value] = category = new Category _id++, value
     data[i] = category
 
-  read = (i) -> data[i]
-  at = (i) -> data[i].value
+  at = (i) -> data[i]
+  read = (i) -> data[i].value
   format = (i) -> data[i].value
 
-  new Factoring read, at, count, domain, format
+  new Factoring at, read, count, domain, format
 
 createFactor = (label, type, data, domain) ->
   count = -> data.length
-  read = (i) -> data[i]
-  factoring = factorize read, count, domain or []
-  new Factor label, label, type, factoring.read, factoring.at, count, factoring.domain, factoring.format
+  at = (i) -> data[i]
+  factoring = factorize at, count, domain or []
+  new Factor label, label, type, factoring.at, factoring.read, count, factoring.domain, factoring.format
 
 #
 # # Frame
@@ -550,18 +550,18 @@ createFrame = (label, vectors, indices, cube) ->
     schema[ vector.name ] = vector
     vector
 
-  frame.read = (name) ->
+  frame.exists = (name) ->
     if schema[ name ] then yes else no
 
   frame
 
 dumpFrame = (frame) ->
   rows = new Array frame.indices.length
-  reads = map frame.vectors, (vector) -> if vector instanceof Factor then vector.at else vector.read
+  reads = map frame.vectors, (vector) -> if vector instanceof Factor then vector.read else vector.at
   for i in frame.indices
     rows[i] = row = new Array frame.vectors.length
-    for read, offset in reads
-      row[offset] = read i
+    for at, offset in reads
+      row[offset] = at i
   rows
 
 #
@@ -588,10 +588,10 @@ createFactorField = (field) ->
       field        
     else
       length = vector.count()
-      read = vector.read
+      at = vector.at
       data = new Array length
       for i in [ 0 ... length ]
-        if undefined isnt value = read i
+        if undefined isnt value = at i
           data[i] = '' + value
 
       frame.attach computedVector = createFactor "factor(#{vector.label})", TString, data
@@ -645,16 +645,16 @@ aggregate_varianceP = (array) -> #XXX
 createAggregateField = (field, symbol, type, format, f) ->
   new ReducedField (frame, cube) ->
     name = "#{symbol}(#{field.name})"
-    if cube.frame.read name
+    if cube.frame.exists name
       new Field name
     else
       vector = cube.frame.eval field
-      read = vector.read
+      at = vector.at
       data = new Array cube.cells.length
       for cell, j in cube.cells
         values = []
         for i in cell.indices
-          values.push value if (value = read i) isnt undefined
+          values.push value if (value = at i) isnt undefined
         data[j] = f values
       frame.attach computedVector = createVector name, type, data, format
       new Field computedVector.name
@@ -780,12 +780,12 @@ filterFrame = (frame, ops) ->
     vectors = for field in op.fields
       frame.eval field
     reads = map vectors, (vector) ->
-      if vector instanceof Factor then vector.at else vector.read
+      if vector instanceof Factor then vector.read else vector.at
 
     for i in _indices
       args = new Array vectors.length
-      for read, j in reads
-        args[j] = read i
+      for at, j in reads
+        args[j] = at i
       if apply op.predicate, null, args #TODO Optimize
         indices.push i
 
@@ -799,11 +799,11 @@ aggregateFrame = (label, cube, sourceFactors) ->
   createFrame label, targetFactors, indices, cube
 
 subdivide = (tree, vectors, offset) ->
-  read = vectors[offset].read
+  at = vectors[offset].at
   for key, level of tree
     children = level.children
     for i in level.indices
-      category = read i
+      category = at i
       unless child = children[category.key]
         children[category.key] = child = new Level category, [], {}
       child.indices.push i
@@ -831,12 +831,12 @@ extractFactor = (cube, vector, offset) ->
       dictionary[category.value] = category
       domain.push category
 
-  read = (i) -> data[i]
-  at = (i) -> data[i].value
+  at = (i) -> data[i]
+  read = (i) -> data[i].value
   format = (i) -> data[i].value
   count = -> data.length
 
-  new Factor vector.label, vector.label, vector.type, read, at, count, domain, format
+  new Factor vector.label, vector.label, vector.type, at, read, count, domain, format
 
 #
 # # Color
@@ -1131,8 +1131,8 @@ encodeColor = (frame, channel) ->
       unless channel.range
         channel.range = new CategoricalRange pickCategoricalColorPalette vector.domain.length
       scale = createCategoricalScale vector.domain, channel.range
-      read = vector.read
-      encode = (i) -> chroma scale read i
+      at = vector.at
+      encode = (i) -> chroma scale at i
       new ColorEncoder vector.label, encode, vector.domain, channel.range, null #XXX
     else
       domain = switch computeSkew0 vector.domain
@@ -1178,8 +1178,8 @@ encodeColor = (frame, channel) ->
           new DivergingColorRange '#fc8d59', '#ffffbf'
 
       scale = createColorScale domain, range
-      read = vector.read
-      encode = (i) -> scale read i
+      at = vector.at
+      encode = (i) -> scale at i
       new ColorEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
@@ -1195,8 +1195,8 @@ encodeOpacity = (frame, channel) ->
     else
       channel.range = new SequentialRange 0.05, 1
     scale = createLinearScale domain, range
-    read = vector.read
-    encode = (i) -> scale read i
+    at = vector.at
+    encode = (i) -> scale at i
     new OpacityEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder clampOpacity channel.value
@@ -1212,8 +1212,8 @@ encodeSize = (frame, channel) ->
     else
       channel.range = new SequentialRange (sq defaultSize), (sq 30)
     scale = createLinearScale domain, range 
-    read = vector.read
-    encode = (i) -> scale read i
+    at = vector.at
+    encode = (i) -> scale at i
     new SizeEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder sq channel.value
@@ -1229,8 +1229,8 @@ encodeLineWidth = (frame, channel) ->
     else
       channel.range = new SequentialRange 1.5, 15
     scale = createLinearScale domain, range 
-    read = vector.read
-    encode = (i) -> scale read i
+    at = vector.at
+    encode = (i) -> scale at i
     new SizeEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
@@ -1243,8 +1243,8 @@ encodeShape = (frame, channel) ->
     unless channel.range
       channel.range = new CategoricalRange pickCategoricalShapePalette vector.domain.length 
     scale = createCategoricalScale vector.domain, channel.range
-    read = vector.read
-    encode = (i) -> Shapes[ scale read i ]
+    at = vector.at
+    encode = (i) -> Shapes[ scale at i ]
     new ShapeEncoder vector.label, encode, vector.domain, channel.range, null #XXX
   else
     #REVIEW: throw error or switch to circle?
@@ -1259,8 +1259,8 @@ encodePosition = (frame, channel, range) ->
   switch vector.type
     when TNumber
       scale = createNicedLinearScale domain, range
-      read = vector.read
-      encode = (i) -> scale read i
+      at = vector.at
+      encode = (i) -> scale at i
       guide = (count) ->
         format = scale.tickFormat count
         scale.ticks count
@@ -1446,7 +1446,7 @@ registerGeometry = (type, geom) ->
 
 # # Visualization operators
 
-plot_data = dispatch(
+plot_from = dispatch(
   [ Frame, identity ]
   [ Function, (read) -> new Datasource read ]
 )
@@ -1893,7 +1893,7 @@ plot = (ops...) ->
 # # Public API
 # 
 
-plot.data = plot_data
+plot.from = plot_from
 plot.rectangular = plot_rectangular
 plot.polar = plot_polar
 plot.parallel = plot_parallel
