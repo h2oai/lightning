@@ -1,21 +1,29 @@
 #
-# Vortex
+# # Vortex
 #
 
-# TODO fix mmin, mmax, vvalues in shorthand
-# Tooltips
-# Stack
-# Jitter
-# Missing value handling for all aes encodings
-# Axes
-# Legends
-# Bar
-# Line
-# Area
-# Polygon
-# Path
-# Detail
-# Events (selection, hover)
+#
+# ## TODO
+#
+# - fix mmin, mmax, vvalues in shorthand
+# - Tooltips
+# - Stack
+# - Jitter
+# - Missing value handling for all aes encodings
+# - Axes
+# - Legends
+# - Bar
+# - Line
+# - Area
+# - Polygon
+# - Path
+# - Detail
+# - Events (selection, hover)
+
+
+#
+# # Constants
+#
 
 π = Math.PI
 τ = 2 * π
@@ -27,75 +35,9 @@ Degrees = 180 / π
 Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
-sq = (x) -> x * x
-clamp_ = (min, max) -> (value) ->
-  if value < min
-    min
-  else if value > max
-    max
-  else
-    value
-clampOpacity = clamp_ 0, 1
-
-defaultSize = 8
-
-copy = (a) -> slice a, 0
-
-flatMap = (xs, f) ->
-  ys = []
-  for x in xs
-    for y in f x
-      ys.push y
-  ys
 
 #
-# Chroma wrappers
-#
-
-cloneColor = (color) ->
-  [ r, g, b ] = color.rgb()
-  chroma.rgb r, g, b
-
-colorToStyle = (color) -> color.css()
-
-colorToStyleA = (color, alpha) ->
-  cloneColor color
-    .alpha alpha
-    .css()
-
-
-operation = (f, args...) -> -> apply f, null, args
-
-always = (value) -> -> value
-
-arrayElementsAreEqual = (xs, ys) ->
-  if xs and ys and xs.length is ys.length
-    return no for x, i in xs when x isnt ys[i]
-    yes
-  else
-    no
-
-filterByType = (args, types...) ->
-  filtered = []
-  for arg in args
-    filtered.push arg for type in types when arg instanceof type
-  filtered
-
-findByType = (args, types...) ->
-  for arg in args
-    return arg for type in types when arg instanceof type
-  return
-
-getOp = (ops, type, def) ->
-  if op = findByType ops, type
-    op
-  else
-    def
-
-getOps = filterByType
-
-#
-# Pseudo-types
+# # Pseudo-types
 #
 
 TUndefined = 'undefined'
@@ -112,7 +54,7 @@ TRegExp = 'RegExp'
 TError = 'Error'
 
 #
-# Type detection
+# # Type checking
 #
 
 typeOf = (a) ->
@@ -147,7 +89,7 @@ typeOf = (a) ->
         type
 
 #
-# Dispatching / Pattern Matching
+# # Dispatching and Pattern Matching
 #
 
 class Matcher
@@ -224,6 +166,10 @@ dispatch = do ->
         return apply matcher.func, null, args
         
       throw new Error "Pattern match failure for args [ #{join (map args, (arg) -> '' + arg + ':' + typeOf arg), ', '} ]" #TODO improve message
+
+#
+# # Types
+#
 
 class Clip
   constructor: (@put, @test) ->
@@ -455,9 +401,60 @@ class WhereOp
 class HavingOp
   constructor: (@fields, @predicate) ->
 
-byteToHex = (b) ->
-  hex = b.toString 16
-  if hex.length is 1 then "0#{hex}" else hex
+#
+# # Utility functions
+#
+
+sq = (x) -> x * x
+clamp_ = (min, max) -> (value) ->
+  if value < min
+    min
+  else if value > max
+    max
+  else
+    value
+clampOpacity = clamp_ 0, 1
+
+defaultSize = 8
+
+copy = (a) -> slice a, 0
+
+flatMap = (xs, f) ->
+  ys = []
+  for x in xs
+    for y in f x
+      ys.push y
+  ys
+
+operation = (f, args...) -> -> apply f, null, args
+
+always = (value) -> -> value
+
+arrayElementsAreEqual = (xs, ys) ->
+  if xs and ys and xs.length is ys.length
+    return no for x, i in xs when x isnt ys[i]
+    yes
+  else
+    no
+
+filterByType = (args, types...) ->
+  filtered = []
+  for arg in args
+    filtered.push arg for type in types when arg instanceof type
+  filtered
+
+findByType = (args, types...) ->
+  for arg in args
+    return arg for type in types when arg instanceof type
+  return
+
+getOp = (ops, type, def) ->
+  if op = findByType ops, type
+    op
+  else
+    def
+
+getOps = filterByType
 
 createExtent = (a, b) ->
   if a < b
@@ -465,111 +462,71 @@ createExtent = (a, b) ->
   else
     new Extent b, a
 
-createClip = (canvas) ->
-  { context, ratio } = canvas
-  put = (index) -> "#fff"
-  test = (x, y) ->
-    [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
-      .data
-    r is 255 and g is 255 and b is 255 and a is 255
+computeExtent = (array) ->
+  min = Number.POSITIVE_INFINITY
+  max = Number.NEGATIVE_INFINITY
+  for value in array
+    if value isnt undefined
+      min = value if value <= min 
+      max = value if value >= max
+  
+  new Extent min, max
 
-  new Clip put, test
+computeSkew_ = (origin) -> (extent) ->
+  if extent.min >= origin and extent.max > origin
+    1
+  else if extent.min < origin and extent.max <= origin
+    -1
+  else
+    0
 
+computeSkew0 = computeSkew_ 0
 
-createMask = (canvas) ->
-  { context, ratio } = canvas
-  _color = 0
-  dict = {}
+#
+# # Vector
+#
 
-  put = (index) ->
-    color = _color++
-    _color = 0 if _color >= ColorLimit
-    dict[color] = index
-    r = (color >> 16) & 255
-    g = (color >> 8) & 255
-    b = color & 255
-    "##{byteToHex r}#{byteToHex g}#{byteToHex b}"
+createVector = (label, type, data, format) ->
+  domain = computeExtent data
+  count = -> data.length
+  read = (i) -> data[i]
+  _format = (i) -> format data[i]
+  new Vector label, label, type, read, count, domain, _format
 
-  test = (x, y) ->
-    [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
-      .data
-    if a is 255
-      color = (r << 16) + (g << 8) + b
-      dict[color]
-    else
-      undefined
+#
+# # Factor
+# 
+factorize = (_read, count, values) ->
+  _id = 0
+  _dictionary = {}
+  length = count()
+  data = new Array length
 
-  new Mask put, test
+  domain = for value in values
+    _dictionary[value] = new Category _id++, value
 
-createNicedLinearScale = (domain, range) ->
-  scale = d3.scale.linear()
-    .domain [ domain.min, domain.max ]
-    .range [ range.min, range.max ]
-    .nice()
+  for i in [ 0 ... length ]
+    element = _read i
+    value = if element isnt undefined then element else '?'
+    unless category = _dictionary[value]
+      domain.push _dictionary[value] = category = new Category _id++, value
+    data[i] = category
 
-createLinearAxis = (label, domain, range) ->
-  scale = d3.scale.linear()
-    .domain [ domain.min, domain.max ]
-    .range [ range.min, range.max ]
-    .nice()
+  read = (i) -> data[i]
+  at = (i) -> data[i].value
+  format = (i) -> data[i].value
 
-  guide = (count) ->
-    format = scale.tickFormat count
-    scale.ticks count
+  new Factoring read, at, count, domain, format
 
-  new LinearAxis label, scale, domain, range, guide
+createFactor = (label, type, data, domain) ->
+  count = -> data.length
+  read = (i) -> data[i]
+  factoring = factorize read, count, domain or []
+  new Factor label, label, type, factoring.read, factoring.at, count, factoring.domain, factoring.format
 
-createLinearColorScale = (label, domain, range) ->
-
-createCategoricalColorScale = (label, domain, range) ->
-
-createCategoricalScale = (domain, range) ->
-  _rangeValues = range.values
-  _rangeCount = _rangeValues.length
-  (category) -> _rangeValues[ category.key % _rangeCount ]
-
-createSequentialLinearScale = (domain, range) ->
-  d3.scale.linear()
-    .domain [ domain.min, domain.max ]
-    .range [ range.min, range.max ]
-
-createDivergingLinearScale = (domain, range) ->
-  d3.scale.linear()
-    .domain [ domain.min, domain.mid, domain.max ]
-    .range [ range.min, range.mid, range.max ]
-
-createSequentialColorScale = (domain, range) ->
-  chroma
-    .scale [ range.min, range.max ]
-    .domain [ domain.min, domain.max ]
-    .mode 'lch'
-
-createDivergingColorScale = (domain, range) ->
-  left = chroma
-    .scale [ range.min, range.mid ]
-    .domain [ domain.min, domain.mid ]
-    .mode 'lch'
-
-  right = chroma
-    .scale [ range.mid, range.max ]
-    .domain [ domain.mid, domain.max ]
-    .mode 'lch'
-
-  (value) ->
-    if value < domain.mid
-      left value
-    else
-      right value
-
-createColorScale = dispatch(
-  [ SequentialRange, ColorRange, createSequentialColorScale ]
-  [ DivergingRange, ColorRange, createDivergingColorScale ]
-)
-
-createLinearScale = dispatch(
-  [ SequentialRange, SequentialRange, createSequentialLinearScale ]
-  [ DivergingRange, DivergingRange, createDivergingLinearScale ]
-)
+#
+# # Frame
+#
 
 createFrame = (label, vectors, indices, cube) ->
   schema = indexBy vectors, (vector) -> vector.name
@@ -598,6 +555,293 @@ createFrame = (label, vectors, indices, cube) ->
 
   frame
 
+dumpFrame = (frame) ->
+  rows = new Array frame.indices.length
+  reads = map frame.vectors, (vector) -> if vector instanceof Factor then vector.at else vector.read
+  for i in frame.indices
+    rows[i] = row = new Array frame.vectors.length
+    for read, offset in reads
+      row[offset] = read i
+  rows
+
+#
+# # Query operators
+#
+
+createQuery = (ops) ->
+  new Query(
+    getOps ops, SelectOp
+    getOps ops, WhereOp
+    getOps ops, GroupOp
+    getOps ops, HavingOp
+  )
+
+createFields = (names) ->
+  map names, (name) -> new Field name
+
+# ## Factored fields
+
+createFactorField = (field) ->
+  new MappedField (frame) ->
+    vector = frame.eval field
+    if vector instanceof Factor
+      field        
+    else
+      length = vector.count()
+      read = vector.read
+      data = new Array length
+      for i in [ 0 ... length ]
+        if undefined isnt value = read i
+          data[i] = '' + value
+
+      frame.attach computedVector = createFactor "factor(#{vector.label})", TString, data
+      new Field computedVector.name
+
+plot_factor = dispatch(
+  [ String, (name) -> createFactorField new Field name ]
+  [ Field, (field) -> createFactorField field ]
+)
+
+# ## Aggregate fields
+
+aggregate_avg = (array) ->
+  total = 0
+  for value in array when value isnt undefined
+    total += value
+  total / array.length
+
+aggregate_count = (array) -> 
+  count = 0
+  for value in array when value isnt undefined
+    count++
+  count
+
+aggregate_max = (array) ->
+  max = Number.NEGATIVE_INFINITY
+  for value in array when value isnt undefined
+    max = value if value >= max
+  max
+
+aggregate_min = (array) ->
+  min = Number.POSITIVE_INFINITY
+  for value in array when value isnt undefined
+    min = value if value <= min
+  min
+
+aggregate_sum = (array) ->
+  total = 0
+  for value in array when value isnt undefined
+    total += value
+  total
+
+aggregate_stddev = (array) -> #XXX
+
+aggregate_stddevP = (array) -> #XXX
+
+aggregate_variance = (array) -> #XXX
+
+aggregate_varianceP = (array) -> #XXX
+
+createAggregateField = (field, symbol, type, format, f) ->
+  new ReducedField (frame, cube) ->
+    name = "#{symbol}(#{field.name})"
+    if cube.frame.read name
+      new Field name
+    else
+      vector = cube.frame.eval field
+      read = vector.read
+      data = new Array cube.cells.length
+      for cell, j in cube.cells
+        values = []
+        for i in cell.indices
+          values.push value if (value = read i) isnt undefined
+        data[j] = f values
+      frame.attach computedVector = createVector name, type, data, format
+      new Field computedVector.name
+
+plot_aggregate = (title, type, format, func) ->
+  dispatch(
+    [ String, (name) -> createAggregateField (new Field name), title, type, format, func ]
+    [ Field, (field) -> createAggregateField field, title, type, format, func ]
+  )
+
+plot_avg = plot_aggregate 'avg', TNumber, identity, aggregate_avg
+
+plot_count = plot_aggregate 'count', TNumber, identity, aggregate_count
+
+plot_max = plot_aggregate 'max', TNumber, identity, aggregate_max
+
+plot_min = plot_aggregate 'min', TNumber, identity, aggregate_min
+
+plot_sum = plot_aggregate 'sum', TNumber, identity, aggregate_sum
+
+plot_stddev = plot_aggregate 'stddev', TNumber, identity, aggregate_stddev
+
+plot_stddevP = plot_aggregate 'stddevP', TNumber, identity, aggregate_stddevP
+
+plot_variance = plot_aggregate 'variance', TNumber, identity, aggregate_variance
+
+plot_varianceP = plot_aggregate 'varianceP', TNumber, identity, aggregate_varianceP
+
+# ## GROUP BY clause
+
+plot_group = (args...) ->
+  fields = for arg in args
+    if arg instanceof Field
+      arg
+    else if isString arg
+      new Field arg
+    else
+      throw new Error "Cannot group by '#{arg}'"
+  new GroupOp fields
+
+# ## SELECT clause
+
+plot__select = dispatch(
+  [ String, [String], Function, (target, sources, func) -> new SelectOp target, (createFields sources), func ]
+)
+
+plot_select = (target, sources..., func) ->
+  plot__select target, (if sources.length then sources else [target]), func
+
+# ## WHERE clause
+
+plot__where = dispatch(
+  [ [String], Function, (names, func) -> new WhereOp (createFields names), func ]
+)
+
+plot_where = (names..., func) -> plot__where names, func
+
+# ## HAVING clause
+
+plot__having = dispatch(
+  [ [String], Function, (names, func) -> new HavingOp (createFields names), func ]
+)
+
+plot_having = (names..., func) -> plot__having names, func
+
+# ## Predicates
+
+plot_eq = (expected) -> (actual) -> expected is actual
+plot_ne = (expected) -> (actual) -> expected isnt actual
+plot_lt = (expected) -> (actual) -> expected < actual
+plot_gt = (expected) -> (actual) -> expected > actual
+plot_le = (expected) -> (actual) -> expected <= actual
+plot_ge = (expected) -> (actual) -> expected >= actual
+plot_like = (regex) ->
+  throw new Error "like '#{regex}': expecting RegExp" if TRegExp isnt typeOf regex
+  (actual) -> regex.test actual
+plot_in = (expecteds...) -> (actual) ->
+  return yes for expected in expecteds when expected is actual
+  no
+plot_notIn = (expecteds...) -> (actual) -> 
+  return no for expected in expecteds when expected is actual
+  yes
+
+#
+# # Query processing
+# 
+queryFrame = (frame, query) ->
+  filteredFrame = if query.where.length
+    createFrame frame.label, frame.vectors, filterFrame frame, query.where
+  else
+    frame
+  
+  if query.group.length
+    fields = flatMap query.group, (op) -> op.fields
+    factors = for field in fields
+      vector = filteredFrame.eval field
+      if vector instanceof Factor
+        vector
+      else
+        throw new Error "Cannot group by '#{field.name}' - not a Factor."
+
+    tree = 0: new Level All, filteredFrame.indices, {}
+    subdivide tree, factors, 0
+
+    cells = []
+    collapse tree[0].children, fields.length - 1, cells, 0, new Array fields.length
+
+    cube = new Cube filteredFrame, tree, cells, fields.length
+
+    aggregatedFrame = aggregateFrame filteredFrame.label + "'", cube, factors
+
+    if query.having.length
+      createFrame aggregatedFrame.label, aggregatedFrame.vectors, (filterFrame aggregatedFrame, query.having), aggregatedFrame.cube
+    else
+      aggregatedFrame
+  else
+    filteredFrame
+
+filterFrame = (frame, ops) ->
+  _indices = frame.indices # transient!
+  for op in ops
+    indices = []
+    vectors = for field in op.fields
+      frame.eval field
+    reads = map vectors, (vector) ->
+      if vector instanceof Factor then vector.at else vector.read
+
+    for i in _indices
+      args = new Array vectors.length
+      for read, j in reads
+        args[j] = read i
+      if apply op.predicate, null, args #TODO Optimize
+        indices.push i
+
+    _indices = indices
+  _indices
+
+aggregateFrame = (label, cube, sourceFactors) ->
+  indices = sequence cube.cells.length
+  targetFactors = for offset in [ 0 ... cube.dimension ]
+    extractFactor cube, sourceFactors[offset], offset
+  createFrame label, targetFactors, indices, cube
+
+subdivide = (tree, vectors, offset) ->
+  read = vectors[offset].read
+  for key, level of tree
+    children = level.children
+    for i in level.indices
+      category = read i
+      unless child = children[category.key]
+        children[category.key] = child = new Level category, [], {}
+      child.indices.push i
+
+    if offset < vectors.length - 1
+      subdivide children, vectors, offset + 1
+  return
+
+collapse = (tree, depth, cells, offset, coord) ->
+  for key, level of tree
+    coord[offset] = level
+    if offset is depth
+      cells.push new Cell (copy coord), level.indices
+    else
+      collapse level.children, depth, cells, offset + 1, coord
+  return
+
+extractFactor = (cube, vector, offset) ->
+  data = new Array cube.cells.length
+  dictionary = {}
+  domain = []
+  for cell, i in cube.cells
+    data[i] = category = cell.levels[offset].category
+    unless dictionary[category.value]
+      dictionary[category.value] = category
+      domain.push category
+
+  read = (i) -> data[i]
+  at = (i) -> data[i].value
+  format = (i) -> data[i].value
+  count = -> data.length
+
+  new Factor vector.label, vector.label, vector.type, read, at, count, domain, format
+
+#
+# # Color
+#
+
 ColorPalettes =
   c10: [
     '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'
@@ -621,6 +865,28 @@ ColorPalettes =
     '#a1d99b', '#c7e9c0', '#756bb1', '#9e9ac8', '#bcbddc'
     '#dadaeb', '#636363', '#969696', '#bdbdbd', '#d9d9d9'
   ]
+
+pickCategoricalColorPalette = (cardinality) ->
+  if cardinality > 10
+    ColorPalettes.c20
+  else
+    ColorPalettes.c10
+
+cloneColor = (color) ->
+  [ r, g, b ] = color.rgb()
+  chroma.rgb r, g, b
+
+colorToStyle = (color) -> color.css()
+
+colorToStyleA = (color, alpha) ->
+  cloneColor color
+    .alpha alpha
+    .css()
+
+
+#
+# # Shapes
+#
 
 drawCircle = (g, x, y, area) ->
   r = sqrt area/π
@@ -739,13 +1005,124 @@ ShapePalettes =
     'triangleUp', 'triangleDown', 'triangleLeft', 'triangleRight'
   ] 
 
-pickCategoricalColorPalette = (cardinality) ->
-  if cardinality > 10
-    ColorPalettes.c20
-  else
-    ColorPalettes.c10
-
 pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
+
+#
+# # Scales
+#
+
+createNicedLinearScale = (domain, range) ->
+  scale = d3.scale.linear()
+    .domain [ domain.min, domain.max ]
+    .range [ range.min, range.max ]
+    .nice()
+
+createLinearAxis = (label, domain, range) ->
+  scale = d3.scale.linear()
+    .domain [ domain.min, domain.max ]
+    .range [ range.min, range.max ]
+    .nice()
+
+  guide = (count) ->
+    format = scale.tickFormat count
+    scale.ticks count
+
+  new LinearAxis label, scale, domain, range, guide
+
+createCategoricalScale = (domain, range) ->
+  _rangeValues = range.values
+  _rangeCount = _rangeValues.length
+  (category) -> _rangeValues[ category.key % _rangeCount ]
+
+createSequentialLinearScale = (domain, range) ->
+  d3.scale.linear()
+    .domain [ domain.min, domain.max ]
+    .range [ range.min, range.max ]
+
+createDivergingLinearScale = (domain, range) ->
+  d3.scale.linear()
+    .domain [ domain.min, domain.mid, domain.max ]
+    .range [ range.min, range.mid, range.max ]
+
+createSequentialColorScale = (domain, range) ->
+  chroma
+    .scale [ range.min, range.max ]
+    .domain [ domain.min, domain.max ]
+    .mode 'lch'
+
+createDivergingColorScale = (domain, range) ->
+  left = chroma
+    .scale [ range.min, range.mid ]
+    .domain [ domain.min, domain.mid ]
+    .mode 'lch'
+
+  right = chroma
+    .scale [ range.mid, range.max ]
+    .domain [ domain.mid, domain.max ]
+    .mode 'lch'
+
+  (value) ->
+    if value < domain.mid
+      left value
+    else
+      right value
+
+createColorScale = dispatch(
+  [ SequentialRange, ColorRange, createSequentialColorScale ]
+  [ DivergingRange, ColorRange, createDivergingColorScale ]
+)
+
+createLinearScale = dispatch(
+  [ SequentialRange, SequentialRange, createSequentialLinearScale ]
+  [ DivergingRange, DivergingRange, createDivergingLinearScale ]
+)
+
+#
+# # Hit testing
+#
+
+byteToHex = (b) ->
+  hex = b.toString 16
+  if hex.length is 1 then "0#{hex}" else hex
+
+createClip = (canvas) ->
+  { context, ratio } = canvas
+  put = (index) -> "#fff"
+  test = (x, y) ->
+    [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
+      .data
+    r is 255 and g is 255 and b is 255 and a is 255
+
+  new Clip put, test
+
+createMask = (canvas) ->
+  { context, ratio } = canvas
+  _color = 0
+  dict = {}
+
+  put = (index) ->
+    color = _color++
+    _color = 0 if _color >= ColorLimit
+    dict[color] = index
+    r = (color >> 16) & 255
+    g = (color >> 8) & 255
+    b = color & 255
+    "##{byteToHex r}#{byteToHex g}#{byteToHex b}"
+
+  test = (x, y) ->
+    [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
+      .data
+    if a is 255
+      color = (r << 16) + (g << 8) + b
+      dict[color]
+    else
+      undefined
+
+  new Mask put, test
+
+#
+# # Encoding
+#
 
 encodeColor = (frame, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
@@ -892,6 +1269,34 @@ encodePosition = (frame, channel, range) ->
     else
       throw new Error 'ni'
 
+composeStyle = (encodeColor, encodeOpacity) ->
+  if encodeColor and encodeOpacity
+    (i) ->
+      color = encodeColor i
+      opacity = encodeOpacity i
+      if 0 <= opacity < 1
+        colorToStyleA color, opacity
+      else
+        colorToStyle color
+  else
+    undefined
+
+extractEncodings = (encoders) ->
+  encodings = {}
+  for own attr, encoder of encoders
+    encodings[attr] = if encoder then encoder.encode else undefined
+
+  { fillColor, fillOpacity, strokeColor, strokeOpacity } = encodings
+
+  encodings.fill = composeStyle fillColor, fillOpacity
+  encodings.stroke = composeStyle strokeColor, strokeOpacity
+
+  encodings
+
+#
+# # Point Rendering
+#
+
 initPointMark = (mark) ->
   mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
   mark.size = new ConstantSizeChannel defaultSize unless mark.size
@@ -1012,6 +1417,10 @@ selectPointMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 
   selectedIndices
 
+#
+# # Geometries
+#
+
 Geometries = [
   [
     PointMark
@@ -1035,86 +1444,18 @@ getGeometry = (mark) ->
 registerGeometry = (type, geom) ->
   Geometries.push [ type, geom ]
 
-# XXX disable RMB
-# TODO implement additive selections
-# TODO remove jquery dependency
-captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
-
-  $document = $ document
-  $canvas = $ canvasEl
-  marquee = marqueeEl.style
-
-  x = y = x1 = y1 = x2 = y2 = 0
-  isDragging = no
-
-  $canvas.on 'mousemove', (e) -> 
-    { offsetX:x, offsetY:y }  = e
-    if isDragging
-      marquee.left = px if x > x1 then x1 else x
-      marquee.top = px if y > y1 then y1 else y
-      marquee.width = px abs x - x1
-      marquee.height = px abs y - y1
-    else
-      hover x, y
-
-  $canvas.on 'mousedown', (e) ->
-    e.preventDefault()
-    { offsetX:x1, offsetY:y1 }  = e
-    isDragging = yes
-    marquee.display = 'block'
-    marquee.left = px x1
-    marquee.top = px y1
-    $document.on 'mouseup', (e) ->
-      e.preventDefault()
-      { offsetX:x2, offsetY:y2 }  = e
-      isDragging = no
-      marquee.display = 'none'
-      marquee.width = px 0
-      marquee.height = px 0
-      $document.off 'mouseup'
-      if (abs x1 - x2) > 5 or (abs y1 - y2) > 5
-        selectWithin x1, y1, x2, y2
-      else
-        selectAt x1, y1
-
-  return
-
+# # Visualization operators
 
 plot_data = dispatch(
   [ Frame, identity ]
   [ Function, (read) -> new Datasource read ]
 )
+
 plot_rectangular = (scaleX, scaleY) ->
 
 plot_polar = (scaleR, scaleA) ->
 
 plot_parallel = (scales...) ->
-
-plot_point = (ops...) ->
-  position = getOp ops, PositionChannel
-  positionX = new CoordChannel position.fieldX
-  positionY = new CoordChannel position.fieldY
-  shape = getOp ops, ShapeChannel
-  size = getOp ops, SizeChannel
-  fillColor = getOp ops, FillColorChannel
-  fillOpacity = getOp ops, FillOpacityChannel
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
-
-  new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
-
-plot_line = (ops...) ->
-  position = getOp ops, PositionChannel
-  positionX = new CoordChannel position.fieldX
-  positionY = new CoordChannel position.fieldY
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
-
-  new LineMark positionX, positionY, strokeColor, strokeOpacity, lineWidth
-
-plot_value = (value) -> new Value value
 
 plot_value = dispatch(
   [ Number, (value) -> new NumberValue value ]
@@ -1158,14 +1499,6 @@ plot_position = dispatch(
   [ String, Field, (nameX, fieldY) -> new PositionChannel (new Field nameX), fieldY ]
   [ Field, String, (fieldX, nameY) -> new PositionChannel fieldX, (new Field nameY) ]
   [ Field, Field, (fieldX, fieldY) -> new PositionChannel fieldX, fieldY ]
-)
-
-plot_shape = dispatch(
-  [ StringValue, (value) -> new ConstantShapeChannel value.value ]
-  [ String, (name) -> new VariableShapeChannel new Field name ]
-  [ Field, (field) -> new VariableShapeChannel field ]
-  [ String, CategoricalRange, (name, range) -> new VariableShapeChannel (new Field name), range ]
-  [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
 plot_fillColor = dispatch(
@@ -1219,6 +1552,41 @@ plot_lineWidth = dispatch(
   [ Field, SequentialRange, (field, range) -> new VariableLineWidthChannel field, range ]
 )
 
+plot_shape = dispatch(
+  [ StringValue, (value) -> new ConstantShapeChannel value.value ]
+  [ String, (name) -> new VariableShapeChannel new Field name ]
+  [ Field, (field) -> new VariableShapeChannel field ]
+  [ String, CategoricalRange, (name, range) -> new VariableShapeChannel (new Field name), range ]
+  [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
+)
+
+plot_point = (ops...) ->
+  position = getOp ops, PositionChannel
+  positionX = new CoordChannel position.fieldX
+  positionY = new CoordChannel position.fieldY
+  shape = getOp ops, ShapeChannel
+  size = getOp ops, SizeChannel
+  fillColor = getOp ops, FillColorChannel
+  fillOpacity = getOp ops, FillOpacityChannel
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+
+plot_line = (ops...) ->
+  position = getOp ops, PositionChannel
+  positionX = new CoordChannel position.fieldX
+  positionY = new CoordChannel position.fieldY
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new LineMark positionX, positionY, strokeColor, strokeOpacity, lineWidth
+
+
+# # Expression parsing
+
 plot_parse = (esprima, escodegen) ->
   traverse = (node, f) ->
     if isArray node
@@ -1262,7 +1630,21 @@ plot_parse = (esprima, escodegen) ->
       return
     escodegen.generate ast
 
+#
+# # DOM Operations
+#
 
+plot_defaults =
+  bounds: new Bounds 400, 400
+
+px = (pixels) -> "#{round pixels}px"
+
+createDOMElement = (tag, styles) ->
+  el = document.createElement tag
+  style = el.style
+  for name, value of styles
+    style[name] = value
+  el
 
 createCanvas = (bounds) ->
   { width, height } = bounds
@@ -1289,31 +1671,95 @@ createCanvas = (bounds) ->
 
   new Canvas element, context, bounds, ratio
 
-px = (pixels) -> "#{round pixels}px"
+createViewport = (bounds) ->
+  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
 
-composeStyle = (encodeColor, encodeOpacity) ->
-  if encodeColor and encodeOpacity
-    (i) ->
-      color = encodeColor i
-      opacity = encodeOpacity i
-      if 0 <= opacity < 1
-        colorToStyleA color, opacity
+  # Set position to 'relative'. This has two effects: 
+  #  1. The canvases contained in it (which are set to position: absolute), overlap instead of flowing.
+  #  2. Mouse events captured on the top-most canvas get reported with the offset relative to this container instead of the page.
+  container = createDOMElement 'div',
+    position: 'relative'
+    width: px bounds.width
+    height: px bounds.height
+
+  marquee = createDOMElement 'div',
+    position: 'absolute'
+    left: px 0
+    top: px 0
+    width: px 0
+    height: px 0
+    display: 'none'
+    outline: '1px dotted #999'
+    background: 'rgba(0, 0, 0, 0.05)'
+
+  container.appendChild baseCanvas.element
+  container.appendChild highlightCanvas.element
+  container.appendChild marquee
+  container.appendChild hoverCanvas.element
+
+  mask = createMask maskCanvas
+  clip = createClip clipCanvas
+
+  new Viewport(
+    bounds
+    container
+    baseCanvas
+    highlightCanvas
+    hoverCanvas
+    maskCanvas
+    clipCanvas
+    marquee
+    mask
+    clip
+  )
+
+# XXX disable RMB
+# TODO implement additive selections
+# TODO remove jquery dependency
+captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
+
+  $document = $ document
+  $canvas = $ canvasEl
+  marquee = marqueeEl.style
+
+  x = y = x1 = y1 = x2 = y2 = 0
+  isDragging = no
+
+  $canvas.on 'mousemove', (e) -> 
+    { offsetX:x, offsetY:y }  = e
+    if isDragging
+      marquee.left = px if x > x1 then x1 else x
+      marquee.top = px if y > y1 then y1 else y
+      marquee.width = px abs x - x1
+      marquee.height = px abs y - y1
+    else
+      hover x, y
+
+  $canvas.on 'mousedown', (e) ->
+    e.preventDefault()
+    { offsetX:x1, offsetY:y1 }  = e
+    isDragging = yes
+    marquee.display = 'block'
+    marquee.left = px x1
+    marquee.top = px y1
+    $document.on 'mouseup', (e) ->
+      e.preventDefault()
+      { offsetX:x2, offsetY:y2 }  = e
+      isDragging = no
+      marquee.display = 'none'
+      marquee.width = px 0
+      marquee.height = px 0
+      $document.off 'mouseup'
+      if (abs x1 - x2) > 5 or (abs y1 - y2) > 5
+        selectWithin x1, y1, x2, y2
       else
-        colorToStyle color
-  else
-    undefined
+        selectAt x1, y1
 
-extractEncodings = (encoders) ->
-  encodings = {}
-  for own attr, encoder of encoders
-    encodings[attr] = if encoder then encoder.encode else undefined
+  return
 
-  { fillColor, fillOpacity, strokeColor, strokeOpacity } = encodings
-
-  encodings.fill = composeStyle fillColor, fillOpacity
-  encodings.stroke = composeStyle strokeColor, strokeOpacity
-
-  encodings
+#
+# # Rendering
+#
 
 createVisualization = (bounds, frame, layers) ->
   viewport = createViewport bounds
@@ -1384,320 +1830,14 @@ createVisualization = (bounds, frame, layers) ->
 
   new Visualization viewport, frame, test, highlight, hover, selectAt, selectWithin, render
 
-createViewport = (bounds) ->
-  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
-
-  container = document.createElement 'div'
-  # Set position to 'relative'. This has two effects: 
-  #  1. The canvases contained in it (which are set to position: absolute), overlap instead of flowing.
-  #  2. Mouse events captured on the top-most canvas get reported with the offset relative to this container instead of the page.
-  container.style.position = 'relative'
-  container.style.width = px bounds.width
-  container.style.height = px bounds.height
-
-  marquee = document.createElement 'div'
-  marquee.style.position = 'absolute'
-  marquee.style.left = px 0
-  marquee.style.top = px 0
-  marquee.style.width = px 0
-  marquee.style.height = px 0
-  marquee.style.display = 'none'
-  marquee.style.outline = '1px dotted #999'
-  marquee.style.background = 'rgba(0, 0, 0, 0.05)'
-
-  container.appendChild baseCanvas.element
-  container.appendChild highlightCanvas.element
-  container.appendChild marquee
-  container.appendChild hoverCanvas.element
-
-  mask = createMask maskCanvas
-  clip = createClip clipCanvas
-
-  new Viewport(
-    bounds
-    container
-    baseCanvas
-    highlightCanvas
-    hoverCanvas
-    maskCanvas
-    clipCanvas
-    marquee
-    mask
-    clip
-  )
-
-
-plot_defaults =
-  bounds: new Bounds 400, 400
-
-factor = (field) ->
-  new MappedField (frame) ->
-    vector = frame.eval field
-    if vector instanceof Factor
-      field        
-    else
-      length = vector.count()
-      read = vector.read
-      data = new Array length
-      for i in [ 0 ... length ]
-        if undefined isnt value = read i
-          data[i] = '' + value
-
-      frame.attach computedVector = createFactor "factor(#{vector.label})", TString, data
-      new Field computedVector.name
-
-plot_factor = dispatch(
-  [ String, (name) -> factor new Field name ]
-  [ Field, (field) -> factor field ]
-)
-
-createFields = (names) ->
-  map names, (name) -> new Field name
-
-plot_group = (args...) ->
-  fields = for arg in args
-    if arg instanceof Field
-      arg
-    else if isString arg
-      new Field arg
-    else
-      throw new Error "Cannot group by '#{arg}'"
-  new GroupOp fields
-
-plot__select = dispatch(
-  [ String, [String], Function, (target, sources, func) -> new SelectOp target, (createFields sources), func ]
-)
-
-createAggregateField = (field, symbol, type, format, f) ->
-  new ReducedField (frame, cube) ->
-    name = "#{symbol}(#{field.name})"
-    if cube.frame.read name
-      new Field name
-    else
-      vector = cube.frame.eval field
-      read = vector.read
-      data = new Array cube.cells.length
-      for cell, j in cube.cells
-        values = []
-        for i in cell.indices
-          values.push value if (value = read i) isnt undefined
-        data[j] = f values
-      frame.attach computedVector = createVector name, type, data, format
-      new Field computedVector.name
-
-plot_select = (target, sources..., func) ->
-  plot__select target, (if sources.length then sources else [target]), func
-
-plot__where = dispatch(
-  [ [String], Function, (names, func) -> new WhereOp (createFields names), func ]
-)
-
-plot_where = (names..., func) -> plot__where names, func
-
-plot__having = dispatch(
-  [ [String], Function, (names, func) -> new HavingOp (createFields names), func ]
-)
-
-plot_having = (names..., func) -> plot__having names, func
-
-plot_eq = (expected) -> (actual) -> expected is actual
-plot_ne = (expected) -> (actual) -> expected isnt actual
-plot_lt = (expected) -> (actual) -> expected < actual
-plot_gt = (expected) -> (actual) -> expected > actual
-plot_le = (expected) -> (actual) -> expected <= actual
-plot_ge = (expected) -> (actual) -> expected >= actual
-plot_like = (regex) ->
-  throw new Error "like '#{regex}': expecting RegExp" if TRegExp isnt typeOf regex
-  (actual) -> regex.test actual
-plot_in = (expecteds...) -> (actual) ->
-  return yes for expected in expecteds when expected is actual
-  no
-plot_notIn = (expecteds...) -> (actual) -> 
-  return no for expected in expecteds when expected is actual
-  yes
-
-aggregate_avg = (array) ->
-  total = 0
-  for value in array when value isnt undefined
-    total += value
-  total / array.length
-
-aggregate_count = (array) -> 
-  count = 0
-  for value in array when value isnt undefined
-    count++
-  count
-
-aggregate_max = (array) ->
-  max = Number.NEGATIVE_INFINITY
-  for value in array when value isnt undefined
-    max = value if value >= max
-  max
-
-aggregate_min = (array) ->
-  min = Number.POSITIVE_INFINITY
-  for value in array when value isnt undefined
-    min = value if value <= min
-  min
-
-aggregate_sum = (array) ->
-  total = 0
-  for value in array when value isnt undefined
-    total += value
-  total
-
-aggregate_stddev = (array) -> #XXX
-
-aggregate_stddevP = (array) -> #XXX
-
-aggregate_variance = (array) -> #XXX
-
-aggregate_varianceP = (array) -> #XXX
-
-aggregate = (title, type, format, func) ->
-  dispatch(
-    [ String, (name) -> createAggregateField (new Field name), title, type, format, func ]
-    [ Field, (field) -> createAggregateField field, title, type, format, func ]
-  )
-
-plot_avg = aggregate 'avg', TNumber, identity, aggregate_avg
-plot_count = aggregate 'count', TNumber, identity, aggregate_count
-plot_max = aggregate 'max', TNumber, identity, aggregate_max
-plot_min = aggregate 'min', TNumber, identity, aggregate_min
-plot_sum = aggregate 'sum', TNumber, identity, aggregate_sum
-plot_stddev = aggregate 'stddev', TNumber, identity, aggregate_stddev
-plot_stddevP = aggregate 'stddevP', TNumber, identity, aggregate_stddevP
-plot_variance = aggregate 'variance', TNumber, identity, aggregate_variance
-plot_varianceP = aggregate 'varianceP', TNumber, identity, aggregate_varianceP
-
-arePositionVectorsCompatible = (vectors) ->
-  top = head vectors
-
-  for vector in rest vectors
-    if (top.type isnt vector.type) or (top.type is TString and top.label isnt vector.label)
-      throw new Error "Vector '#{vector.label}' of type '#{vector.type}' cannot be plotted on the same axis as vector '#{top.label}' of type '#{top.type}'" 
-
-  return yes
-
 createLayer = (encoders, mask, highlight, render, select) ->
   new Layer encoders, (extractEncodings encoders), mask, highlight, render, select
 
-subdivide = (tree, vectors, offset) ->
-  read = vectors[offset].read
-  for key, level of tree
-    children = level.children
-    for i in level.indices
-      category = read i
-      unless child = children[category.key]
-        children[category.key] = child = new Level category, [], {}
-      child.indices.push i
+#
+# # Main
+#
 
-    if offset < vectors.length - 1
-      subdivide children, vectors, offset + 1
-  return
-
-collapse = (tree, depth, cells, offset, coord) ->
-  for key, level of tree
-    coord[offset] = level
-    if offset is depth
-      cells.push new Cell (copy coord), level.indices
-    else
-      collapse level.children, depth, cells, offset + 1, coord
-  return
-
-extractFactor = (cube, vector, offset) ->
-  data = new Array cube.cells.length
-  dictionary = {}
-  domain = []
-  for cell, i in cube.cells
-    data[i] = category = cell.levels[offset].category
-    unless dictionary[category.value]
-      dictionary[category.value] = category
-      domain.push category
-
-  read = (i) -> data[i]
-  at = (i) -> data[i].value
-  format = (i) -> data[i].value
-  count = -> data.length
-
-  new Factor vector.label, vector.label, vector.type, read, at, count, domain, format
-
-filterFrame = (frame, ops) ->
-  _indices = frame.indices # transient!
-  for op in ops
-    indices = []
-    vectors = for field in op.fields
-      frame.eval field
-    reads = map vectors, (vector) ->
-      if vector instanceof Factor then vector.at else vector.read
-
-    for i in _indices
-      args = new Array vectors.length
-      for read, j in reads
-        args[j] = read i
-      if apply op.predicate, null, args #TODO Optimize
-        indices.push i
-
-    _indices = indices
-  _indices
-
-aggregateFrame = (label, cube, sourceFactors) ->
-  indices = sequence cube.cells.length
-  targetFactors = for offset in [ 0 ... cube.dimension ]
-    extractFactor cube, sourceFactors[offset], offset
-  createFrame label, targetFactors, indices, cube
-
-queryFrame = (frame, query) ->
-
-  filteredFrame = if query.where.length
-    createFrame frame.label, frame.vectors, filterFrame frame, query.where
-  else
-    frame
-  
-  if query.group.length
-    fields = flatMap query.group, (op) -> op.fields
-    factors = for field in fields
-      vector = filteredFrame.eval field
-      if vector instanceof Factor
-        vector
-      else
-        throw new Error "Cannot group by '#{field.name}' - not a Factor."
-
-    tree = 0: new Level All, filteredFrame.indices, {}
-    subdivide tree, factors, 0
-
-    cells = []
-    collapse tree[0].children, fields.length - 1, cells, 0, new Array fields.length
-
-    cube = new Cube filteredFrame, tree, cells, fields.length
-
-    aggregatedFrame = aggregateFrame filteredFrame.label + "'", cube, factors
-
-    if query.having.length
-      createFrame aggregatedFrame.label, aggregatedFrame.vectors, (filterFrame aggregatedFrame, query.having), aggregatedFrame.cube
-    else
-      aggregatedFrame
-  else
-    filteredFrame
-
-dumpFrame = (frame) ->
-  rows = new Array frame.indices.length
-  reads = map frame.vectors, (vector) -> if vector instanceof Factor then vector.at else vector.read
-  for i in frame.indices
-    rows[i] = row = new Array frame.vectors.length
-    for read, offset in reads
-      row[offset] = read i
-  rows
-
-createQuery = (ops) ->
-  new Query(
-    getOps ops, SelectOp
-    getOps ops, WhereOp
-    getOps ops, GroupOp
-    getOps ops, HavingOp
-  )
-
-render = (_frame, ops) ->
+renderPlot = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
   debug dumpFrame frame
@@ -1721,19 +1861,23 @@ render = (_frame, ops) ->
   
   visualization.viewport.container
 
-_plot = dispatch(
+#
+# # Bootstrap
+#
+
+createPlot = dispatch(
   [ 
     Datasource, Array, Function, (ds, ops, go) -> 
       ds.read (error, frame) -> 
         if error
           go error
         else
-          _plot frame, ops, go
+          createPlot frame, ops, go
   ] 
   [
     Frame, Array, Function, (frame, ops, go) ->
       try
-        go null, render frame, ops
+        go null, renderPlot frame, ops
       catch error
         go error
   ]
@@ -1741,64 +1885,13 @@ _plot = dispatch(
 
 plot = (ops...) ->
   if datasource = findByType ops, Datasource, Frame
-    (go) -> _plot datasource, (without ops, datasource), go
+    (go) -> createPlot datasource, (without ops, datasource), go
   else
     (more...) -> apply plot, null, concat ops, more
 
-computeExtent = (array) ->
-  min = Number.POSITIVE_INFINITY
-  max = Number.NEGATIVE_INFINITY
-  for value in array
-    if value isnt undefined
-      min = value if value <= min 
-      max = value if value >= max
-  
-  new Extent min, max
-
-computeSkew_ = (origin) -> (extent) ->
-  if extent.min >= origin and extent.max > origin
-    1
-  else if extent.min < origin and extent.max <= origin
-    -1
-  else
-    0
-
-computeSkew0 = computeSkew_ 0
-
-factorize = (_read, count, values) ->
-  _id = 0
-  _dictionary = {}
-  length = count()
-  data = new Array length
-
-  domain = for value in values
-    _dictionary[value] = new Category _id++, value
-
-  for i in [ 0 ... length ]
-    element = _read i
-    value = if element isnt undefined then element else '?'
-    unless category = _dictionary[value]
-      domain.push _dictionary[value] = category = new Category _id++, value
-    data[i] = category
-
-  read = (i) -> data[i]
-  at = (i) -> data[i].value
-  format = (i) -> data[i].value
-
-  new Factoring read, at, count, domain, format
-
-createFactor = (label, type, data, domain) ->
-  count = -> data.length
-  read = (i) -> data[i]
-  factoring = factorize read, count, domain or []
-  new Factor label, label, type, factoring.read, factoring.at, count, factoring.domain, factoring.format
-
-createVector = (label, type, data, format) ->
-  domain = computeExtent data
-  count = -> data.length
-  read = (i) -> data[i]
-  _format = (i) -> format data[i]
-  new Vector label, label, type, read, count, domain, _format
+#
+# # Public API
+# 
 
 plot.data = plot_data
 plot.rectangular = plot_rectangular
@@ -1845,3 +1938,4 @@ plot.createFactor = createFactor
 
 
 if module?.exports? then module.exports = plot else window.plot = plot
+
