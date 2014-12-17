@@ -537,13 +537,15 @@ createFrame = (label, vectors, indices, cube) ->
     if field instanceof MappedField
       frame.eval field.eval frame
     else if field instanceof ReducedField
-      throw new Error "Cannot compute aggregate #{field.name} on an unaggregated frame." unless cube
-      frame.eval field.eval frame, cube
+      if cube
+        frame.eval field.eval frame, cube
+      else
+        throw new Error "Cannot compute aggregate [#{field.name}] on an unaggregated frame."
     else
       if vector = schema[field.name]
         vector
       else
-        throw new Error "Vector '#{field.name}' does not exist in frame '#{frame.label}'."
+        throw new Error "Vector [#{field.name}] does not exist in frame [#{frame.label}]."
 
   frame.attach = (vector) ->
     vectors.push vector
@@ -557,10 +559,10 @@ createFrame = (label, vectors, indices, cube) ->
 
 dumpFrame = (frame) ->
   rows = new Array frame.indices.length
-  reads = map frame.vectors, (vector) -> if vector instanceof Factor then vector.read else vector.at
+  ats = map frame.vectors, (vector) -> if vector instanceof Factor then vector.read else vector.at
   for i in frame.indices
     rows[i] = row = new Array frame.vectors.length
-    for at, offset in reads
+    for at, offset in ats
       row[offset] = at i
   rows
 
@@ -692,7 +694,7 @@ plot_group = (args...) ->
     else if isString arg
       new Field arg
     else
-      throw new Error "Cannot group by '#{arg}'"
+      throw new Error "Cannot group by [#{arg}]"
   new GroupOp fields
 
 # ## SELECT clause
@@ -729,7 +731,7 @@ plot_gt = (expected) -> (actual) -> expected > actual
 plot_le = (expected) -> (actual) -> expected <= actual
 plot_ge = (expected) -> (actual) -> expected >= actual
 plot_like = (regex) ->
-  throw new Error "like '#{regex}': expecting RegExp" if TRegExp isnt typeOf regex
+  throw new Error "like [#{regex}]: expecting RegExp" if TRegExp isnt typeOf regex
   (actual) -> regex.test actual
 plot_in = (expecteds...) -> (actual) ->
   return yes for expected in expecteds when expected is actual
@@ -754,7 +756,7 @@ queryFrame = (frame, query) ->
       if vector instanceof Factor
         vector
       else
-        throw new Error "Cannot group by '#{field.name}' - not a Factor."
+        throw new Error "Cannot group by [#{field.name}]: not a Factor."
 
     tree = 0: new Level All, filteredFrame.indices, {}
     subdivide tree, factors, 0
@@ -779,12 +781,12 @@ filterFrame = (frame, ops) ->
     indices = []
     vectors = for field in op.fields
       frame.eval field
-    reads = map vectors, (vector) ->
+    ats = map vectors, (vector) ->
       if vector instanceof Factor then vector.read else vector.at
 
     for i in _indices
       args = new Array vectors.length
-      for at, j in reads
+      for at, j in ats
         args[j] = at i
       if apply op.predicate, null, args #TODO Optimize
         indices.push i
@@ -1188,7 +1190,7 @@ encodeOpacity = (frame, channel) ->
   if channel instanceof VariableFillOpacityChannel or channel instanceof VariableStrokeOpacityChannel
     vector = frame.eval channel.field
     if vector instanceof Factor
-      throw new Error "Could not encode opacity. Vector '#{vector.label}' is a Factor."
+      throw new Error "Could not encode opacity. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
       new SequentialRange (clampOpacity channel.range.min), (clampOpacity channel.range.max)
@@ -1205,7 +1207,7 @@ encodeSize = (frame, channel) ->
   if channel instanceof VariableSizeChannel
     vector = frame.eval channel.field
     if vector instanceof Factor
-      throw new Error "Could not encode size. Vector '#{vector.label}' is a Factor."
+      throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
       new SequentialRange (sq channel.range.min), (sq channel.range.max)
@@ -1222,7 +1224,7 @@ encodeLineWidth = (frame, channel) ->
   if channel instanceof VariableLineWidthChannel
     vector = frame.eval channel.field
     if vector instanceof Factor
-      throw new Error "Could not encode lineWidth. Vector '#{vector.label}' is a Factor."
+      throw new Error "Could not encode lineWidth. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
       new SequentialRange channel.range.min, channel.range.max
@@ -1239,7 +1241,7 @@ encodeShape = (frame, channel) ->
   if channel instanceof VariableShapeChannel
     vector = frame.eval channel.field
     unless vector instanceof Factor
-      throw new Error "Could not encode shape. Vector '#{vector.label}' is not a Factor." 
+      throw new Error "Could not encode shape. Vector [#{vector.label}] is not a Factor." 
     unless channel.range
       channel.range = new CategoricalRange pickCategoricalShapePalette vector.domain.length 
     scale = createCategoricalScale vector.domain, channel.range
