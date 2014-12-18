@@ -1,9 +1,11 @@
 #
-# # Vortex
+# Vortex
+# ==============================
 #
 
 #
-# ## TODO
+# TODO
+# ------------------------------
 #
 # - fix mmin, mmax, vvalues in shorthand
 # - Tooltips
@@ -22,7 +24,8 @@
 
 
 #
-# # Constants
+# Constants
+# ==============================
 #
 
 π = Math.PI
@@ -37,7 +40,8 @@ Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
 
 #
-# # Pseudo-types
+# Pseudo-types
+# ==============================
 #
 
 TUndefined = 'undefined'
@@ -54,7 +58,8 @@ TRegExp = 'RegExp'
 TError = 'Error'
 
 #
-# # Type checking
+# Type checking
+# ==============================
 #
 
 typeOf = (a) ->
@@ -89,7 +94,8 @@ typeOf = (a) ->
         type
 
 #
-# # Dispatching and Pattern Matching
+# Dispatching and Pattern Matching
+# ==============================
 #
 
 class Matcher
@@ -168,7 +174,8 @@ dispatch = do ->
       throw new Error "Pattern match failure for args [ #{join (map args, (arg) -> '' + arg + ':' + typeOf arg), ', '} ]" #TODO improve message
 
 #
-# # Types
+# Types
+# ==============================
 #
 
 class Clip
@@ -187,7 +194,7 @@ class Vector
   constructor: (@name, @label, @type, @at, @count, @domain, @format) ->
 
 class Factor extends Vector
-  constructor: (name, label, type, at, @read, count, domain, format) ->
+  constructor: (name, label, type, at, @valueAt, count, domain, format) ->
     super name, label, type, at, count, domain, format
 
 class Group
@@ -222,16 +229,23 @@ class ReducedField extends Field
 class Mark
 
 class PointMark extends Mark
-  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+  constructor: (@positionX, @positionY, @shape, @size, @fillColor, 
+    @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
-class LineMark extends Mark
-  constructor: (@positionX, @positionY, @strokeColor, @strokeOpacity, @lineWidth) ->
+class PathMark extends Mark
+  constructor: (@positionX, @positionY, @strokeColor, @strokeOpacity, 
+    @lineWidth) ->
 
 class TextMark extends Mark
   constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
 
 class PointEncoding
-  constructor: (@positionX, @positionY, @shape, @size, @fillColor, @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+  constructor: (@positionX, @positionY, @shape, @size, @fill, @fillColor, 
+    @fillOpacity, @stroke, @strokeColor, @strokeOpacity, @lineWidth) ->
+
+class LineEncoding
+  constructor: (@positionX, @positionY, @stroke, @strokeColor, @strokeOpacity, 
+    @lineWidth) ->
 
 class Encoder
   constructor: (@label, @encode) ->
@@ -358,13 +372,15 @@ class Canvas
   constructor: (@element, @context, @bounds, @ratio) ->
 
 class Viewport
-  constructor: (@bounds, @container, @baseCanvas, @highlightCanvas, @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
+  constructor: ( @bounds, @container, @baseCanvas, @highlightCanvas,
+    @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
 
 class Layer
-  constructor: (@encoders, @encodings, @mask, @highlight, @render, @select) ->
+  constructor: (@encoding, @mask, @highlight, @render, @select) ->
 
 class Visualization
-  constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, @selectWithin, @render) ->
+  constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, 
+    @selectWithin, @render) ->
 
 class Bounds
   constructor: (@width, @height) ->
@@ -377,17 +393,47 @@ class Category
 
 All = new Category 0, 'All'
 
+#
+# A Cube
+# ------------------------------
 class Cube
-  constructor: (@frame, @tree, @cells, @dimension) ->
+  constructor: (
+    # `Frame` Source frame.
+    @frame
+    # `{int categoryKey : Level}` Hierarchy of levels.
+    @hierarchy
+    # `[Cell]` Cells in this cube.
+    @cells
+    # `int` Number of levels in this cube's hierarchy.
+    @dimension
+  ) ->
 
+#
+# A level in a Cube's hierarchy.
+# ------------------------------
 class Level
-  constructor: (@category, @indices, @children) ->
+  constructor: (
+    # `Category` Category represented by this level.
+    @category
+    # `[int]` Indices of rows in the source frame that belong to this level.
+    @indices
+    # `{int categoryKey : Level}` Sub-levels of this level.
+    @children
+  ) ->
 
+#
+# A cell in a Cube.
+# ------------------------------
 class Cell
-  constructor: (@levels, @indices) ->
+  constructor: (
+    # `[Level]` The coordinates of this cell. 
+    @levels
+    # `[int]`: Indices of rows in the source frame that match the attributes of this cell.
+    @indices
+  ) ->
 
 class Factoring
-  constructor: (@at, @read, @count, @domain, @format) ->
+  constructor: (@at, @valueAt, @count, @domain, @format) ->
 
 class GroupOp
   constructor: (@fields) ->
@@ -402,10 +448,14 @@ class HavingOp
   constructor: (@fields, @predicate) ->
 
 #
-# # Utility functions
+# Utility functions
+# ==============================
 #
 
+# real -> real
 sq = (x) -> x * x
+
+# real, real -> real -> real
 clamp_ = (min, max) -> (value) ->
   if value < min
     min
@@ -413,12 +463,16 @@ clamp_ = (min, max) -> (value) ->
     max
   else
     value
+
+# real -> real
 clampOpacity = clamp_ 0, 1
 
 defaultSize = 8
 
+# [a] -> [a]
 copy = (a) -> slice a, 0
 
+# [a], (a -> [b]) -> [b]
 flatMap = (xs, f) ->
   ys = []
   for x in xs
@@ -426,10 +480,13 @@ flatMap = (xs, f) ->
       ys.push y
   ys
 
+# ( a* -> b), a* -> -> b
 operation = (f, args...) -> -> apply f, null, args
 
+# a -> (->) -> a 
 always = (value) -> -> value
 
+# [a], [b] -> bool
 arrayElementsAreEqual = (xs, ys) ->
   if xs and ys and xs.length is ys.length
     return no for x, i in xs when x isnt ys[i]
@@ -437,17 +494,20 @@ arrayElementsAreEqual = (xs, ys) ->
   else
     no
 
+# [a], T* -> [a]
 filterByType = (args, types...) ->
   filtered = []
   for arg in args
     filtered.push arg for type in types when arg instanceof type
   filtered
 
+# [a], T* -> a
 findByType = (args, types...) ->
   for arg in args
     return arg for type in types when arg instanceof type
   return
 
+# [a], T, a -> a
 getOp = (ops, type, def) ->
   if op = findByType ops, type
     op
@@ -456,12 +516,14 @@ getOp = (ops, type, def) ->
 
 getOps = filterByType
 
+# real, real -> Extent
 createExtent = (a, b) ->
   if a < b
     new Extent a, b
   else
     new Extent b, a
 
+# [real] -> Extent
 computeExtent = (array) ->
   min = Number.POSITIVE_INFINITY
   max = Number.NEGATIVE_INFINITY
@@ -472,6 +534,7 @@ computeExtent = (array) ->
   
   new Extent min, max
 
+# real -> Extent -> int
 computeSkew_ = (origin) -> (extent) ->
   if extent.min >= origin and extent.max > origin
     1
@@ -480,12 +543,15 @@ computeSkew_ = (origin) -> (extent) ->
   else
     0
 
+# Extent -> int
 computeSkew0 = computeSkew_ 0
 
 #
-# # Vector
+# Vector
+# ==============================
 #
 
+# string, type, [a], (int -> string) -> Vector
 createVector = (label, type, data, format) ->
   domain = computeExtent data
   count = -> data.length
@@ -494,8 +560,10 @@ createVector = (label, type, data, format) ->
   new Vector label, label, type, at, count, domain, _format
 
 #
-# # Factor
+# Factor
+# ==============================
 # 
+# (int -> a), (-> int), [a] -> Factoring
 factorize = (_read, count, values) ->
   _id = 0
   _dictionary = {}
@@ -513,21 +581,24 @@ factorize = (_read, count, values) ->
     data[i] = category
 
   at = (i) -> data[i]
-  read = (i) -> data[i].value
+  valueAt = (i) -> data[i].value
   format = (i) -> data[i].value
 
-  new Factoring at, read, count, domain, format
+  new Factoring at, valueAt, count, domain, format
 
+# string, type, [a], [a] -> Factor 
 createFactor = (label, type, data, domain) ->
   count = -> data.length
   at = (i) -> data[i]
   factoring = factorize at, count, domain or []
-  new Factor label, label, type, factoring.at, factoring.read, count, factoring.domain, factoring.format
+  new Factor label, label, type, factoring.at, factoring.valueAt, count, factoring.domain, factoring.format
 
 #
-# # Frame
+# Frame
+# ==============================
 #
 
+# string, [Vector], [int], Cube? -> Frame
 createFrame = (label, vectors, indices, cube) ->
   schema = indexBy vectors, (vector) -> vector.name
 
@@ -545,12 +616,15 @@ createFrame = (label, vectors, indices, cube) ->
       if vector = schema[field.name]
         vector
       else
-        throw new Error "Vector [#{field.name}] does not exist in frame [#{frame.label}]."
+        throw new Error "Vector [#{field.name}] does not exist in frame [#{label}]."
 
   frame.attach = (vector) ->
-    vectors.push vector
-    schema[ vector.name ] = vector
-    vector
+    if schema[ vector.name ]
+      throw new Error "Cannot attach vector [#{vector.name}]: a vector by that name already exists in frame [#{label}]"
+    else
+      vectors.push vector
+      schema[ vector.name ] = vector
+      vector
 
   frame.exists = (name) ->
     if schema[ name ] then yes else no
@@ -559,7 +633,7 @@ createFrame = (label, vectors, indices, cube) ->
 
 dumpFrame = (frame) ->
   rows = new Array frame.indices.length
-  ats = map frame.vectors, (vector) -> if vector instanceof Factor then vector.read else vector.at
+  ats = map frame.vectors, (vector) -> if vector instanceof Factor then vector.valueAt else vector.at
   for i in frame.indices
     rows[i] = row = new Array frame.vectors.length
     for at, offset in ats
@@ -567,7 +641,8 @@ dumpFrame = (frame) ->
   rows
 
 #
-# # Query operators
+# Query operators
+# ==============================
 #
 
 createQuery = (ops) ->
@@ -581,7 +656,8 @@ createQuery = (ops) ->
 createFields = (names) ->
   map names, (name) -> new Field name
 
-# ## Factored fields
+# Factored fields
+# ------------------------------
 
 createFactorField = (field) ->
   new MappedField (frame) ->
@@ -604,7 +680,8 @@ plot_factor = dispatch(
   [ Field, (field) -> createFactorField field ]
 )
 
-# ## Aggregate fields
+# Aggregate fields
+# ------------------------------
 
 aggregate_avg = (array) ->
   total = 0
@@ -685,7 +762,8 @@ plot_variance = plot_aggregate 'variance', TNumber, identity, aggregate_variance
 
 plot_varianceP = plot_aggregate 'varianceP', TNumber, identity, aggregate_varianceP
 
-# ## GROUP BY clause
+# GROUP BY clause
+# ------------------------------
 
 plot_group = (args...) ->
   fields = for arg in args
@@ -697,7 +775,8 @@ plot_group = (args...) ->
       throw new Error "Cannot group by [#{arg}]"
   new GroupOp fields
 
-# ## SELECT clause
+# SELECT clause
+# ------------------------------
 
 plot__select = dispatch(
   [ String, [String], Function, (target, sources, func) -> new SelectOp target, (createFields sources), func ]
@@ -706,7 +785,8 @@ plot__select = dispatch(
 plot_select = (target, sources..., func) ->
   plot__select target, (if sources.length then sources else [target]), func
 
-# ## WHERE clause
+# WHERE clause
+# ------------------------------
 
 plot__where = dispatch(
   [ [String], Function, (names, func) -> new WhereOp (createFields names), func ]
@@ -714,7 +794,8 @@ plot__where = dispatch(
 
 plot_where = (names..., func) -> plot__where names, func
 
-# ## HAVING clause
+# HAVING clause
+# ------------------------------
 
 plot__having = dispatch(
   [ [String], Function, (names, func) -> new HavingOp (createFields names), func ]
@@ -722,26 +803,36 @@ plot__having = dispatch(
 
 plot_having = (names..., func) -> plot__having names, func
 
-# ## Predicates
+# Filter predicates
+# ------------------------------
 
 plot_eq = (expected) -> (actual) -> expected is actual
+
 plot_ne = (expected) -> (actual) -> expected isnt actual
+
 plot_lt = (expected) -> (actual) -> expected < actual
+
 plot_gt = (expected) -> (actual) -> expected > actual
+
 plot_le = (expected) -> (actual) -> expected <= actual
+
 plot_ge = (expected) -> (actual) -> expected >= actual
+
 plot_like = (regex) ->
   throw new Error "like [#{regex}]: expecting RegExp" if TRegExp isnt typeOf regex
   (actual) -> regex.test actual
+
 plot_in = (expecteds...) -> (actual) ->
   return yes for expected in expecteds when expected is actual
   no
+
 plot_notIn = (expecteds...) -> (actual) -> 
   return no for expected in expecteds when expected is actual
   yes
 
 #
-# # Query processing
+# Query processing
+# ==============================
 # 
 queryFrame = (frame, query) ->
   filteredFrame = if query.where.length
@@ -758,13 +849,13 @@ queryFrame = (frame, query) ->
       else
         throw new Error "Cannot group by [#{field.name}]: not a Factor."
 
-    tree = 0: new Level All, filteredFrame.indices, {}
-    subdivide tree, factors, 0
+    hierarchy = 0: new Level All, filteredFrame.indices, {}
+    buildHierarchy hierarchy, factors, 0
 
     cells = []
-    collapse tree[0].children, fields.length - 1, cells, 0, new Array fields.length
+    collapseHierarchy hierarchy[0].children, fields.length - 1, cells, 0, new Array fields.length
 
-    cube = new Cube filteredFrame, tree, cells, fields.length
+    cube = new Cube filteredFrame, hierarchy, cells, fields.length
 
     aggregatedFrame = aggregateFrame filteredFrame.label + "'", cube, factors
 
@@ -782,7 +873,7 @@ filterFrame = (frame, ops) ->
     vectors = for field in op.fields
       frame.eval field
     ats = map vectors, (vector) ->
-      if vector instanceof Factor then vector.read else vector.at
+      if vector instanceof Factor then vector.valueAt else vector.at
 
     for i in _indices
       args = new Array vectors.length
@@ -800,9 +891,9 @@ aggregateFrame = (label, cube, sourceFactors) ->
     extractFactor cube, sourceFactors[offset], offset
   createFrame label, targetFactors, indices, cube
 
-subdivide = (tree, vectors, offset) ->
+buildHierarchy = (hierarchy, vectors, offset) ->
   at = vectors[offset].at
-  for key, level of tree
+  for key, level of hierarchy
     children = level.children
     for i in level.indices
       category = at i
@@ -811,16 +902,16 @@ subdivide = (tree, vectors, offset) ->
       child.indices.push i
 
     if offset < vectors.length - 1
-      subdivide children, vectors, offset + 1
+      buildHierarchy children, vectors, offset + 1
   return
 
-collapse = (tree, depth, cells, offset, coord) ->
-  for key, level of tree
+collapseHierarchy = (hierarchy, depth, cells, offset, coord) ->
+  for key, level of hierarchy
     coord[offset] = level
     if offset is depth
       cells.push new Cell (copy coord), level.indices
     else
-      collapse level.children, depth, cells, offset + 1, coord
+      collapseHierarchy level.children, depth, cells, offset + 1, coord
   return
 
 extractFactor = (cube, vector, offset) ->
@@ -834,14 +925,15 @@ extractFactor = (cube, vector, offset) ->
       domain.push category
 
   at = (i) -> data[i]
-  read = (i) -> data[i].value
+  valueAt = (i) -> data[i].value
   format = (i) -> data[i].value
   count = -> data.length
 
-  new Factor vector.label, vector.label, vector.type, at, read, count, domain, format
+  new Factor vector.label, vector.label, vector.type, at, valueAt, count, domain, format
 
 #
-# # Color
+# Color
+# ==============================
 #
 
 ColorPalettes =
@@ -887,7 +979,8 @@ colorToStyleA = (color, alpha) ->
 
 
 #
-# # Shapes
+# Shapes
+# ==============================
 #
 
 drawCircle = (g, x, y, area) ->
@@ -1010,14 +1103,25 @@ ShapePalettes =
 pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
 
 #
-# # Scales
+# Scales
+# ==============================
 #
 
+# (a -> b) -> a -> b
+# (a -> b) -> nil -> nil
+scaleSafe_ = (scale) -> (value) ->
+  if value isnt undefined
+    scale value
+  else
+    undefined
+
 createNicedLinearScale = (domain, range) ->
-  scale = d3.scale.linear()
-    .domain [ domain.min, domain.max ]
-    .range [ range.min, range.max ]
-    .nice()
+  scaleSafe_(
+    d3.scale.linear()
+      .domain [ domain.min, domain.max ]
+      .range [ range.min, range.max ]
+      .nice()
+  )
 
 createLinearAxis = (label, domain, range) ->
   scale = d3.scale.linear()
@@ -1029,28 +1133,36 @@ createLinearAxis = (label, domain, range) ->
     format = scale.tickFormat count
     scale.ticks count
 
-  new LinearAxis label, scale, domain, range, guide
+  new LinearAxis label, (scaleSafe_ scale), domain, range, guide
 
 createCategoricalScale = (domain, range) ->
   _rangeValues = range.values
   _rangeCount = _rangeValues.length
   (category) -> _rangeValues[ category.key % _rangeCount ]
 
+# SequentialRange a, SequentialRange real -> (a -> real)
 createSequentialLinearScale = (domain, range) ->
-  d3.scale.linear()
-    .domain [ domain.min, domain.max ]
-    .range [ range.min, range.max ]
+  scaleSafe_(
+    d3.scale.linear()
+      .domain [ domain.min, domain.max ]
+      .range [ range.min, range.max ]
+  )
 
+# DivergingRange a, DivergingRange real -> (a -> real)
 createDivergingLinearScale = (domain, range) ->
-  d3.scale.linear()
-    .domain [ domain.min, domain.mid, domain.max ]
-    .range [ range.min, range.mid, range.max ]
+  scaleSafe_(
+    d3.scale.linear()
+      .domain [ domain.min, domain.mid, domain.max ]
+      .range [ range.min, range.mid, range.max ]
+  )
 
 createSequentialColorScale = (domain, range) ->
-  chroma
-    .scale [ range.min, range.max ]
-    .domain [ domain.min, domain.max ]
-    .mode 'lch'
+  scaleSafe_(
+    chroma
+      .scale [ range.min, range.max ]
+      .domain [ domain.min, domain.max ]
+      .mode 'lch'
+  )
 
 createDivergingColorScale = (domain, range) ->
   left = chroma
@@ -1064,10 +1176,13 @@ createDivergingColorScale = (domain, range) ->
     .mode 'lch'
 
   (value) ->
-    if value < domain.mid
-      left value
+    if value isnt undefined
+      if value < domain.mid
+        left value
+      else
+        right value
     else
-      right value
+      undefined
 
 createColorScale = dispatch(
   [ SequentialRange, ColorRange, createSequentialColorScale ]
@@ -1080,7 +1195,8 @@ createLinearScale = dispatch(
 )
 
 #
-# # Hit testing
+# Hit testing
+# ==============================
 #
 
 byteToHex = (b) ->
@@ -1123,8 +1239,27 @@ createMask = (canvas) ->
   new Mask put, test
 
 #
-# # Encoding
+# Encoding
+# ==============================
 #
+
+encodePosition = (frame, channel, range) ->
+  field = channel.field
+  vector = frame.eval field
+  { domain } = vector
+
+  switch vector.type
+    when TNumber
+      scale = createNicedLinearScale domain, range
+      at = vector.at
+      encode = (i) -> scale at i
+      guide = (count) ->
+        format = scale.tickFormat count
+        scale.ticks count
+
+      new LinearAxis vector.label, encode, domain, range, guide
+    else
+      throw new Error 'ni'
 
 encodeColor = (frame, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
@@ -1150,7 +1285,8 @@ encodeColor = (frame, channel) ->
       range = if channel.range
         if channel.range instanceof DivergingColorRange
           if domain instanceof SequentialRange
-            # Caller specified a diverging color range, but the domain is skewed, so treat the domain as sequential
+            # Caller specified a diverging color range, 
+            # but the domain is skewed, so treat the domain as sequential
             if skew is 1
               new SequentialColorRange channel.range.mid, channel.range.max
 
@@ -1161,7 +1297,8 @@ encodeColor = (frame, channel) ->
             channel.range
         else # SequentialColorRange
           if domain instanceof DivergingRange
-            # Caller specified a sequential color range, but the domain is diverging, so treat the domain as sequential
+            # Caller specified a sequential color range, 
+            # but the domain is diverging, so treat the domain as sequential
             domain = new SequentialRange domain.min, domain.max
           channel.range
       else
@@ -1202,6 +1339,20 @@ encodeOpacity = (frame, channel) ->
     new OpacityEncoder vector.label, encode, domain, range, null #XXX
   else
     new ConstantEncoder clampOpacity channel.value
+
+encodeStyle = (colorEncoder, opacityEncoder) ->
+  if colorEncoder and opacityEncoder
+    colorAt = colorEncoder.encode
+    opacityAt = opacityEncoder.encode
+    new VariableEncoder "(#{colorEncoder.label}, #{opacityEncoder.label})", (i) ->
+      color = colorAt i
+      opacity = opacityAt i
+      if 0 <= opacity < 1
+        colorToStyleA color, opacity
+      else
+        colorToStyle color
+  else
+    undefined
 
 encodeSize = (frame, channel) ->
   if channel instanceof VariableSizeChannel
@@ -1252,51 +1403,9 @@ encodeShape = (frame, channel) ->
     #REVIEW: throw error or switch to circle?
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
-
-encodePosition = (frame, channel, range) ->
-  field = channel.field
-  vector = frame.eval field
-  { domain } = vector
-
-  switch vector.type
-    when TNumber
-      scale = createNicedLinearScale domain, range
-      at = vector.at
-      encode = (i) -> scale at i
-      guide = (count) ->
-        format = scale.tickFormat count
-        scale.ticks count
-
-      new LinearAxis vector.label, encode, domain, range, guide
-    else
-      throw new Error 'ni'
-
-composeStyle = (encodeColor, encodeOpacity) ->
-  if encodeColor and encodeOpacity
-    (i) ->
-      color = encodeColor i
-      opacity = encodeOpacity i
-      if 0 <= opacity < 1
-        colorToStyleA color, opacity
-      else
-        colorToStyle color
-  else
-    undefined
-
-extractEncodings = (encoders) ->
-  encodings = {}
-  for own attr, encoder of encoders
-    encodings[attr] = if encoder then encoder.encode else undefined
-
-  { fillColor, fillOpacity, strokeColor, strokeOpacity } = encodings
-
-  encodings.fill = composeStyle fillColor, fillOpacity
-  encodings.stroke = composeStyle strokeColor, strokeOpacity
-
-  encodings
-
 #
-# # Point Rendering
+# Point Rendering
+# ==============================
 #
 
 initPointMark = (mark) ->
@@ -1325,23 +1434,31 @@ encodePointMark = (frame, mark, bounds, positionX, positionY) ->
   if mark.fillColor or mark.fillOpacity
     fillColor = encodeColor frame, mark.fillColor
     fillOpacity = encodeOpacity frame, mark.fillOpacity
+    fill = encodeStyle fillColor, fillOpacity
 
   if mark.strokeColor or mark.strokeOpacity or mark.lineWidth
     strokeColor = encodeColor frame, mark.strokeColor
     strokeOpacity = encodeOpacity frame, mark.strokeOpacity
+    stroke = encodeStyle strokeColor, strokeOpacity
     lineWidth = encodeLineWidth frame, mark.lineWidth
 
-  new PointEncoding positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointEncoding positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
 
 highlightPointMarks = (indices, encoding, g) ->
-  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  shape = encoding.shape.encode
+  size = encoding.size.encode
+  fill = encoding.fill?.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
 
   g.save()
   for i in indices
     x = positionX i
     y = positionY i
-    if x isnt null and y isnt null
+    if x isnt undefined and y isnt undefined
       (shape i) g, x, y, size i
 
       g.lineWidth = 2 + if stroke then lineWidth i else 1
@@ -1354,7 +1471,7 @@ highlightPointMarks = (indices, encoding, g) ->
   for i in indices
     x = positionX i
     y = positionY i
-    if x isnt null and y isnt null
+    if x isnt undefined and y isnt undefined
       (shape i) g, x, y, size i
       if stroke
         g.lineWidth = lineWidth i
@@ -1365,14 +1482,19 @@ highlightPointMarks = (indices, encoding, g) ->
 
 
 maskPointMarks = (indices, encoding, g, mask) ->
-  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  shape = encoding.shape.encode
+  size = encoding.size.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
 
   g.save()
   for i in indices
     x = positionX i
     y = positionY i
 
-    if x isnt null and y isnt null
+    if x isnt undefined and y isnt undefined
       maskStyle = mask.put i
       (shape i) g, x, y, size i
       g.fillStyle = maskStyle
@@ -1384,14 +1506,20 @@ maskPointMarks = (indices, encoding, g, mask) ->
   g.restore()
 
 renderPointMarks = (indices, encoding, g) ->
-  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoding
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  shape = encoding.shape.encode
+  size = encoding.size.encode
+  fill = encoding.fill?.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
 
   g.save()
   for i in indices
     x = positionX i
     y = positionY i
 
-    if x isnt null and y isnt null
+    if x isnt undefined and y isnt undefined
       (shape i) g, x, y, size i
 
       if stroke
@@ -1406,21 +1534,137 @@ renderPointMarks = (indices, encoding, g) ->
   g.restore()
 
 # XXX Naive, need some kind of memoization during rendering.
-selectPointMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
-  { positionX, positionY } = encoding
+selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
 
   selectedIndices = []
 
   for i in indices
     x = positionX i
     y = positionY i
-    if x isnt null and y isnt null and xmin <= x <= xmax and ymin <= y <= ymax
+    if x isnt undefined and y isnt undefined and xmin <= x <= xmax and ymin <= y <= ymax
       selectedIndices.push i
 
   selectedIndices
 
 #
-# # Geometries
+# Path Rendering
+# ==============================
+#
+initPathMark = (mark) ->
+  mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
+  mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
+  mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+  mark
+
+encodePathMark = (frame, mark, bounds, positionX, positionY) ->
+  strokeColor = encodeColor frame, mark.strokeColor
+  strokeOpacity = encodeOpacity frame, mark.strokeOpacity
+  stroke = encodeStyle strokeColor, strokeOpacity
+  lineWidth = encodeLineWidth frame, mark.lineWidth
+  new LineEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth
+
+highlightPathMarks = (indices, encoding, g) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+
+  g.save()
+  for i in indices
+    x = positionX i
+    y = positionY i
+
+    g.lineWidth = 1.5
+    g.strokeStyle = 'black'
+    if x isnt undefined and y isnt undefined
+      drawCircle g, x, y, 64
+      g.stroke()
+
+  g.restore()
+
+maskPathMarks = (indices, encoding, g, mask) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+
+  g.save()
+  for i in indices
+    x = positionX i
+    y = positionY i
+
+    if x isnt undefined and y isnt undefined
+      drawCircle g, x, y, 64
+      g.fillStyle = mask.put i
+      g.fill()
+  g.restore()
+
+renderPathMarks = (indices, encoding, g) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  stroke = encoding.stroke.encode
+  lineWidth = encoding.lineWidth.encode
+
+  if stroke instanceof ConstantEncoder and lineWidth instanceof ConstantEncoder
+    # Fast-pass: no stroke/lineWidth variations, so draw polylines.
+    g.strokeStyle = stroke()
+    g.lineWidth = lineWidth()
+
+    g.save()
+    _inPath = no
+    for i in indices
+      x = positionX i
+      y = positionY i
+
+      if x isnt undefined and y isnt undefined
+        if _inPath
+          g.lineTo x, y
+        else
+          g.beginPath()
+          _inPath = yes
+          g.moveTo x, y
+      else
+        if _inPath
+          g.stroke()
+        _inPath = no
+
+    g.restore()
+  else
+    g.save()
+    g.lineCap = 'round'
+    _inPath = no
+    _x = undefined
+    _y = undefined
+    _stroke = undefined
+    for i in indices
+      x = positionX i
+      y = positionY i
+      if x isnt undefined and y isnt undefined
+        stroke_ = stroke i
+        if _inPath
+          if stroke_ isnt _stroke
+            gradient = g.createLinearGradient _x, _y, x, y                
+            gradient.addColorStop 0, _stroke or 'transparent'
+            gradient.addColorStop 1, stroke_ or 'transparent'
+            g.strokeStyle = gradient
+          else
+            g.strokeStyle = stroke_
+          g.lineWidth = lineWidth i
+          g.beginPath()
+          g.moveTo _x, _y
+          g.lineTo x, y
+          g.stroke()
+
+        _inPath = yes
+        _x = x
+        _y = y
+        _stroke = stroke_
+      else
+        _inPath = no
+
+    g.restore()
+
+#
+# Geometries
+# ==============================
 #
 
 Geometries = [
@@ -1433,7 +1677,20 @@ Geometries = [
       maskPointMarks
       highlightPointMarks
       renderPointMarks
-      selectPointMarks
+      selectMarks
+    )
+  ]
+,
+  [
+    PathMark
+  ,
+    new Geometry(
+      initPathMark
+      encodePathMark
+      maskPathMarks
+      highlightPathMarks
+      renderPathMarks
+      selectMarks
     )
   ]
 ]
@@ -1446,7 +1703,8 @@ getGeometry = (mark) ->
 registerGeometry = (type, geom) ->
   Geometries.push [ type, geom ]
 
-# # Visualization operators
+# Visualization operators
+# ==============================
 
 plot_from = dispatch(
   [ Frame, identity ]
@@ -1576,7 +1834,7 @@ plot_point = (ops...) ->
 
   new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
-plot_line = (ops...) ->
+plot_path = (ops...) ->
   position = getOp ops, PositionChannel
   positionX = new CoordChannel position.fieldX
   positionY = new CoordChannel position.fieldY
@@ -1584,10 +1842,10 @@ plot_line = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new LineMark positionX, positionY, strokeColor, strokeOpacity, lineWidth
+  new PathMark positionX, positionY, strokeColor, strokeOpacity, lineWidth
 
-
-# # Expression parsing
+# Expression parsing
+# ==============================
 
 plot_parse = (esprima, escodegen) ->
   traverse = (node, f) ->
@@ -1633,7 +1891,8 @@ plot_parse = (esprima, escodegen) ->
     escodegen.generate ast
 
 #
-# # DOM Operations
+# DOM Operations
+# ==============================
 #
 
 plot_defaults =
@@ -1655,7 +1914,12 @@ createCanvas = (bounds) ->
   context = element.getContext '2d' 
 
   dpr = window.devicePixelRatio or 1
-  bspr = context.webkitBackingStorePixelRatio or context.mozBackingStorePixelRatio or context.msBackingStorePixelRatio or context.oBackingStorePixelRatio or context.backingStorePixelRatio or 1 
+  bspr = context.webkitBackingStorePixelRatio or 
+    context.mozBackingStorePixelRatio or 
+    context.msBackingStorePixelRatio or 
+    context.oBackingStorePixelRatio or 
+    context.backingStorePixelRatio or 
+    1 
 
   ratio = dpr / bspr
 
@@ -1760,7 +2024,8 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
   return
 
 #
-# # Rendering
+# Rendering
+# ==============================
 #
 
 createVisualization = (bounds, frame, layers) ->
@@ -1776,7 +2041,7 @@ createVisualization = (bounds, frame, layers) ->
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
       for layer in layers
-        layer.mask [ i ], layer.encodings, clipCanvas.context, clip
+        layer.mask [ i ], layer.encoding, clipCanvas.context, clip
         return i if clip.test x, y
     return
 
@@ -1792,7 +2057,7 @@ createVisualization = (bounds, frame, layers) ->
           tooltip[vector.name] = vector.format i
         debug tooltip
         for layer in layers
-          layer.highlight [ i ], layer.encodings, hoverCanvas.context
+          layer.highlight [ i ], layer.encoding, hoverCanvas.context
     return
 
   highlight = (indices) ->
@@ -1800,8 +2065,8 @@ createVisualization = (bounds, frame, layers) ->
     if indices.length
       baseCanvas.element.style.opacity = 0.5
       for layer in layers
-        layer.highlight indices, layer.encodings, highlightCanvas.context
-        layer.render indices, layer.encodings, highlightCanvas.context
+        layer.highlight indices, layer.encoding, highlightCanvas.context
+        layer.render indices, layer.encoding, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
     return
@@ -1819,24 +2084,22 @@ createVisualization = (bounds, frame, layers) ->
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
     for layer in layers
-      highlight layer.select _indices, layer.encodings, xmin, ymin, xmax, ymax
+      highlight layer.select _indices, layer.encoding, xmin, ymin, xmax, ymax
     return
 
   render = ->
     for layer in layers
-      layer.render _indices, layer.encodings, baseCanvas.context
-      layer.mask _indices, layer.encodings, maskCanvas.context, mask
+      layer.render _indices, layer.encoding, baseCanvas.context
+      layer.mask _indices, layer.encoding, maskCanvas.context, mask
     return
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
   new Visualization viewport, frame, test, highlight, hover, selectAt, selectWithin, render
 
-createLayer = (encoders, mask, highlight, render, select) ->
-  new Layer encoders, (extractEncodings encoders), mask, highlight, render, select
-
 #
-# # Main
+# Main
+# ==============================
 #
 
 renderPlot = (_frame, ops) ->
@@ -1854,8 +2117,8 @@ renderPlot = (_frame, ops) ->
 
   layers = map marks, (mark) ->
     geom = getGeometry mark
-    encoders = geom.encode frame, (geom.init mark), bounds, positionX, positionY
-    createLayer encoders, geom.mask, geom.highlight, geom.render, geom.select
+    encoding = geom.encode frame, (geom.init mark), bounds, positionX, positionY
+    new Layer encoding, geom.mask, geom.highlight, geom.render, geom.select
 
   visualization = createVisualization bounds, frame, layers
 
@@ -1864,7 +2127,8 @@ renderPlot = (_frame, ops) ->
   visualization.viewport.container
 
 #
-# # Bootstrap
+# Bootstrap
+# ==============================
 #
 
 createPlot = dispatch(
@@ -1892,7 +2156,8 @@ plot = (ops...) ->
     (more...) -> apply plot, null, concat ops, more
 
 #
-# # Public API
+# Public API
+# ==============================
 # 
 
 plot.from = plot_from
@@ -1933,7 +2198,7 @@ plot.variance = plot_variance
 plot.varianceP = plot_varianceP
 plot.parse = plot_parse
 plot.point = plot_point
-plot.line = plot_line
+plot.path = plot_path
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createFactor = createFactor

@@ -17,6 +17,22 @@ plot(
   group factor('cyl'), factor('carb')
 )
 ###
+plot path
+path
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  path(
+    position 'wt', 'mpg'
+  )
+  from csv 'mtcars'
+)
+###
 plot point
 point
 Description goes here.
@@ -183,6 +199,22 @@ plot(
 
 
 ###
+plot path-vsc
+path + variable strokeColor
+Description goes here.
+---
+tags:
+ - path
+ - ll
+###
+plot(
+  path(
+    position 'wt', 'mpg'
+    strokeColor 'qsec'
+  )
+  from csv 'mtcars'
+)
+###
 plot point-vsc
 point + variable strokeColor
 Description goes here.
@@ -199,6 +231,22 @@ plot(
   from csv 'mtcars'
 )
 
+###
+plot path-vscr
+path + variable strokeColor with custom range
+Description goes here.
+---
+tags:
+ - path
+ - ll
+###
+plot(
+  path(
+    position 'wt', 'mpg'
+    strokeColor 'qsec', range 'blue', 'red'
+  )
+  from csv 'mtcars'
+)
 ###
 plot point-vscr
 point + variable strokeColor with custom range
@@ -383,6 +431,22 @@ plot(
     position 'wt', 'mpg'
     fillColor value 'red'
     fillOpacity 'qsec', range 0.25, 1
+  )
+  from csv 'mtcars'
+)
+###
+plot path-vlw
+path + variable lineWidth
+Description goes here.
+---
+tags:
+ - path
+ - ll
+###
+plot(
+  path( 
+    position 'wt', 'mpg'
+    lineWidth 'qsec'
   )
   from csv 'mtcars'
 )
