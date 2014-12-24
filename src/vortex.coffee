@@ -38,6 +38,7 @@ Degrees = 180 / π
 Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
+Transparent = 'transparent'
 
 #
 # Pseudo-types
@@ -1631,32 +1632,32 @@ renderPathMarks = (indices, encoding, g) ->
     g.save()
     g.lineCap = 'round'
     _inPath = no
-    _x = undefined
-    _y = undefined
-    _stroke = undefined
+    x1 = undefined
+    y1 = undefined
+    stroke1 = undefined
     for i in indices
-      x = positionX i
-      y = positionY i
-      if x isnt undefined and y isnt undefined
-        stroke_ = stroke i
+      x2 = positionX i
+      y2 = positionY i
+      if x2 isnt undefined and y2 isnt undefined
+        stroke2 = stroke i
         if _inPath
-          if stroke_ isnt _stroke
-            gradient = g.createLinearGradient _x, _y, x, y                
-            gradient.addColorStop 0, _stroke or 'transparent'
-            gradient.addColorStop 1, stroke_ or 'transparent'
+          if stroke2 isnt stroke1
+            gradient = g.createLinearGradient x1, y1, x2, y2
+            gradient.addColorStop 0, stroke1 or Transparent
+            gradient.addColorStop 1, stroke2 or Transparent
             g.strokeStyle = gradient
           else
-            g.strokeStyle = stroke_
+            g.strokeStyle = stroke2
           g.lineWidth = lineWidth i
           g.beginPath()
-          g.moveTo _x, _y
-          g.lineTo x, y
+          g.moveTo x1, y1
+          g.lineTo x2, y2
           g.stroke()
 
         _inPath = yes
-        _x = x
-        _y = y
-        _stroke = stroke_
+        x1 = x2
+        y1 = y2
+        stroke1 = stroke2
       else
         _inPath = no
 
