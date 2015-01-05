@@ -1,4 +1,24 @@
 ###
+plot rect
+rect
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  path(
+    position 'model', 'mpg'
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
+
+
+
+###
 plot point2
 point
 Description goes here.

@@ -18,7 +18,6 @@
 # - Line
 # - Area
 # - Polygon
-# - Path
 # - Detail
 # - Events (selection, hover)
 
@@ -233,6 +232,10 @@ class PointMark extends Mark
   constructor: (@positionX, @positionY, @shape, @size, @fillColor, 
     @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
 
+class RectMark extends Mark
+  constructor: (@positionX, @positionY, @width, @height, @fillColor, 
+    @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+
 class PathMark extends Mark
   constructor: (@positionX, @positionY, @strokeColor, @strokeOpacity, 
     @lineWidth) ->
@@ -242,6 +245,10 @@ class TextMark extends Mark
 
 class PointEncoding
   constructor: (@positionX, @positionY, @shape, @size, @fill, @fillColor, 
+    @fillOpacity, @stroke, @strokeColor, @strokeOpacity, @lineWidth) ->
+
+class RectEncoding
+  constructor: (@positionX, @positionY, @width, @height, @fill, @fillColor, 
     @fillOpacity, @stroke, @strokeColor, @strokeOpacity, @lineWidth) ->
 
 class LineEncoding
@@ -260,6 +267,10 @@ class VariableEncoder extends Encoder
     super label, encode
 
 class LinearAxis extends VariableEncoder
+  constructor: (label, encode, @domain, @range, @guide) ->
+    super label, encode
+
+class CategoricalAxis extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
@@ -294,6 +305,8 @@ class FillOpacityChannel extends Channel
 class StrokeColorChannel extends Channel
 class StrokeOpacityChannel extends Channel
 class SizeChannel extends Channel
+class WidthChannel extends Channel
+class HeightChannel extends Channel
 class LineWidthChannel extends Channel
 class ShapeChannel extends Channel
 
@@ -325,6 +338,18 @@ class ConstantSizeChannel extends SizeChannel
   constructor: (@value) ->
 
 class VariableSizeChannel extends SizeChannel
+  constructor: (@field, @range) ->
+
+class ConstantWidthChannel extends WidthChannel
+  constructor: (@value) ->
+
+class VariableWidthChannel extends WidthChannel
+  constructor: (@field, @range) ->
+
+class ConstantHeightChannel extends HeightChannel
+  constructor: (@value) ->
+
+class VariableHeightChannel extends HeightChannel
   constructor: (@field, @range) ->
 
 class ConstantLineWidthChannel extends LineWidthChannel
@@ -466,7 +491,7 @@ clamp_ = (min, max) -> (value) ->
     value
 
 # real -> real
-clampOpacity = clamp_ 0, 1
+clampNorm = clamp_ 0, 1
 
 defaultSize = 8
 
@@ -978,7 +1003,6 @@ colorToStyleA = (color, alpha) ->
     .alpha alpha
     .css()
 
-
 #
 # Shapes
 # ==============================
@@ -1116,7 +1140,7 @@ scaleSafe_ = (scale) -> (value) ->
   else
     undefined
 
-createNicedLinearScale = (domain, range) ->
+createNicedSequentialLinearScale = (domain, range) ->
   scaleSafe_(
     d3.scale.linear()
       .domain [ domain.min, domain.max ]
@@ -1124,22 +1148,21 @@ createNicedLinearScale = (domain, range) ->
       .nice()
   )
 
-createLinearAxis = (label, domain, range) ->
-  scale = d3.scale.linear()
-    .domain [ domain.min, domain.max ]
-    .range [ range.min, range.max ]
-    .nice()
+createOrdinalScale = (domain, range) -> #TODO rename
+  _index = 0
+  _dictionary = {}
+  for category in domain
+    _dictionary[category.key] = _index++
 
-  guide = (count) ->
-    format = scale.tickFormat count
-    scale.ticks count
+  offset = (range.max - range.min) / domain.length / 2
+  rangeMin = range.min
 
-  new LinearAxis label, (scaleSafe_ scale), domain, range, guide
+  scaleSafe_ (category) -> rangeMin + 2 * _dictionary[category.key] * offset + offset
 
 createCategoricalScale = (domain, range) ->
   _rangeValues = range.values
   _rangeCount = _rangeValues.length
-  (category) -> _rangeValues[ category.key % _rangeCount ]
+  scaleSafe_ (category) -> _rangeValues[ category.key % _rangeCount ]
 
 # SequentialRange a, SequentialRange real -> (a -> real)
 createSequentialLinearScale = (domain, range) ->
@@ -1245,13 +1268,12 @@ createMask = (canvas) ->
 #
 
 encodePosition = (frame, channel, range) ->
-  field = channel.field
-  vector = frame.eval field
+  vector = frame.eval channel.field
   { domain } = vector
 
   switch vector.type
     when TNumber
-      scale = createNicedLinearScale domain, range
+      scale = createNicedSequentialLinearScale domain, range
       at = vector.at
       encode = (i) -> scale at i
       guide = (count) ->
@@ -1259,6 +1281,15 @@ encodePosition = (frame, channel, range) ->
         scale.ticks count
 
       new LinearAxis vector.label, encode, domain, range, guide
+
+    when TString
+      scale = createOrdinalScale domain, range
+      at = vector.at
+      encode = (i) -> scale at i
+      guide = -> domain
+
+      new CategoricalAxis vector.label, encode, domain, range, guide
+
     else
       throw new Error 'ni'
 
@@ -1331,7 +1362,7 @@ encodeOpacity = (frame, channel) ->
       throw new Error "Could not encode opacity. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
     range = if channel.range
-      new SequentialRange (clampOpacity channel.range.min), (clampOpacity channel.range.max)
+      new SequentialRange (clampNorm channel.range.min), (clampNorm channel.range.max)
     else
       channel.range = new SequentialRange 0.05, 1
     scale = createLinearScale domain, range
@@ -1339,7 +1370,7 @@ encodeOpacity = (frame, channel) ->
     encode = (i) -> scale at i
     new OpacityEncoder vector.label, encode, domain, range, null #XXX
   else
-    new ConstantEncoder clampOpacity channel.value
+    new ConstantEncoder clampNorm channel.value
 
 encodeStyle = (colorEncoder, opacityEncoder) ->
   if colorEncoder and opacityEncoder
@@ -1355,7 +1386,53 @@ encodeStyle = (colorEncoder, opacityEncoder) ->
   else
     undefined
 
+#TODO duplicate of encodeOpacity(), except for 'instanceof VariableSizeChannel' and 'new SizeEncoder()'
 encodeSize = (frame, channel) ->
+  if channel instanceof VariableSizeChannel
+    vector = frame.eval channel.field
+    if vector instanceof Factor
+      throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
+    domain = new SequentialRange vector.domain.min, vector.domain.max
+    range = if channel.range
+      new SequentialRange (clampNorm channel.range.min), (clampNorm channel.range.max) 
+    else
+      channel.range = new SequentialRange 0.05, 1
+    scale = createLinearScale domain, range 
+    at = vector.at
+    encode = (i) -> scale at i
+    new SizeEncoder vector.label, encode, domain, range, null #XXX
+  else
+    new ConstantEncoder clampNorm channel.value
+
+encode_size = (channelClass, encoderClass) ->
+  (frame, channel) ->
+    if channel instanceof channelClass
+      vector = frame.eval channel.field
+      if vector instanceof Factor
+        throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
+      domain = new SequentialRange vector.domain.min, vector.domain.max
+      range = if channel.range
+        new SequentialRange (clampNorm channel.range.min), (clampNorm channel.range.max) 
+      else
+        channel.range = new SequentialRange 0.05, 1
+      scale = createLinearScale domain, range 
+      at = vector.at
+      encode = (i) -> scale at i
+      new encoderClass vector.label, encode, domain, range, null #XXX
+    else
+      new ConstantEncoder clampNorm channel.value
+
+encodeSize = encode_size VariableSizeChannel, SizeEncoder
+encodeWidth = encode_size VariableWidthChannel, SizeEncoder
+encodeHeight = encode_size VariableHeightChannel, SizeEncoder
+
+#XXX Make this accept norm'd values for output ranges:
+# 0 -> 0
+# 1 -> 30
+# 0.1? -> 8
+# ...so that the default range is 0.1 - 1
+# Apply clampNorm() to all inputs.
+encodeArea = (frame, channel) ->
   if channel instanceof VariableSizeChannel
     vector = frame.eval channel.field
     if vector instanceof Factor
@@ -1415,6 +1492,7 @@ initPointMark = (mark) ->
 
   hasFill = mark.fillColor or mark.fillOpacity
   hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+  # If both fill and stroke are undefined, default to stroke.
   hasStroke = yes unless hasFill or hasStroke
 
   if hasFill
@@ -1430,7 +1508,7 @@ initPointMark = (mark) ->
 
 encodePointMark = (frame, mark, bounds, positionX, positionY) ->
   shape = encodeShape frame, mark.shape
-  size = encodeSize frame, mark.size
+  size = encodeArea frame, mark.size
 
   if mark.fillColor or mark.fillOpacity
     fillColor = encodeColor frame, mark.fillColor
@@ -1548,6 +1626,152 @@ selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
       selectedIndices.push i
 
   selectedIndices
+
+#
+# Rect Rendering
+# ==============================
+#
+
+initRectMark = (mark) ->
+  #XXX take plot bounds into consideration
+  mark.width = new ConstantWidthChannel 1 unless mark.width
+  mark.height = new ConstantHeightChannel 1 unless mark.height
+
+  hasFill = mark.fillColor or mark.fillOpacity
+  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+  # If both fill and stroke are undefined, default to fill.
+  hasFill = yes unless hasFill or hasStroke
+
+  if hasFill
+    mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
+    mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
+
+  if hasStroke
+    mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
+    mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
+    mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+  mark
+
+encodeRectMark = (frame, mark, bounds, positionX, positionY) ->
+  width = encodeSize frame, mark.width
+  height = encodeSize frame, mark.height
+
+  if mark.fillColor or mark.fillOpacity
+    fillColor = encodeColor frame, mark.fillColor
+    fillOpacity = encodeOpacity frame, mark.fillOpacity
+    fill = encodeStyle fillColor, fillOpacity
+
+  if mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+    strokeColor = encodeColor frame, mark.strokeColor
+    strokeOpacity = encodeOpacity frame, mark.strokeOpacity
+    stroke = encodeStyle strokeColor, strokeOpacity
+    lineWidth = encodeLineWidth frame, mark.lineWidth
+
+  new RectEncoding positionX, positionY, width, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+
+
+highlightRectMarks = (indices, encoding, g) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  width = encoding.width.encode
+  height = encoding.height.encode
+  fill = encoding.fill?.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
+
+  g.save()
+  for i in indices
+    x = positionX i
+    y = positionY i
+    w = width i
+    h = height i
+    if x isnt undefined and y isnt undefined and w isnt undefined and h isnt undefined
+      g.beginPath()
+      g.rect (x - w/2), (y - h/2), w, h
+      g.closePath()
+
+      g.lineWidth = 2 + if stroke then lineWidth i else 1
+      g.stroke()
+  g.restore()
+
+  g.save()
+  g.globalCompositeOperation = 'destination-out'
+  g.fillStyle = g.strokeStyle = 'black'
+  for i in indices
+    x = positionX i
+    y = positionY i
+    w = width i
+    h = height i
+    if x isnt undefined and y isnt undefined and w isnt undefined and h isnt undefined
+      g.beginPath()
+      g.rect (x - w/2), (y - h/2), w, h
+      g.closePath()
+      if stroke
+        g.lineWidth = lineWidth i
+        g.stroke()
+      if fill
+        g.fill()
+  g.restore()
+
+maskRectMarks = (indices, encoding, g, mask) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  width = encoding.width.encode
+  height = encoding.height.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
+
+  g.save()
+  for i in indices
+    x = positionX i
+    y = positionY i
+    w = width i
+    h = height i
+
+    if x isnt undefined and y isnt undefined and w isnt undefined and h isnt undefined
+      maskStyle = mask.put i
+      g.beginPath()
+      g.rect (x - w/2), (y - h/2), w, h
+      g.closePath()
+      g.fillStyle = maskStyle
+      g.fill()
+      if stroke
+        g.lineWidth = lineWidth i
+        g.strokeStyle = maskStyle
+        g.stroke()
+  g.restore()
+
+renderRectMarks = (indices, encoding, g) ->
+  positionX = encoding.positionX.encode
+  positionY = encoding.positionY.encode
+  width = encoding.width.encode
+  height = encoding.height.encode
+  fill = encoding.fill?.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
+
+  g.save()
+  for i in indices
+    x = positionX i
+    y = positionY i
+    w = width i
+    h = height i
+
+    if x isnt undefined and y isnt undefined
+      g.beginPath()
+      g.rect (x - w/2), (y - h/2), w, h
+      g.closePath()
+
+      if stroke
+        g.lineWidth = lineWidth i
+        g.strokeStyle = stroke i
+        g.stroke()
+
+      if fill
+        g.fillStyle = fill i
+        g.fill()
+
+  g.restore()
 
 #
 # Path Rendering
@@ -1694,6 +1918,19 @@ Geometries = [
       selectMarks
     )
   ]
+,
+  [
+    RectMark
+  ,
+    new Geometry(
+      initRectMark
+      encodeRectMark
+      maskRectMarks
+      highlightRectMarks
+      renderRectMarks
+      selectMarks
+    )
+  ]
 ]
 
 getGeometry = (mark) ->
@@ -1756,12 +1993,13 @@ plot_range = dispatch(
 )
 
 plot_position = dispatch(
-  [ String, String, (nameX, nameY) -> new PositionChannel (new Field nameX), (new Field nameY) ]
-  [ String, Field, (nameX, fieldY) -> new PositionChannel (new Field nameX), fieldY ]
-  [ Field, String, (fieldX, nameY) -> new PositionChannel fieldX, (new Field nameY) ]
+  [ String, String, (nameX, nameY) -> plot_position (new Field nameX), (new Field nameY) ]
+  [ String, Field, (nameX, fieldY) -> plot_position (new Field nameX), fieldY ]
+  [ Field, String, (fieldX, nameY) -> plot_position fieldX, (new Field nameY) ]
   [ Field, Field, (fieldX, fieldY) -> new PositionChannel fieldX, fieldY ]
 )
 
+#TODO dispatching is a clone of strokeColor
 plot_fillColor = dispatch(
   [ StringValue, (value) -> new ConstantFillColorChannel chroma value.value ]
   [ String, (name) -> new VariableFillColorChannel new Field name ]
@@ -1772,6 +2010,7 @@ plot_fillColor = dispatch(
   [ Field, CategoricalRange, (field, range) -> new VariableFillColorChannel field, range ]
 )
 
+#TODO wire through dispatch_numeric
 plot_fillOpacity = dispatch(
   [ NumberValue, (value) -> new ConstantFillOpacityChannel value.value ]
   [ String, (name) -> new VariableFillOpacityChannel new Field name ]
@@ -1780,6 +2019,7 @@ plot_fillOpacity = dispatch(
   [ Field, SequentialRange, (field, range) -> new VariableFillOpacityChannel field, range ]
 )
 
+#TODO dispatching is a clone of fillColor
 plot_strokeColor = dispatch(
   [ StringValue, (value) -> new ConstantStrokeColorChannel chroma value.value ]
   [ String, (name) -> new VariableStrokeColorChannel new Field name ]
@@ -1790,6 +2030,7 @@ plot_strokeColor = dispatch(
   [ Field, CategoricalRange, (field, range) -> new VariableStrokeColorChannel field, range ]
 )
 
+#TODO wire through dispatch_numeric
 plot_strokeOpacity = dispatch(
   [ NumberValue, (value) -> new ConstantStrokeOpacityChannel value.value ]
   [ String, (name) -> new VariableStrokeOpacityChannel new Field name ]
@@ -1798,6 +2039,7 @@ plot_strokeOpacity = dispatch(
   [ Field, SequentialRange, (field, range) -> new VariableStrokeOpacityChannel field, range ]
 )
 
+###
 plot_size = dispatch(
   [ NumberValue, (value) -> new ConstantSizeChannel value.value ]
   [ String, (name) -> new VariableSizeChannel new Field name ]
@@ -1805,6 +2047,22 @@ plot_size = dispatch(
   [ String, SequentialRange, (name, range) -> new VariableSizeChannel (new Field name), range ]
   [ Field, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
 )
+###
+
+dispatch_numeric = (constChannelClass, variableChannelClass) ->
+  dispatch(
+    [ NumberValue, (value) -> new constChannelClass value.value ]
+    [ String, (name) -> new variableChannelClass new Field name ]
+    [ Field, (field) -> new variableChannelClass field ]
+    [ String, SequentialRange, (name, range) -> new variableChannelClass (new Field name), range ]
+    [ Field, SequentialRange, (field, range) -> new variableChannelClass field, range ]
+  )
+
+plot_size = dispatch_numeric ConstantSizeChannel, VariableSizeChannel
+plot_width = dispatch_numeric ConstantWidthChannel, VariableWidthChannel
+plot_height = dispatch_numeric ConstantHeightChannel, VariableHeightChannel
+
+#TODO wire through dispatch_numeric
 plot_lineWidth = dispatch(
   [ NumberValue, (value) -> new ConstantLineWidthChannel value.value ]
   [ String, (name) -> new VariableLineWidthChannel new Field name ]
@@ -1825,20 +2083,48 @@ plot_point = (ops...) ->
   position = getOp ops, PositionChannel
   positionX = new CoordChannel position.fieldX
   positionY = new CoordChannel position.fieldY
+
   shape = getOp ops, ShapeChannel
   size = getOp ops, SizeChannel
+
   fillColor = getOp ops, FillColorChannel
   fillOpacity = getOp ops, FillOpacityChannel
+
   strokeColor = getOp ops, StrokeColorChannel
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
   new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
+# TODO rect routines
+#   x, y, w, h       position(x, y), width(), height()
+#   x, y1, y2, w     position(x, y1, y2), width()
+#   x1, x2, y1, y2   position(x1, y1, x2, y2)
+#   x1, x2, y, h     position(x1, x2, y), height()
+#
+#
+plot_rect = (ops...) ->
+  position = getOp ops, PositionChannel
+  positionX = new CoordChannel position.fieldX
+  positionY = new CoordChannel position.fieldY
+  
+  width = getOp ops, WidthChannel #XXX ?
+  height = getOp ops, HeightChannel #XXX ?
+
+  fillColor = getOp ops, FillColorChannel
+  fillOpacity = getOp ops, FillOpacityChannel
+
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new RectMark positionX, positionY, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+
 plot_path = (ops...) ->
   position = getOp ops, PositionChannel
   positionX = new CoordChannel position.fieldX
   positionY = new CoordChannel position.fieldY
+
   strokeColor = getOp ops, StrokeColorChannel
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
@@ -2113,6 +2399,9 @@ renderPlot = (_frame, ops) ->
 
   #XXX coalesce (x, y) from all marks + validation
   mark = head marks
+  #
+  #XXX continue
+  #
   positionX = encodePosition frame, mark.positionX, new SequentialRange 0, bounds.width
   positionY = encodePosition frame, mark.positionY, new SequentialRange bounds.height, 0
 
@@ -2174,6 +2463,8 @@ plot.fillOpacity = plot_fillOpacity
 plot.strokeColor = plot_strokeColor
 plot.strokeOpacity = plot_strokeOpacity
 plot.size = plot_size
+plot.width = plot_width
+plot.height = plot_height
 plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
 plot.factor = plot_factor
@@ -2199,6 +2490,7 @@ plot.variance = plot_variance
 plot.varianceP = plot_varianceP
 plot.parse = plot_parse
 plot.point = plot_point
+plot.rect = plot_rect
 plot.path = plot_path
 plot.createFrame = createFrame
 plot.createVector = createVector
