@@ -1720,8 +1720,7 @@ initRectMark = (frame, mark) ->
       [ coordX, coordY1, coordY2 ] = coords
       mark.space = createSpace2D frame, [ coordX ], [ coordY1, coordY2 ]
 
-  #XXX change to 80%
-  mark.width = new ConstantWidthChannel 1 unless mark.width
+  mark.width = new ConstantWidthChannel 0.8 unless mark.width
 
   hasFill = mark.fillColor or mark.fillOpacity
   hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
@@ -1768,9 +1767,6 @@ encodeRectMark = (frame, mark, axisX, axisY) ->
 
 
 highlightRectMarks = (indices, encoding, g) ->
-
-  # XXX TODO RectEncoding doesn't have y1, y2, but should. Encodings should have everything required for rendering.
-
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
