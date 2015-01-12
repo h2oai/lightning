@@ -1538,6 +1538,26 @@ encodeShape = (frame, channel) ->
 # ==============================
 #
 
+initFill = (mark) ->
+  mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
+  mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
+
+initStroke = (mark) ->
+  mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
+  mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
+  mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+
+initFillAndStroke = (mark, defaultTo) ->
+  hasFill = mark.fillColor or mark.fillOpacity
+  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+  unless hasFill or hasStroke
+    if defaultTo is 'fill'
+      hasFill = yes
+    else if defaultTo is 'stroke'
+      hasStroke = yes 
+  initFill mark if hasFill
+  initStroke mark if hasStroke
+
 doStroke = (g, style, lineWidth) ->
   g.lineWidth = lineWidth
   g.strokeStyle = style
@@ -1556,7 +1576,12 @@ doColumn = (g, x, y1, y2, w) ->
   g.closePath()
 
 doBar = (g, x1, x2, y, h) ->
-
+  g.beginPath()
+  if x2 > x1
+    g.rect x1, (y - h/2), (x2 - x1), h
+  else
+    g.rect x2, (y - h/2), (x1 - x2), h
+  g.closePath()
 
 #
 # Point Rendering
@@ -1568,6 +1593,8 @@ initPointMark = (frame, mark) ->
 
   mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
   mark.size = new ConstantSizeChannel defaultSize unless mark.size
+
+  initFillAndStroke mark, 'stroke'
 
   hasFill = mark.fillColor or mark.fillOpacity
   hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
@@ -1730,20 +1757,7 @@ initBarMark = (frame, mark) ->
       mark.space = createSpace2D frame, [ coordX ], [ coordY1, coordY2 ]
 
   mark.width = new ConstantWidthChannel 0.8 unless mark.width
-
-  hasFill = mark.fillColor or mark.fillOpacity
-  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
-  # If both fill and stroke are undefined, default to fill.
-  hasFill = yes unless hasFill or hasStroke
-
-  if hasFill
-    mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
-    mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
-
-  if hasStroke
-    mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
-    mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
-    mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+  initFillAndStroke mark, 'fill'
   mark
 
 encodeBarMark = (frame, mark, axisX, axisY) ->
@@ -1870,12 +1884,18 @@ selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
     x = positionX i
     y1 = positionY1 i
     y2 = positionY2 i
+
+    if y1 > y2
+      yt = y1
+      y1 = y2
+      y2 = yt 
+
     w = width i
     if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
       x1 = x - w/2
       x2 = x + w/2
 
-      unless xmin > x2 or xmax < x1 or ymin > y1 or ymax < y2
+      unless xmin > x2 or xmax < x1 or ymin > y2 or ymax < y1
         selectedIndices.push i
 
   selectedIndices
@@ -1887,10 +1907,7 @@ selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 initPathMark = (frame, mark) ->
   [ coordX, coordsY ] = mark.position.coordinates
   mark.space = createSpace2D frame, [ coordX ], [ coordsY ]
-
-  mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
-  mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
-  mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+  initStroke mark
   mark
 
 encodePathMark = (frame, mark, axisX, axisY) ->
