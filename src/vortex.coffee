@@ -240,7 +240,7 @@ class PointMark extends Mark
     @lineWidth
   ) ->
 
-class RectMark extends Mark
+class BarMark extends Mark
   constructor: (
     @position
     @width
@@ -287,7 +287,7 @@ class PointEncoding extends Encoding
   ) ->
 
 #XXX need separate for x and y axes
-class RectEncoding extends Encoding
+class BarEncoding extends Encoding
   constructor: (
     @positionX
     @positionY1
@@ -1713,11 +1713,11 @@ selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   selectedIndices
 
 #
-# Rect Rendering
+# Bar Rendering
 # ==============================
 #
 
-initRectMark = (frame, mark) ->
+initBarMark = (frame, mark) ->
   coords = mark.position.coordinates
   switch coords.length
     when 2
@@ -1746,7 +1746,7 @@ initRectMark = (frame, mark) ->
     mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
   mark
 
-encodeRectMark = (frame, mark, axisX, axisY) ->
+encodeBarMark = (frame, mark, axisX, axisY) ->
   [ x ] = mark.space.x
   positionX = encodePosition axisX, x
   switch mark.space.y.length
@@ -1772,10 +1772,10 @@ encodeRectMark = (frame, mark, axisX, axisY) ->
     stroke = encodeStyle strokeColor, strokeOpacity
     lineWidth = encodeLineWidth frame, mark.lineWidth
 
-  new RectEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+  new BarEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
 
-highlightRectMarks = (indices, encoding, g) ->
+highlightBarMarks = (indices, encoding, g) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1812,7 +1812,7 @@ highlightRectMarks = (indices, encoding, g) ->
       g.fill() if fill
   g.restore()
 
-maskRectMarks = (indices, encoding, g, mask) ->
+maskBarMarks = (indices, encoding, g, mask) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1834,7 +1834,7 @@ maskRectMarks = (indices, encoding, g, mask) ->
       doStroke g, maskStyle, lineWidth i if stroke
   g.restore()
 
-renderRectMarks = (indices, encoding, g) ->
+renderBarMarks = (indices, encoding, g) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1858,7 +1858,7 @@ renderRectMarks = (indices, encoding, g) ->
   g.restore()
 
 # XXX Naive, need some kind of memoization during rendering.
-selectRectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
+selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -2035,15 +2035,15 @@ Geometries = [
   ]
 ,
   [
-    RectMark
+    BarMark
   ,
     new Geometry(
-      initRectMark
-      encodeRectMark
-      maskRectMarks
-      highlightRectMarks
-      renderRectMarks
-      selectRectMarks
+      initBarMark
+      encodeBarMark
+      maskBarMarks
+      highlightBarMarks
+      renderBarMarks
+      selectBarMarks
     )
   ]
 ]
@@ -2238,7 +2238,7 @@ plot_path = (ops...) ->
 # interval x1, x2, y | x, y1, y2
 # rect x1, y1, x2, y2
 #
-plot_rect = (ops...) ->
+plot_bar = (ops...) ->
   position = getOp ops, PositionChannel
   
   width = getOp ops, WidthChannel #XXX ?
@@ -2251,7 +2251,7 @@ plot_rect = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new RectMark position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new BarMark position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 
 # Expression parsing
@@ -2710,7 +2710,7 @@ plot.variance = plot_variance
 plot.varianceP = plot_varianceP
 plot.parse = plot_parse
 plot.point = plot_point
-plot.rect = plot_rect
+plot.bar = plot_bar
 plot.path = plot_path
 plot.createFrame = createFrame
 plot.createVector = createVector
