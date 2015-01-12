@@ -200,7 +200,7 @@ class Factor extends Vector
 class Group
 
 class Frame
-  constructor: (@label, @vectors, @schema, @indices, @cube, @at, @eval, @attach) ->
+  constructor: (@label, @vectors, @schema, @indices, @cube, @at, @evaluate, @attach) ->
 
 class Value
   constructor: (@value) ->
@@ -221,39 +221,111 @@ class Field
   constructor: (@name) ->
 
 class MappedField extends Field
-  constructor: (@eval) ->
+  constructor: (@evaluate) ->
 
 class ReducedField extends Field
-  constructor: (@eval) ->
+  constructor: (@evaluate) ->
 
 class Mark
 
 class PointMark extends Mark
-  constructor: (@positionX, @positionY, @shape, @size, @fillColor, 
-    @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+  constructor: (
+    @position
+    @shape
+    @size
+    @fillColor
+    @fillOpacity
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
 
 class RectMark extends Mark
-  constructor: (@positionX, @positionY, @width, @height, @fillColor, 
-    @fillOpacity, @strokeColor, @strokeOpacity, @lineWidth) ->
+  constructor: (
+    @position
+    @width
+    @height
+    @fillColor
+    @fillOpacity
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
 
 class PathMark extends Mark
-  constructor: (@positionX, @positionY, @strokeColor, @strokeOpacity, 
-    @lineWidth) ->
+  constructor: (
+    @position
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
 
 class TextMark extends Mark
-  constructor: (@position, @text, @size, @fillColor, @fillOpacity) ->
+  constructor: (
+    @position
+    @text
+    @size
+    @fillColor
+    @fillOpacity
+  ) ->
 
-class PointEncoding
-  constructor: (@positionX, @positionY, @shape, @size, @fill, @fillColor, 
-    @fillOpacity, @stroke, @strokeColor, @strokeOpacity, @lineWidth) ->
+class Encoding
 
-class RectEncoding
-  constructor: (@positionX, @positionY, @width, @height, @fill, @fillColor, 
-    @fillOpacity, @stroke, @strokeColor, @strokeOpacity, @lineWidth) ->
+class PointEncoding extends Encoding
+  constructor: (
+    @positionX
+    @positionY
+    @shape
+    @size
+    @fill
+    @fillColor
+    @fillOpacity
+    @stroke
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
 
-class LineEncoding
-  constructor: (@positionX, @positionY, @stroke, @strokeColor, @strokeOpacity, 
-    @lineWidth) ->
+#XXX need separate for x and y axes
+class RectEncoding extends Encoding
+  constructor: (
+    @positionX
+    @positionY1
+    @positionY2
+    @width
+    @fill
+    @fillColor
+    @fillOpacity
+    @stroke
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) -> 
+
+class PathEncoding extends Encoding
+  constructor: (
+    @positionX
+    @positionY
+    @stroke
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+
+
+class Space2D
+  constructor: (@x, @y) ->
+
+class Space1D
+  constructor: (@type, @vectors, @domain) ->
+
+class Axis
+
+class CategoricalAxis extends Axis
+  constructor: (@type, @label, @scale, @domain, @range, @size, @guide) ->
+
+class LinearAxis extends Axis
+  constructor: (@type, @label, @scale, @domain, @range, @size, @guide) ->
 
 class Encoder
   constructor: (@label, @encode) ->
@@ -266,11 +338,7 @@ class VariableEncoder extends Encoder
   constructor: (label, encode) ->
     super label, encode
 
-class LinearAxis extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
-
-class CategoricalAxis extends VariableEncoder
+class PositionEncoder extends VariableEncoder
   constructor: (label, encode, @domain, @range, @guide) ->
     super label, encode
 
@@ -294,11 +362,11 @@ class Channel
 
 class ColorChannel extends Channel
 
-class PositionChannel extends Channel
-  constructor: (@fieldX, @fieldY) ->
-
 class CoordChannel extends Channel
   constructor: (@field) ->
+
+class PositionChannel extends Channel
+  constructor: (@coordinates) ->
 
 class FillColorChannel extends Channel
 class FillOpacityChannel extends Channel
@@ -572,6 +640,22 @@ computeSkew_ = (origin) -> (extent) ->
 # Extent -> int
 computeSkew0 = computeSkew_ 0
 
+combineExtents = (extent1, extent2) ->
+  new Extent(
+    Math.min extent1.min, extent2.min
+    Math.max extent1.max, extent2.max
+  )
+
+includeOrigin_ = (origin) -> (extent) ->
+  if extent.min > origin and extent.max > origin
+    new Extent origin, extent.max
+  else if extent.min < origin and extent.max < origin
+    new Extent extent.min, origin
+  else
+    extent
+
+includeOrigin0 = includeOrigin_ 0
+
 #
 # Vector
 # ==============================
@@ -630,12 +714,12 @@ createFrame = (label, vectors, indices, cube) ->
 
   frame = new Frame label, vectors, schema, indices, cube, null, null, null
 
-  frame.eval = (field) ->
+  frame.evaluate = (field) ->
     if field instanceof MappedField
-      frame.eval field.eval frame
+      frame.evaluate field.evaluate frame
     else if field instanceof ReducedField
       if cube
-        frame.eval field.eval frame, cube
+        frame.evaluate field.evaluate frame, cube
       else
         throw new Error "Cannot compute aggregate [#{field.name}] on an unaggregated frame."
     else
@@ -687,7 +771,7 @@ createFields = (names) ->
 
 createFactorField = (field) ->
   new MappedField (frame) ->
-    vector = frame.eval field
+    vector = frame.evaluate field
     if vector instanceof Factor
       field        
     else
@@ -753,7 +837,7 @@ createAggregateField = (field, symbol, type, format, f) ->
     if cube.frame.exists name
       new Field name
     else
-      vector = cube.frame.eval field
+      vector = cube.frame.evaluate field
       at = vector.at
       data = new Array cube.cells.length
       for cell, j in cube.cells
@@ -869,7 +953,7 @@ queryFrame = (frame, query) ->
   if query.group.length
     fields = flatMap query.group, (op) -> op.fields
     factors = for field in fields
-      vector = filteredFrame.eval field
+      vector = filteredFrame.evaluate field
       if vector instanceof Factor
         vector
       else
@@ -897,7 +981,7 @@ filterFrame = (frame, ops) ->
   for op in ops
     indices = []
     vectors = for field in op.fields
-      frame.eval field
+      frame.evaluate field
     ats = map vectors, (vector) ->
       if vector instanceof Factor then vector.valueAt else vector.at
 
@@ -1267,35 +1351,19 @@ createMask = (canvas) ->
 # ==============================
 #
 
-encodePosition = (frame, channel, range) ->
-  vector = frame.eval channel.field
-  { domain } = vector
+encodePosition = (axis, vector) ->
+  { scale, domain, range, guide } = axis
+  { label, at } = vector
 
-  switch vector.type
-    when TNumber
-      scale = createNicedSequentialLinearScale domain, range
-      at = vector.at
-      encode = (i) -> scale at i
-      guide = (count) ->
-        format = scale.tickFormat count
-        scale.ticks count
+  encode = (i) -> scale at i
+  new PositionEncoder label, encode, domain, range, guide
 
-      new LinearAxis vector.label, encode, domain, range, guide
-
-    when TString
-      scale = createOrdinalScale domain, range
-      at = vector.at
-      encode = (i) -> scale at i
-      guide = -> domain
-
-      new CategoricalAxis vector.label, encode, domain, range, guide
-
-    else
-      throw new Error 'ni'
+encodeConstantPosition = (axis, value) ->
+  new ConstantEncoder axis.scale value
 
 encodeColor = (frame, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
-    vector = frame.eval channel.field
+    vector = frame.evaluate channel.field
     if vector instanceof Factor
       unless channel.range
         channel.range = new CategoricalRange pickCategoricalColorPalette vector.domain.length
@@ -1355,9 +1423,10 @@ encodeColor = (frame, channel) ->
   else
     new ConstantEncoder channel.value
 
+#TODO use encode_size()
 encodeOpacity = (frame, channel) ->
   if channel instanceof VariableFillOpacityChannel or channel instanceof VariableStrokeOpacityChannel
-    vector = frame.eval channel.field
+    vector = frame.evaluate channel.field
     if vector instanceof Factor
       throw new Error "Could not encode opacity. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1386,28 +1455,10 @@ encodeStyle = (colorEncoder, opacityEncoder) ->
   else
     undefined
 
-#TODO duplicate of encodeOpacity(), except for 'instanceof VariableSizeChannel' and 'new SizeEncoder()'
-encodeSize = (frame, channel) ->
-  if channel instanceof VariableSizeChannel
-    vector = frame.eval channel.field
-    if vector instanceof Factor
-      throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
-    domain = new SequentialRange vector.domain.min, vector.domain.max
-    range = if channel.range
-      new SequentialRange (clampNorm channel.range.min), (clampNorm channel.range.max) 
-    else
-      channel.range = new SequentialRange 0.05, 1
-    scale = createLinearScale domain, range 
-    at = vector.at
-    encode = (i) -> scale at i
-    new SizeEncoder vector.label, encode, domain, range, null #XXX
-  else
-    new ConstantEncoder clampNorm channel.value
-
 encode_size = (channelClass, encoderClass) ->
-  (frame, channel) ->
+  (frame, channel, limit) ->
     if channel instanceof channelClass
-      vector = frame.eval channel.field
+      vector = frame.evaluate channel.field
       if vector instanceof Factor
         throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
       domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1417,10 +1468,10 @@ encode_size = (channelClass, encoderClass) ->
         channel.range = new SequentialRange 0.05, 1
       scale = createLinearScale domain, range 
       at = vector.at
-      encode = (i) -> scale at i
+      encode = (i) -> limit * scale at i
       new encoderClass vector.label, encode, domain, range, null #XXX
     else
-      new ConstantEncoder clampNorm channel.value
+      new ConstantEncoder limit * clampNorm channel.value
 
 encodeSize = encode_size VariableSizeChannel, SizeEncoder
 encodeWidth = encode_size VariableWidthChannel, SizeEncoder
@@ -1434,7 +1485,7 @@ encodeHeight = encode_size VariableHeightChannel, SizeEncoder
 # Apply clampNorm() to all inputs.
 encodeArea = (frame, channel) ->
   if channel instanceof VariableSizeChannel
-    vector = frame.eval channel.field
+    vector = frame.evaluate channel.field
     if vector instanceof Factor
       throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1451,7 +1502,7 @@ encodeArea = (frame, channel) ->
 
 encodeLineWidth = (frame, channel) ->
   if channel instanceof VariableLineWidthChannel
-    vector = frame.eval channel.field
+    vector = frame.evaluate channel.field
     if vector instanceof Factor
       throw new Error "Could not encode lineWidth. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1468,7 +1519,7 @@ encodeLineWidth = (frame, channel) ->
 
 encodeShape = (frame, channel) ->
   if channel instanceof VariableShapeChannel
-    vector = frame.eval channel.field
+    vector = frame.evaluate channel.field
     unless vector instanceof Factor
       throw new Error "Could not encode shape. Vector [#{vector.label}] is not a Factor." 
     unless channel.range
@@ -1481,11 +1532,36 @@ encodeShape = (frame, channel) ->
     #REVIEW: throw error or switch to circle?
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
+
+#
+# Rendering Functions
+# ==============================
+#
+
+doStroke = (g, style, lineWidth) ->
+  g.lineWidth = lineWidth
+  g.strokeStyle = style
+  g.stroke()
+
+doFill = (g, style) ->
+  g.fillStyle = style
+  g.fill()
+
+doColumn = (g, x, y1, y2, w) ->
+  g.beginPath()
+  if y2 > y1
+    g.rect (x - w/2), y1, w, y2 - y1 
+  else
+    g.rect (x - w/2), y2, w, y1 - y2 
+  g.closePath()
+
+doBar = (g, x1, x2, y, h) ->
+
+
 #
 # Point Rendering
 # ==============================
 #
-
 initPointMark = (mark) ->
   mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
   mark.size = new ConstantSizeChannel defaultSize unless mark.size
@@ -1632,10 +1708,20 @@ selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 # ==============================
 #
 
-initRectMark = (mark) ->
-  #XXX take plot bounds into consideration
+initRectMark = (frame, mark) ->
+  coords = mark.position.coordinates
+  switch coords.length
+    when 2
+      [ coordX, coordY2 ] = coords
+      mark.space = createSpace2D frame, [ coordX ], [ coordY2 ]
+
+    when 3
+      #XXX Untested
+      [ coordX, coordY1, coordY2 ] = coords
+      mark.space = createSpace2D frame, [ coordX ], [ coordY1, coordY2 ]
+
+  #XXX change to 80%
   mark.width = new ConstantWidthChannel 1 unless mark.width
-  mark.height = new ConstantHeightChannel 1 unless mark.height
 
   hasFill = mark.fillColor or mark.fillOpacity
   hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
@@ -1652,9 +1738,20 @@ initRectMark = (mark) ->
     mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
   mark
 
-encodeRectMark = (frame, mark, bounds, positionX, positionY) ->
-  width = encodeSize frame, mark.width
-  height = encodeSize frame, mark.height
+encodeRectMark = (frame, mark, axisX, axisY) ->
+  [ x ] = mark.space.x
+  positionX = encodePosition axisX, x
+  switch mark.space.y.length
+    when 1
+      [ y2 ] = mark.space.y
+      positionY1 = encodeConstantPosition axisY, 0
+      positionY2 = encodePosition axisY, y2
+    else #2
+      [ y1, y2 ] = mark.space.y
+      positionY1 = encodePosition axisY, y1
+      positionY2 = encodePosition axisY, y2
+
+  width = encodeSize frame, mark.width, axisX.size / axisX.domain.length
 
   if mark.fillColor or mark.fillOpacity
     fillColor = encodeColor frame, mark.fillColor
@@ -1667,14 +1764,17 @@ encodeRectMark = (frame, mark, bounds, positionX, positionY) ->
     stroke = encodeStyle strokeColor, strokeOpacity
     lineWidth = encodeLineWidth frame, mark.lineWidth
 
-  new RectEncoding positionX, positionY, width, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+  new RectEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
 
 highlightRectMarks = (indices, encoding, g) ->
+
+  # XXX TODO RectEncoding doesn't have y1, y2, but should. Encodings should have everything required for rendering.
+
   positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
+  positionY1 = encoding.positionY1.encode
+  positionY2 = encoding.positionY2.encode
   width = encoding.width.encode
-  height = encoding.height.encode
   fill = encoding.fill?.encode
   stroke = encoding.stroke?.encode
   lineWidth = encoding.lineWidth?.encode
@@ -1682,14 +1782,11 @@ highlightRectMarks = (indices, encoding, g) ->
   g.save()
   for i in indices
     x = positionX i
-    y = positionY i
+    y1 = positionY1 i
+    y2 = positionY2 i
     w = width i
-    h = height i
-    if x isnt undefined and y isnt undefined and w isnt undefined and h isnt undefined
-      g.beginPath()
-      g.rect (x - w/2), (y - h/2), w, h
-      g.closePath()
-
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
+      doColumn g, x, y1, y2, w
       g.lineWidth = 2 + if stroke then lineWidth i else 1
       g.stroke()
   g.restore()
@@ -1699,53 +1796,44 @@ highlightRectMarks = (indices, encoding, g) ->
   g.fillStyle = g.strokeStyle = 'black'
   for i in indices
     x = positionX i
-    y = positionY i
+    y1 = positionY1 i
+    y2 = positionY2 i
     w = width i
-    h = height i
-    if x isnt undefined and y isnt undefined and w isnt undefined and h isnt undefined
-      g.beginPath()
-      g.rect (x - w/2), (y - h/2), w, h
-      g.closePath()
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
+      doColumn g, x, y1, y2, w
       if stroke
         g.lineWidth = lineWidth i
         g.stroke()
-      if fill
-        g.fill()
+      g.fill() if fill
   g.restore()
 
 maskRectMarks = (indices, encoding, g, mask) ->
   positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
+  positionY1 = encoding.positionY1.encode
+  positionY2 = encoding.positionY2.encode
   width = encoding.width.encode
-  height = encoding.height.encode
   stroke = encoding.stroke?.encode
   lineWidth = encoding.lineWidth?.encode
 
   g.save()
   for i in indices
     x = positionX i
-    y = positionY i
+    y1 = positionY1 i
+    y2 = positionY2 i
     w = width i
-    h = height i
 
-    if x isnt undefined and y isnt undefined and w isnt undefined and h isnt undefined
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
       maskStyle = mask.put i
-      g.beginPath()
-      g.rect (x - w/2), (y - h/2), w, h
-      g.closePath()
-      g.fillStyle = maskStyle
-      g.fill()
-      if stroke
-        g.lineWidth = lineWidth i
-        g.strokeStyle = maskStyle
-        g.stroke()
+      doColumn g, x, y1, y2, w
+      doFill g, maskStyle
+      doStroke g, maskStyle, lineWidth i if stroke
   g.restore()
 
 renderRectMarks = (indices, encoding, g) ->
   positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
+  positionY1 = encoding.positionY1.encode
+  positionY2 = encoding.positionY2.encode
   width = encoding.width.encode
-  height = encoding.height.encode
   fill = encoding.fill?.encode
   stroke = encoding.stroke?.encode
   lineWidth = encoding.lineWidth?.encode
@@ -1753,23 +1841,14 @@ renderRectMarks = (indices, encoding, g) ->
   g.save()
   for i in indices
     x = positionX i
-    y = positionY i
+    y1 = positionY1 i
+    y2 = positionY2 i
     w = width i
-    h = height i
 
-    if x isnt undefined and y isnt undefined
-      g.beginPath()
-      g.rect (x - w/2), (y - h/2), w, h
-      g.closePath()
-
-      if stroke
-        g.lineWidth = lineWidth i
-        g.strokeStyle = stroke i
-        g.stroke()
-
-      if fill
-        g.fillStyle = fill i
-        g.fill()
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
+      doColumn g, x, y1, y2, w
+      doStroke g, (stroke i), (lineWidth i) if stroke
+      doFill g, fill i if fill
 
   g.restore()
 
@@ -1788,7 +1867,7 @@ encodePathMark = (frame, mark, bounds, positionX, positionY) ->
   strokeOpacity = encodeOpacity frame, mark.strokeOpacity
   stroke = encodeStyle strokeColor, strokeOpacity
   lineWidth = encodeLineWidth frame, mark.lineWidth
-  new LineEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth
+  new PathEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth
 
 highlightPathMarks = (indices, encoding, g) ->
   positionX = encoding.positionX.encode
@@ -1992,12 +2071,21 @@ plot_range = dispatch(
   [ String, String, String, (a, b, c) -> new DivergingColorRange a, b, c ]
 )
 
-plot_position = dispatch(
-  [ String, String, (nameX, nameY) -> plot_position (new Field nameX), (new Field nameY) ]
-  [ String, Field, (nameX, fieldY) -> plot_position (new Field nameX), fieldY ]
-  [ Field, String, (fieldX, nameY) -> plot_position fieldX, (new Field nameY) ]
-  [ Field, Field, (fieldX, fieldY) -> new PositionChannel fieldX, fieldY ]
-)
+#TODO use dispatching?
+collectCoordinates = (args) ->
+  for arg in args
+    if arg instanceof Field
+      new CoordChannel arg
+    else
+      switch type = typeOf arg
+        when TString
+          new CoordChannel new Field arg
+        else
+          throw new Error "Cannot create position coordinates from [#{arg}] of type [#{type}]."
+
+
+plot_position = (args...) ->
+  new PositionChannel collectCoordinates args
 
 #TODO dispatching is a clone of strokeColor
 plot_fillColor = dispatch(
@@ -2081,8 +2169,6 @@ plot_shape = dispatch(
 
 plot_point = (ops...) ->
   position = getOp ops, PositionChannel
-  positionX = new CoordChannel position.fieldX
-  positionY = new CoordChannel position.fieldY
 
   shape = getOp ops, ShapeChannel
   size = getOp ops, SizeChannel
@@ -2094,19 +2180,30 @@ plot_point = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new PointMark positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointMark position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+
+plot_path = (ops...) ->
+  position = getOp ops, PositionChannel
+  #[ positionX, positionY ] = position.coordinates
+
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new PathMark position, strokeColor, strokeOpacity, lineWidth
 
 # TODO rect routines
-#   x, y, w, h       position(x, y), width(), height()
-#   x, y1, y2, w     position(x, y1, y2), width()
-#   x1, x2, y1, y2   position(x1, y1, x2, y2)
-#   x1, x2, y, h     position(x1, x2, y), height()
+#   x, y, w, h       position(x, y), width()? for cat x, height()? for cat y
+#   x, y1, y2, w     position(x, [y1, y2]), width()?
+#   x1, x2, y1, y2   position([x1, x2], [y1, y2])
+#   x1, x2, y, h     position([x1, x2], y), height()?
 #
+# bar x, y; opt width/height
+# interval x1, x2, y | x, y1, y2
+# rect x1, y1, x2, y2
 #
 plot_rect = (ops...) ->
   position = getOp ops, PositionChannel
-  positionX = new CoordChannel position.fieldX
-  positionY = new CoordChannel position.fieldY
   
   width = getOp ops, WidthChannel #XXX ?
   height = getOp ops, HeightChannel #XXX ?
@@ -2118,18 +2215,8 @@ plot_rect = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new RectMark positionX, positionY, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new RectMark position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
-plot_path = (ops...) ->
-  position = getOp ops, PositionChannel
-  positionX = new CoordChannel position.fieldX
-  positionY = new CoordChannel position.fieldY
-
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
-
-  new PathMark positionX, positionY, strokeColor, strokeOpacity, lineWidth
 
 # Expression parsing
 # ==============================
@@ -2389,25 +2476,122 @@ createVisualization = (bounds, frame, layers) ->
 # ==============================
 #
 
+evaluateVectors = (frame, channels) ->
+  for channel in channels
+    frame.evaluate channel.field
+
+createSpace1D = (vectors) ->
+  type = null
+  domain = null
+  _vector = null
+
+  for vector in vectors
+    if type is null
+      type = vector.type
+      switch type
+        when TString
+          _vector = vector
+          domain = vector.domain
+
+        when TNumber
+          domain = vector.domain
+
+        else
+          throw new Error 'ni'
+
+    else
+      if type isnt vector.type
+        throw new Error "Incompatible axis vector [#{vector.label}]. Expect type [#{type}], got [#{vector.type}]"
+
+
+      switch type
+        when TString
+          if _vector isnt vector
+            throw new Error "Incompatible categorical vector [#{vector.label}]. Expected [#{_vector.label}]."
+
+        when TNumber
+          domain = combineExtents domain, vector.domain
+
+        else
+          throw new Error 'ni'
+    
+  new Space1D type, vectors, domain
+
+createSpace2D = (frame, coordsX, coordsY) ->
+  new Space2D(
+    evaluateVectors frame, coordsX
+    evaluateVectors frame, coordsY
+  )
+
+createAxisLabel = (vectors) ->
+  labels = for vector in vectors
+    vector.label
+  join labels, ', '
+
+createAxes = (vectorsX, vectorsY, bounds) ->
+
+  spaceX = createSpace1D vectorsX
+  spaceY = createSpace1D vectorsY
+
+  domainX = if spaceX.type is TNumber
+    if spaceY.type is TString
+      includeOrigin0 spaceX.domain
+    else
+      spaceX.domain
+  else
+    spaceX.domain
+
+  domainY = if spaceY.type is TNumber
+    if spaceX.type is TString
+      includeOrigin0 spaceY.domain
+    else
+      spaceY.domain
+  else
+    spaceY.domain
+
+  [
+    createAxis spaceX.type, (createAxisLabel vectorsX), domainX, (new SequentialRange 0, bounds.width), bounds.width
+  ,
+    createAxis spaceY.type, (createAxisLabel vectorsY), domainY, (new SequentialRange bounds.height, 0), bounds.height
+  ]
+
+createAxis = (type, label, domain, range, size) ->
+  switch type
+    when TString
+      scale = createOrdinalScale domain, range
+      guide = -> domain #XXX pluck and return labels?
+      new CategoricalAxis type, label, scale, domain, range, size, guide
+
+    when TNumber
+      scale = createNicedSequentialLinearScale domain, range
+      guide = (count) ->
+        format = scale.tickFormat count
+        scale.ticks count
+      new LinearAxis type, label, scale, domain, range, size, guide
+
+    else
+      throw new Error "Unhandled axis type [#{type}]."
+
+
 renderPlot = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
   debug dumpFrame frame
 
   bounds = getOp ops, Bounds, plot_defaults.bounds
-  marks = getOps ops, Mark
+  marks = map (getOps ops, Mark), (mark) ->
+    geom = getGeometry mark
+    geom.init frame, mark 
 
-  #XXX coalesce (x, y) from all marks + validation
-  mark = head marks
-  #
-  #XXX continue
-  #
-  positionX = encodePosition frame, mark.positionX, new SequentialRange 0, bounds.width
-  positionY = encodePosition frame, mark.positionY, new SequentialRange bounds.height, 0
+  spaces = map marks, (mark) -> mark.space
+  vectorsX = flatMap spaces, (space) -> space.x
+  vectorsY = flatMap spaces, (space) -> space.y
+
+  [ axisX, axisY ] = createAxes vectorsX, vectorsY, bounds
 
   layers = map marks, (mark) ->
     geom = getGeometry mark
-    encoding = geom.encode frame, (geom.init mark), bounds, positionX, positionY
+    encoding = geom.encode frame, mark, axisX, axisY
     new Layer encoding, geom.mask, geom.highlight, geom.render, geom.select
 
   visualization = createVisualization bounds, frame, layers

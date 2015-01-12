@@ -1,5 +1,5 @@
 ###
-plot rect
+plot cat-path
 rect
 Description goes here.
 ---
@@ -16,6 +16,41 @@ plot(
   # where 'model', like /Merc/
 )
 
+###
+plot column-chart
+Simple column chart.
+Simple column chart.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'model', 'mpg'
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
+
+###
+plot bar-chart
+Simple bar chart.
+Simple bar chart.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'mpg', 'model'
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
 
 
 ###
