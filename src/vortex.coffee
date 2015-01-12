@@ -1562,7 +1562,10 @@ doBar = (g, x1, x2, y, h) ->
 # Point Rendering
 # ==============================
 #
-initPointMark = (mark) ->
+initPointMark = (frame, mark) ->
+  [ coordX, coordsY ] = mark.position.coordinates
+  mark.space = createSpace2D frame, [ coordX ], [ coordsY ]
+
   mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
   mark.size = new ConstantSizeChannel defaultSize unless mark.size
 
@@ -1582,7 +1585,13 @@ initPointMark = (mark) ->
 
   mark
 
-encodePointMark = (frame, mark, bounds, positionX, positionY) ->
+encodePointMark = (frame, mark, axisX, axisY) ->
+  [ x ] = mark.space.x
+  [ y ] = mark.space.y
+
+  positionX = encodePosition axisX, x
+  positionY = encodePosition axisY, y
+
   shape = encodeShape frame, mark.shape
   size = encodeArea frame, mark.size
 
@@ -1852,13 +1861,21 @@ renderRectMarks = (indices, encoding, g) ->
 # Path Rendering
 # ==============================
 #
-initPathMark = (mark) ->
+initPathMark = (frame, mark) ->
+  [ coordX, coordsY ] = mark.position.coordinates
+  mark.space = createSpace2D frame, [ coordX ], [ coordsY ]
+
   mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
   mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
   mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
   mark
 
-encodePathMark = (frame, mark, bounds, positionX, positionY) ->
+encodePathMark = (frame, mark, axisX, axisY) ->
+  [ x ] = mark.space.x
+  [ y ] = mark.space.y
+
+  positionX = encodePosition axisX, x
+  positionY = encodePosition axisY, y
   strokeColor = encodeColor frame, mark.strokeColor
   strokeOpacity = encodeOpacity frame, mark.strokeOpacity
   stroke = encodeStyle strokeColor, strokeOpacity
