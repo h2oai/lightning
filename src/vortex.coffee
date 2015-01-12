@@ -1558,6 +1558,27 @@ initFillAndStroke = (mark, defaultTo) ->
   initFill mark if hasFill
   initStroke mark if hasStroke
 
+encodeFill = (frame, mark) ->
+  if mark.fillColor or mark.fillOpacity
+    [
+      fillColor = encodeColor frame, mark.fillColor
+      fillOpacity = encodeOpacity frame, mark.fillOpacity
+      encodeStyle fillColor, fillOpacity
+    ]
+  else
+    []
+
+encodeStroke = (frame, mark) ->
+  if mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+    [
+      strokeColor = encodeColor frame, mark.strokeColor
+      strokeOpacity = encodeOpacity frame, mark.strokeOpacity
+      encodeStyle strokeColor, strokeOpacity
+      encodeLineWidth frame, mark.lineWidth
+    ]
+  else
+    []
+
 doStroke = (g, style, lineWidth) ->
   g.lineWidth = lineWidth
   g.strokeStyle = style
@@ -1595,21 +1616,6 @@ initPointMark = (frame, mark) ->
   mark.size = new ConstantSizeChannel defaultSize unless mark.size
 
   initFillAndStroke mark, 'stroke'
-
-  hasFill = mark.fillColor or mark.fillOpacity
-  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
-  # If both fill and stroke are undefined, default to stroke.
-  hasStroke = yes unless hasFill or hasStroke
-
-  if hasFill
-    mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
-    mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
-
-  if hasStroke
-    mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
-    mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
-    mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
-
   mark
 
 encodePointMark = (frame, mark, axisX, axisY) ->
@@ -1622,16 +1628,8 @@ encodePointMark = (frame, mark, axisX, axisY) ->
   shape = encodeShape frame, mark.shape
   size = encodeArea frame, mark.size
 
-  if mark.fillColor or mark.fillOpacity
-    fillColor = encodeColor frame, mark.fillColor
-    fillOpacity = encodeOpacity frame, mark.fillOpacity
-    fill = encodeStyle fillColor, fillOpacity
-
-  if mark.strokeColor or mark.strokeOpacity or mark.lineWidth
-    strokeColor = encodeColor frame, mark.strokeColor
-    strokeOpacity = encodeOpacity frame, mark.strokeOpacity
-    stroke = encodeStyle strokeColor, strokeOpacity
-    lineWidth = encodeLineWidth frame, mark.lineWidth
+  [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
+  [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
   new PointEncoding positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
@@ -1757,7 +1755,9 @@ initBarMark = (frame, mark) ->
       mark.space = createSpace2D frame, [ coordX ], [ coordY1, coordY2 ]
 
   mark.width = new ConstantWidthChannel 0.8 unless mark.width
+
   initFillAndStroke mark, 'fill'
+
   mark
 
 encodeBarMark = (frame, mark, axisX, axisY) ->
@@ -1775,16 +1775,8 @@ encodeBarMark = (frame, mark, axisX, axisY) ->
 
   width = encodeSize frame, mark.width, axisX.size / axisX.domain.length
 
-  if mark.fillColor or mark.fillOpacity
-    fillColor = encodeColor frame, mark.fillColor
-    fillOpacity = encodeOpacity frame, mark.fillOpacity
-    fill = encodeStyle fillColor, fillOpacity
-
-  if mark.strokeColor or mark.strokeOpacity or mark.lineWidth
-    strokeColor = encodeColor frame, mark.strokeColor
-    strokeOpacity = encodeOpacity frame, mark.strokeOpacity
-    stroke = encodeStyle strokeColor, strokeOpacity
-    lineWidth = encodeLineWidth frame, mark.lineWidth
+  [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
+  [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
   new BarEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
@@ -1916,10 +1908,9 @@ encodePathMark = (frame, mark, axisX, axisY) ->
 
   positionX = encodePosition axisX, x
   positionY = encodePosition axisY, y
-  strokeColor = encodeColor frame, mark.strokeColor
-  strokeOpacity = encodeOpacity frame, mark.strokeOpacity
-  stroke = encodeStyle strokeColor, strokeOpacity
-  lineWidth = encodeLineWidth frame, mark.lineWidth
+
+  [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
+
   new PathEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth
 
 highlightPathMarks = (indices, encoding, g) ->
