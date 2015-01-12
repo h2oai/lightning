@@ -1857,6 +1857,29 @@ renderRectMarks = (indices, encoding, g) ->
 
   g.restore()
 
+# XXX Naive, need some kind of memoization during rendering.
+selectRectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
+  positionX = encoding.positionX.encode
+  positionY1 = encoding.positionY1.encode
+  positionY2 = encoding.positionY2.encode
+  width = encoding.width.encode
+
+  selectedIndices = []
+
+  for i in indices
+    x = positionX i
+    y1 = positionY1 i
+    y2 = positionY2 i
+    w = width i
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
+      x1 = x - w/2
+      x2 = x + w/2
+
+      unless xmin > x2 or xmax < x1 or ymin > y1 or ymax < y2
+        selectedIndices.push i
+
+  selectedIndices
+
 #
 # Path Rendering
 # ==============================
@@ -2020,7 +2043,7 @@ Geometries = [
       maskRectMarks
       highlightRectMarks
       renderRectMarks
-      selectMarks
+      selectRectMarks
     )
   ]
 ]
