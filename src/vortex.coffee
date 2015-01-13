@@ -227,6 +227,9 @@ class ReducedField extends Field
   constructor: (@evaluate) ->
 
 class Mark
+  constructor: ->
+    @vectors = null
+    @space = null
 
 class PointMark extends Mark
   constructor: (
@@ -240,10 +243,20 @@ class PointMark extends Mark
     @lineWidth
   ) ->
 
-class BarMark extends Mark
+class ColMark extends Mark
   constructor: (
     @position
     @width
+    @fillColor
+    @fillOpacity
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+
+class BarMark extends Mark
+  constructor: (
+    @position
     @height
     @fillColor
     @fillOpacity
@@ -286,13 +299,27 @@ class PointEncoding extends Encoding
     @lineWidth
   ) ->
 
-#XXX need separate for x and y axes
-class BarEncoding extends Encoding
+class ColEncoding extends Encoding
   constructor: (
     @positionX
     @positionY1
     @positionY2
     @width
+    @fill
+    @fillColor
+    @fillOpacity
+    @stroke
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) -> 
+
+class BarEncoding extends Encoding
+  constructor: (
+    @positionX1
+    @positionX2
+    @positionY
+    @height
     @fill
     @fillColor
     @fillOpacity
@@ -457,7 +484,7 @@ class DivergingColorRange extends ColorRange
   constructor: (@min, @mid, @max) ->
 
 class Geometry
-  constructor: (@init, @encode, @mask, @highlight, @render, @select) ->
+  constructor: (@encode, @mask, @highlight, @render, @select) ->
 
 class Datasource
   constructor: (@read) ->
@@ -1608,13 +1635,11 @@ doBar = (g, x1, x2, y, h) ->
 # Point Rendering
 # ==============================
 #
-initPointMark = (frame, mark) ->
-  [ coordX, coordsY ] = mark.position.coordinates
-  mark.space = createSpace2D frame, [ coordX ], [ coordsY ]
-
+initPointMark = (mark) ->
+  [ vectorX, vectorY ] = mark.vectors
+  mark.space = new Space2D [ vectorX ], [ vectorY ]
   mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
   mark.size = new ConstantSizeChannel defaultSize unless mark.size
-
   initFillAndStroke mark, 'stroke'
   mark
 
@@ -1668,7 +1693,6 @@ highlightPointMarks = (indices, encoding, g) ->
       if fill
         g.fill()
   g.restore()
-
 
 maskPointMarks = (indices, encoding, g, mask) ->
   positionX = encoding.positionX.encode
@@ -1738,29 +1762,53 @@ selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   selectedIndices
 
 #
-# Bar Rendering
+# Col Rendering
 # ==============================
 #
+initColMark = (mark) ->
+  vectors = mark.vectors
 
-initBarMark = (frame, mark) ->
-  coords = mark.position.coordinates
-  switch coords.length
-    when 2
-      [ coordX, coordY2 ] = coords
-      mark.space = createSpace2D frame, [ coordX ], [ coordY2 ]
+  types = join (map vectors, (vector) -> vector.type), ', '
 
-    when 3
-      #XXX Untested
-      [ coordX, coordY1, coordY2 ] = coords
-      mark.space = createSpace2D frame, [ coordX ], [ coordY1, coordY2 ]
+  switch types
+    when 'String, Number'
+      [ a, b ] = vectors
+      mark.space = new Space2D [ a ], [ b ]
+      mark.width = new ConstantWidthChannel 0.8 unless mark.width
+      initFillAndStroke mark, 'fill'
+      mark
 
-  mark.width = new ConstantWidthChannel 0.8 unless mark.width
+    when 'String, Number, Number'
+      [ a, b, c ] = vectors
+      mark.space = new Space2D [ a ], [ b, c ]
+      mark.width = new ConstantWidthChannel 0.8 unless mark.width
+      initFillAndStroke mark, 'fill'
+      mark
 
-  initFillAndStroke mark, 'fill'
+    when 'Number, String'
+      newMark = new BarMark mark.position, undefined, mark.fillColor, mark.fillOpacity, mark.strokeColor, mark.strokeOpacity, mark.lineWidth
 
-  mark
+      [ a, b ] = vectors
+      newMark.space = new Space2D [ a ], [ b ]
+      newMark.height = new ConstantHeightChannel 0.8 unless newMark.height
+      initFillAndStroke newMark, 'fill'
+      initFillAndStroke newMark, 'fill'
+      newMark
 
-encodeBarMark = (frame, mark, axisX, axisY) ->
+    when 'Number, Number, String'
+      newMark = new BarMark mark.position, undefined, mark.fillColor, mark.fillOpacity, mark.strokeColor, mark.strokeOpacity, mark.lineWidth
+
+      [ a, b, c ] = vectors
+      newMark.space = new Space2D [ a, b ], [ c ]
+      newMark.height = new ConstantHeightChannel 0.8 unless newMark.height
+      initFillAndStroke newMark, 'fill'
+      newMark
+
+    else
+      throw new Error "Cannot render bar marks with vectors of type [#{types}]"
+
+
+encodeColMark = (frame, mark, axisX, axisY) ->
   [ x ] = mark.space.x
   positionX = encodePosition axisX, x
   switch mark.space.y.length
@@ -1778,10 +1826,30 @@ encodeBarMark = (frame, mark, axisX, axisY) ->
   [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new BarEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+  new ColEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
+encodeBarMark = (frame, mark, axisX, axisY) ->
+  switch mark.space.x.length
+    when 1
+      [ x2 ] = mark.space.x
+      positionX1 = encodeConstantPosition axisX, 0
+      positionX2 = encodePosition axisX, x2
+    else #2
+      [ x1, x2 ] = mark.space.x
+      positionX1 = encodePosition axisX, x1
+      positionX2 = encodePosition axisX, x2
 
-highlightBarMarks = (indices, encoding, g) ->
+  [ y ] = mark.space.y
+  positionY = encodePosition axisY, y
+
+  height = encodeSize frame, mark.height, axisY.size / axisY.domain.length
+
+  [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
+  [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
+
+  new BarEncoding positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+
+highlightColMarks = (indices, encoding, g) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1818,7 +1886,45 @@ highlightBarMarks = (indices, encoding, g) ->
       g.fill() if fill
   g.restore()
 
-maskBarMarks = (indices, encoding, g, mask) ->
+highlightBarMarks = (indices, encoding, g) ->
+  positionX1 = encoding.positionX1.encode
+  positionX2 = encoding.positionX2.encode
+  positionY = encoding.positionY.encode
+  height = encoding.height.encode
+  fill = encoding.fill?.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
+
+  g.save()
+  for i in indices
+    x1 = positionX1 i
+    x2 = positionX2 i
+    y = positionY i
+    h = height i
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      doBar g, x1, x2, y, h
+      g.lineWidth = 2 + if stroke then lineWidth i else 1
+      g.stroke()
+  g.restore()
+
+  g.save()
+  g.globalCompositeOperation = 'destination-out'
+  g.fillStyle = g.strokeStyle = 'black'
+  for i in indices
+    x1 = positionX1 i
+    x2 = positionX2 i
+    y = positionY i
+    h = height i
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      doBar g, x1, x2, y, h
+      if stroke
+        g.lineWidth = lineWidth i
+        g.stroke()
+      g.fill() if fill
+  g.restore()
+
+
+maskColMarks = (indices, encoding, g, mask) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1840,7 +1946,29 @@ maskBarMarks = (indices, encoding, g, mask) ->
       doStroke g, maskStyle, lineWidth i if stroke
   g.restore()
 
-renderBarMarks = (indices, encoding, g) ->
+maskBarMarks = (indices, encoding, g, mask) ->
+  positionX1 = encoding.positionX1.encode
+  positionX2 = encoding.positionX2.encode
+  positionY = encoding.positionY.encode
+  height = encoding.height.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
+
+  g.save()
+  for i in indices
+    x1 = positionX1 i
+    x2 = positionX2 i
+    y = positionY i
+    h = height i
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      maskStyle = mask.put i
+      doBar g, x1, x2, y, h
+      doFill g, maskStyle
+      doStroke g, maskStyle, lineWidth i if stroke
+  g.restore()
+
+
+renderColMarks = (indices, encoding, g) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1863,8 +1991,32 @@ renderBarMarks = (indices, encoding, g) ->
 
   g.restore()
 
+renderBarMarks = (indices, encoding, g) ->
+  positionX1 = encoding.positionX1.encode
+  positionX2 = encoding.positionX2.encode
+  positionY = encoding.positionY.encode
+  height = encoding.height.encode
+  fill = encoding.fill?.encode
+  stroke = encoding.stroke?.encode
+  lineWidth = encoding.lineWidth?.encode
+
+  g.save()
+  for i in indices
+    x1 = positionX1 i
+    x2 = positionX2 i
+    y = positionY i
+    h = height i
+
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      doBar g, x1, x2, y, h
+      doStroke g, (stroke i), (lineWidth i) if stroke
+      doFill g, fill i if fill
+
+  g.restore()
+
+
 # XXX Naive, need some kind of memoization during rendering.
-selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
+selectColMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
   positionY2 = encoding.positionY2.encode
@@ -1892,13 +2044,42 @@ selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 
   selectedIndices
 
+# XXX Naive, need some kind of memoization during rendering.
+selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
+  positionX1 = encoding.positionX1.encode
+  positionX2 = encoding.positionX2.encode
+  positionY = encoding.positionY.encode
+  height = encoding.height.encode
+
+  selectedIndices = []
+
+  for i in indices
+    x1 = positionX1 i
+    x2 = positionX2 i
+    y = positionY i
+
+    if x1 > x2
+      xt = x1
+      x1 = x2
+      x2 = xt 
+
+    h = height i
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      y1 = y - h/2
+      y2 = y + h/2
+
+      unless xmin > x2 or xmax < x1 or ymin > y2 or ymax < y1
+        selectedIndices.push i
+
+  selectedIndices
+
 #
 # Path Rendering
 # ==============================
 #
-initPathMark = (frame, mark) ->
-  [ coordX, coordsY ] = mark.position.coordinates
-  mark.space = createSpace2D frame, [ coordX ], [ coordsY ]
+initPathMark = (mark) ->
+  [ vectorX, vectorY ] = mark.vectors
+  mark.space = new Space2D [ vectorX ], [ vectorY ]
   initStroke mark
   mark
 
@@ -2015,12 +2196,17 @@ renderPathMarks = (indices, encoding, g) ->
 # ==============================
 #
 
+initializeMark = dispatch(
+  [ PointMark , initPointMark ]
+  [ PathMark , initPathMark ]
+  [ ColMark , initColMark ]
+)
+
 Geometries = [
   [
     PointMark
   ,
     new Geometry(
-      initPointMark
       encodePointMark
       maskPointMarks
       highlightPointMarks
@@ -2033,7 +2219,6 @@ Geometries = [
     PathMark
   ,
     new Geometry(
-      initPathMark
       encodePathMark
       maskPathMarks
       highlightPathMarks
@@ -2043,10 +2228,21 @@ Geometries = [
   ]
 ,
   [
+    ColMark
+  ,
+    new Geometry(
+      encodeColMark
+      maskColMarks
+      highlightColMarks
+      renderColMarks
+      selectColMarks
+    )
+  ]
+,
+  [
     BarMark
   ,
     new Geometry(
-      initBarMark
       encodeBarMark
       maskBarMarks
       highlightBarMarks
@@ -2259,7 +2455,7 @@ plot_bar = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new BarMark position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new ColMark position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 
 # Expression parsing
@@ -2547,7 +2743,6 @@ createSpace1D = (vectors) ->
       if type isnt vector.type
         throw new Error "Incompatible axis vector [#{vector.label}]. Expect type [#{type}], got [#{vector.type}]"
 
-
       switch type
         when TString
           if _vector isnt vector
@@ -2616,7 +2811,6 @@ createAxis = (type, label, domain, range, size) ->
     else
       throw new Error "Unhandled axis type [#{type}]."
 
-
 renderPlot = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
@@ -2624,8 +2818,9 @@ renderPlot = (_frame, ops) ->
 
   bounds = getOp ops, Bounds, plot_defaults.bounds
   marks = map (getOps ops, Mark), (mark) ->
-    geom = getGeometry mark
-    geom.init frame, mark 
+    mark.vectors = for coord in mark.position.coordinates
+      frame.evaluate coord.field
+    initializeMark mark
 
   spaces = map marks, (mark) -> mark.space
   vectorsX = flatMap spaces, (space) -> space.x

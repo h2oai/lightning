@@ -1,6 +1,6 @@
 ###
 plot cat-path
-rect
+bar
 Description goes here.
 ---
 tags:
@@ -19,7 +19,7 @@ plot(
 ###
 plot column-chart
 Simple column chart.
-Simple column chart.
+Description goes here.
 ---
 tags:
  - point
@@ -27,7 +27,7 @@ tags:
 ###
 
 plot(
-  rect(
+  bar(
     position 'model', 'mpg'
   )
   from csv 'mtcars'
@@ -37,7 +37,7 @@ plot(
 ###
 plot bar-chart
 Simple bar chart.
-Simple bar chart.
+Description goes here.
 ---
 tags:
  - point
@@ -45,7 +45,7 @@ tags:
 ###
 
 plot(
-  rect(
+  bar(
     position 'mpg', 'model'
   )
   from csv 'mtcars'
@@ -72,22 +72,6 @@ plot(
   group factor('cyl'), factor('carb')
 )
 ###
-plot path
-path
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  path(
-    position 'wt', 'mpg'
-  )
-  from csv 'mtcars'
-)
-###
 plot point
 point
 Description goes here.
@@ -103,6 +87,7 @@ plot(
   )
   from csv 'mtcars'
 )
+
 ###
 plot point-sh
 point + shape
@@ -120,6 +105,7 @@ plot(
   )
   from csv 'mtcars'
 )
+
 ###
 plot point-sc
 point + strokeColor
@@ -137,6 +123,7 @@ plot(
   )
   from csv 'mtcars'
 )
+
 ###
 plot point-sc-so
 point + strokeColor + strokeOpacity
@@ -254,22 +241,6 @@ plot(
 
 
 ###
-plot path-vsc
-path + variable strokeColor
-Description goes here.
----
-tags:
- - path
- - ll
-###
-plot(
-  path(
-    position 'wt', 'mpg'
-    strokeColor 'qsec'
-  )
-  from csv 'mtcars'
-)
-###
 plot point-vsc
 point + variable strokeColor
 Description goes here.
@@ -286,22 +257,6 @@ plot(
   from csv 'mtcars'
 )
 
-###
-plot path-vscr
-path + variable strokeColor with custom range
-Description goes here.
----
-tags:
- - path
- - ll
-###
-plot(
-  path(
-    position 'wt', 'mpg'
-    strokeColor 'qsec', range 'blue', 'red'
-  )
-  from csv 'mtcars'
-)
 ###
 plot point-vscr
 point + variable strokeColor with custom range
@@ -490,22 +445,6 @@ plot(
   from csv 'mtcars'
 )
 ###
-plot path-vlw
-path + variable lineWidth
-Description goes here.
----
-tags:
- - path
- - ll
-###
-plot(
-  path( 
-    position 'wt', 'mpg'
-    lineWidth 'qsec'
-  )
-  from csv 'mtcars'
-)
-###
 plot point-vlw
 point + variable lineWidth
 Description goes here.
@@ -621,7 +560,6 @@ plot(
   from csv 'mtcars'
 )
 
-
 ###
 plot line
 Line
@@ -639,4 +577,69 @@ plot(
   where 'mpaa', eq 'PG-13'
   group 'year'
   having 'number', le 10
+)
+###
+plot path
+path
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  path(
+    position 'wt', 'mpg'
+  )
+  from csv 'mtcars'
+)
+
+###
+plot path-vsc
+path + variable strokeColor
+Description goes here.
+---
+tags:
+ - path
+ - ll
+###
+plot(
+  path(
+    position 'wt', 'mpg'
+    strokeColor 'qsec'
+  )
+  from csv 'mtcars'
+)
+###
+plot path-vscr
+path + variable strokeColor with custom range
+Description goes here.
+---
+tags:
+ - path
+ - ll
+###
+plot(
+  path(
+    position 'wt', 'mpg'
+    strokeColor 'qsec', range 'blue', 'red'
+  )
+  from csv 'mtcars'
+)
+###
+plot path-vlw
+path + variable lineWidth
+Description goes here.
+---
+tags:
+ - path
+ - ll
+###
+plot(
+  path( 
+    position 'wt', 'mpg'
+    lineWidth 'qsec'
+  )
+  from csv 'mtcars'
 )
