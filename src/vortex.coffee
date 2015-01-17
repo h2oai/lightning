@@ -322,7 +322,9 @@ class BarMark extends Mark
 
 class PathMark extends Mark
   constructor: (
-    @position
+    @space
+    @positionX
+    @positionY
     @strokeColor
     @strokeOpacity
     @lineWidth
@@ -331,7 +333,9 @@ class PathMark extends Mark
 
 class TextMark extends Mark
   constructor: (
-    @position
+    @space
+    @positionX
+    @positionY
     @text
     @size
     @fillColor
@@ -2129,7 +2133,6 @@ selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 createPathMark = (expr, vectors) ->
   [ positionX, positionY ] = vectors
   space = new Space2D [ positionX ], [ positionY ]
-  initStroke mark
   [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
   new PathMark space, positionX, positionY, strokeColor, strokeOpacity, lineWidth
 
