@@ -558,7 +558,7 @@ class Viewport
     @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
 
 class Layer
-  constructor: (@encoding, @mask, @highlight, @render, @select) ->
+  constructor: (@encoding, @encoders, @mask, @highlight, @render, @select) ->
 
 class Visualization
   constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, 
@@ -1727,14 +1727,8 @@ encodePointMark = (frame, mark, axisX, axisY) ->
   new PointEncoding positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
 
-highlightPointMarks = (indices, encoding, g) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
-  shape = encoding.shape.encode
-  size = encoding.size.encode
-  fill = encoding.fill?.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+highlightPointMarks = (indices, encoders, g) ->
+  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -1762,13 +1756,8 @@ highlightPointMarks = (indices, encoding, g) ->
         g.fill()
   g.restore()
 
-maskPointMarks = (indices, encoding, g, mask) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
-  shape = encoding.shape.encode
-  size = encoding.size.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+maskPointMarks = (indices, encoders, g, mask) ->
+  { positionX, positionY, shape, size, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -1786,14 +1775,8 @@ maskPointMarks = (indices, encoding, g, mask) ->
         g.stroke()
   g.restore()
 
-renderPointMarks = (indices, encoding, g) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
-  shape = encoding.shape.encode
-  size = encoding.size.encode
-  fill = encoding.fill?.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+renderPointMarks = (indices, encoders, g) ->
+  { positionX, positionY, shape, size, fill, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -1815,9 +1798,8 @@ renderPointMarks = (indices, encoding, g) ->
   g.restore()
 
 # TODO Naive, need some kind of memoization during rendering.
-selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
+selectMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
+  { positionX, positionY } = encoders
 
   selectedIndices = []
 
@@ -1902,14 +1884,8 @@ encodeBarMark = (frame, mark, axisX, axisY) ->
 
   new BarEncoding positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
 
-highlightColMarks = (indices, encoding, g) ->
-  positionX = encoding.positionX.encode
-  positionY1 = encoding.positionY1.encode
-  positionY2 = encoding.positionY2.encode
-  width = encoding.width.encode
-  fill = encoding.fill?.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+highlightColMarks = (indices, encoders, g) ->
+  { positionX, positionY1, positionY2, width, fill, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -1939,14 +1915,8 @@ highlightColMarks = (indices, encoding, g) ->
       g.fill() if fill
   g.restore()
 
-highlightBarMarks = (indices, encoding, g) ->
-  positionX1 = encoding.positionX1.encode
-  positionX2 = encoding.positionX2.encode
-  positionY = encoding.positionY.encode
-  height = encoding.height.encode
-  fill = encoding.fill?.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+highlightBarMarks = (indices, encoders, g) ->
+  { positionX1, positionX2, positionY, height, fill, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -1977,13 +1947,8 @@ highlightBarMarks = (indices, encoding, g) ->
   g.restore()
 
 
-maskColMarks = (indices, encoding, g, mask) ->
-  positionX = encoding.positionX.encode
-  positionY1 = encoding.positionY1.encode
-  positionY2 = encoding.positionY2.encode
-  width = encoding.width.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+maskColMarks = (indices, encoders, g, mask) ->
+  { positionX, positionY1, positionY2, width, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -1999,13 +1964,8 @@ maskColMarks = (indices, encoding, g, mask) ->
       doStroke g, maskStyle, lineWidth i if stroke
   g.restore()
 
-maskBarMarks = (indices, encoding, g, mask) ->
-  positionX1 = encoding.positionX1.encode
-  positionX2 = encoding.positionX2.encode
-  positionY = encoding.positionY.encode
-  height = encoding.height.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+maskBarMarks = (indices, encoders, g, mask) ->
+  { positionX1, positionX2, positionY, height, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -2021,14 +1981,8 @@ maskBarMarks = (indices, encoding, g, mask) ->
   g.restore()
 
 
-renderColMarks = (indices, encoding, g) ->
-  positionX = encoding.positionX.encode
-  positionY1 = encoding.positionY1.encode
-  positionY2 = encoding.positionY2.encode
-  width = encoding.width.encode
-  fill = encoding.fill?.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+renderColMarks = (indices, encoders, g) ->
+  { positionX, positionY1, positionY2, width, fill, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -2044,14 +1998,8 @@ renderColMarks = (indices, encoding, g) ->
 
   g.restore()
 
-renderBarMarks = (indices, encoding, g) ->
-  positionX1 = encoding.positionX1.encode
-  positionX2 = encoding.positionX2.encode
-  positionY = encoding.positionY.encode
-  height = encoding.height.encode
-  fill = encoding.fill?.encode
-  stroke = encoding.stroke?.encode
-  lineWidth = encoding.lineWidth?.encode
+renderBarMarks = (indices, encoders, g) ->
+  { positionX1, positionX2, positionY, height, fill, stroke, lineWidth } = encoders
 
   g.save()
   for i in indices
@@ -2069,11 +2017,8 @@ renderBarMarks = (indices, encoding, g) ->
 
 
 # TODO Naive, need some kind of memoization during rendering.
-selectColMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
-  positionX = encoding.positionX.encode
-  positionY1 = encoding.positionY1.encode
-  positionY2 = encoding.positionY2.encode
-  width = encoding.width.encode
+selectColMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
+  { positionX, positionY1, positionY2, width } = encoders
 
   selectedIndices = []
 
@@ -2098,11 +2043,8 @@ selectColMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   selectedIndices
 
 # TODO Naive, need some kind of memoization during rendering.
-selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
-  positionX1 = encoding.positionX1.encode
-  positionX2 = encoding.positionX2.encode
-  positionY = encoding.positionY.encode
-  height = encoding.height.encode
+selectBarMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
+  { positionX1, positionX2, positionY, height } = encoders
 
   selectedIndices = []
 
@@ -2144,9 +2086,8 @@ encodePathMark = (frame, mark, axisX, axisY) ->
 
   new PathEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth
 
-highlightPathMarks = (indices, encoding, g) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
+highlightPathMarks = (indices, encoders, g) ->
+  { positionX, positionY } = encoders
 
   g.save()
   for i in indices
@@ -2161,9 +2102,8 @@ highlightPathMarks = (indices, encoding, g) ->
 
   g.restore()
 
-maskPathMarks = (indices, encoding, g, mask) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
+maskPathMarks = (indices, encoders, g, mask) ->
+  { positionX, positionY } = encoders
 
   g.save()
   for i in indices
@@ -2176,11 +2116,8 @@ maskPathMarks = (indices, encoding, g, mask) ->
       g.fill()
   g.restore()
 
-renderPathMarks = (indices, encoding, g) ->
-  positionX = encoding.positionX.encode
-  positionY = encoding.positionY.encode
-  stroke = encoding.stroke.encode
-  lineWidth = encoding.lineWidth.encode
+renderPathMarks = (indices, encoders, g) ->
+  { positionX, positionY, stroke, lineWidth } = encoders
 
   if stroke instanceof ConstantEncoder and lineWidth instanceof ConstantEncoder
     # Fast-pass: no stroke/lineWidth variations, so draw polylines.
@@ -2679,7 +2616,7 @@ createVisualization = (bounds, frame, layers) ->
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
       for layer in layers
-        layer.mask [ i ], layer.encoding, clipCanvas.context, clip
+        layer.mask [ i ], layer.encoders, clipCanvas.context, clip
         return i if clip.test x, y
     return
 
@@ -2695,7 +2632,7 @@ createVisualization = (bounds, frame, layers) ->
           tooltip[vector.name] = vector.format i
         debug tooltip
         for layer in layers
-          layer.highlight [ i ], layer.encoding, hoverCanvas.context
+          layer.highlight [ i ], layer.encoders, hoverCanvas.context
     return
 
   highlight = (indices) ->
@@ -2703,8 +2640,8 @@ createVisualization = (bounds, frame, layers) ->
     if indices.length
       baseCanvas.element.style.opacity = 0.5
       for layer in layers
-        layer.highlight indices, layer.encoding, highlightCanvas.context
-        layer.render indices, layer.encoding, highlightCanvas.context
+        layer.highlight indices, layer.encoders, highlightCanvas.context
+        layer.render indices, layer.encoders, highlightCanvas.context
     else
       baseCanvas.element.style.opacity = 1
     return
@@ -2722,13 +2659,13 @@ createVisualization = (bounds, frame, layers) ->
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
     for layer in layers
-      highlight layer.select _indices, layer.encoding, xmin, ymin, xmax, ymax
+      highlight layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
     return
 
   render = ->
     for layer in layers
-      layer.render _indices, layer.encoding, baseCanvas.context
-      layer.mask _indices, layer.encoding, maskCanvas.context, mask
+      layer.render _indices, layer.encoders, baseCanvas.context
+      layer.mask _indices, layer.encoders, maskCanvas.context, mask
     return
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
@@ -2858,7 +2795,11 @@ renderPlot = (_frame, ops) ->
   layers = map marks, (mark) ->
     geom = mark.geometry
     encoding = geom.encode frame, mark, axisX, axisY
-    new Layer encoding, geom.mask, geom.highlight, geom.render, geom.select
+    encoders = {}
+    for k, v of encoding when v?.encode
+      encoders[k] = v.encode
+
+    new Layer encoding, encoders, geom.mask, geom.highlight, geom.render, geom.select
 
   visualization = createVisualization bounds, frame, layers
 
