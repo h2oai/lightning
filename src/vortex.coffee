@@ -226,12 +226,22 @@ class MappedField extends Field
 class ReducedField extends Field
   constructor: (@evaluate) ->
 
-class Mark
-  constructor: ->
-    @vectors = null
-    @space = null
+class Fill
+  constructor: (
+    @color
+    @opacity
+  ) ->
 
-class PointMark extends Mark
+class Stroke
+  constructor: (
+    @color
+    @opacity
+    @size
+  ) ->
+
+class MarkExpr
+
+class PointExpr extends MarkExpr
   constructor: (
     @position
     @shape
@@ -243,20 +253,18 @@ class PointMark extends Mark
     @lineWidth
   ) ->
 
-class ColMark extends Mark
+class PathExpr extends MarkExpr
   constructor: (
     @position
-    @width
-    @fillColor
-    @fillOpacity
     @strokeColor
     @strokeOpacity
     @lineWidth
   ) ->
 
-class BarMark extends Mark
+class RectExpr extends MarkExpr
   constructor: (
     @position
+    @width
     @height
     @fillColor
     @fillOpacity
@@ -265,6 +273,53 @@ class BarMark extends Mark
     @lineWidth
   ) ->
 
+class Mark
+
+class PointMark extends Mark
+  constructor: (
+    @space
+    @positionX
+    @positionY
+    @shape
+    @size
+    @fillColor
+    @fillOpacity
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+    @geometry = PointGeometry
+
+class ColMark extends Mark
+  constructor: (
+    @space
+    @positionX
+    @positionY1
+    @positionY2
+    @width
+    @fillColor
+    @fillOpacity
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+    @geometry = ColGeometry
+
+class BarMark extends Mark
+  constructor: (
+    @space
+    @positionX1
+    @positionX2
+    @positionY
+    @height
+    @fillColor
+    @fillOpacity
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+    @geometry = BarGeometry
+
 class PathMark extends Mark
   constructor: (
     @position
@@ -272,6 +327,7 @@ class PathMark extends Mark
     @strokeOpacity
     @lineWidth
   ) ->
+    @geometry = PathGeometry
 
 class TextMark extends Mark
   constructor: (
@@ -281,6 +337,7 @@ class TextMark extends Mark
     @fillColor
     @fillOpacity
   ) ->
+    @geometry = TextGeometry
 
 class Encoding
 
@@ -1565,25 +1622,35 @@ encodeShape = (frame, channel) ->
 # ==============================
 #
 
-initFill = (mark) ->
-  mark.fillColor = new ConstantFillColorChannel chroma head ColorPalettes.c10 unless mark.fillColor
-  mark.fillOpacity = new ConstantFillOpacityChannel 1 unless mark.fillOpacity
+initFill = (fillColor, fillOpacity) ->
+  [
+    fillColor ? new ConstantFillColorChannel chroma head ColorPalettes.c10
+    fillOpacity ? new ConstantFillOpacityChannel 1
+  ]
 
-initStroke = (mark) ->
-  mark.strokeColor = new ConstantStrokeColorChannel chroma head ColorPalettes.c10 unless mark.strokeColor
-  mark.strokeOpacity = new ConstantStrokeOpacityChannel 1 unless mark.strokeOpacity
-  mark.lineWidth = new ConstantLineWidthChannel 1.5 unless mark.lineWidth
+initStroke = (strokeColor, strokeOpacity, lineWidth) ->
+  [
+    strokeColor ? new ConstantStrokeColorChannel chroma head ColorPalettes.c10
+    strokeOpacity ? new ConstantStrokeOpacityChannel 1
+    lineWidth ? new ConstantLineWidthChannel 1.5
+  ]
 
-initFillAndStroke = (mark, defaultTo) ->
-  hasFill = mark.fillColor or mark.fillOpacity
-  hasStroke = mark.strokeColor or mark.strokeOpacity or mark.lineWidth
+initFillAndStroke = (fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, forceFill, forceStroke) ->
+
+  hasFill = fillColor or fillOpacity
+  hasStroke = strokeColor or strokeOpacity or lineWidth
+
   unless hasFill or hasStroke
-    if defaultTo is 'fill'
-      hasFill = yes
-    else if defaultTo is 'stroke'
-      hasStroke = yes 
-  initFill mark if hasFill
-  initStroke mark if hasStroke
+    hasFill = yes if forceFill
+    hasStroke = yes if forceStroke
+
+  if hasFill
+    [ fillColor, fillOpacity ] = initFill fillColor, fillOpacity
+
+  if hasStroke
+    [ strokeColor, strokeOpacity, lineWidth ] = initStroke strokeColor, strokeOpacity, lineWidth
+
+  [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ]
 
 encodeFill = (frame, mark) ->
   if mark.fillColor or mark.fillOpacity
@@ -1635,20 +1702,17 @@ doBar = (g, x1, x2, y, h) ->
 # Point Rendering
 # ==============================
 #
-initPointMark = (mark) ->
-  [ vectorX, vectorY ] = mark.vectors
-  mark.space = new Space2D [ vectorX ], [ vectorY ]
-  mark.shape = new ConstantShapeChannel 'circle' unless mark.shape
-  mark.size = new ConstantSizeChannel defaultSize unless mark.size
-  initFillAndStroke mark, 'stroke'
-  mark
+createPointMark = (expr, vectors) ->
+  [ positionX, positionY ] = vectors
+  space = new Space2D [ positionX ], [ positionY ]
+  shape = expr.shape ? new ConstantShapeChannel 'circle'
+  size = expr.size ? new ConstantSizeChannel defaultSize
+  [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, no, yes
+  new PointMark space, positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 encodePointMark = (frame, mark, axisX, axisY) ->
-  [ x ] = mark.space.x
-  [ y ] = mark.space.y
-
-  positionX = encodePosition axisX, x
-  positionY = encodePosition axisY, y
+  positionX = encodePosition axisX, mark.positionX
+  positionY = encodePosition axisY, mark.positionY
 
   shape = encodeShape frame, mark.shape
   size = encodeArea frame, mark.size
@@ -1746,7 +1810,7 @@ renderPointMarks = (indices, encoding, g) ->
 
   g.restore()
 
-# XXX Naive, need some kind of memoization during rendering.
+# TODO Naive, need some kind of memoization during rendering.
 selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   positionX = encoding.positionX.encode
   positionY = encoding.positionY.encode
@@ -1765,61 +1829,46 @@ selectMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 # Col Rendering
 # ==============================
 #
-initColMark = (mark) ->
-  vectors = mark.vectors
 
+createRectMark = (expr, vectors) ->
   types = join (map vectors, (vector) -> vector.type), ', '
-
   switch types
     when 'String, Number'
-      [ a, b ] = vectors
-      mark.space = new Space2D [ a ], [ b ]
-      mark.width = new ConstantWidthChannel 0.8 unless mark.width
-      initFillAndStroke mark, 'fill'
-      mark
+      [ positionX, positionY2 ] = vectors
+      space = new Space2D [ positionX ], [ positionY2 ]
+      width = expr.width ? new ConstantWidthChannel 0.8
+      [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
+      new ColMark space, positionX, undefined, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
     when 'String, Number, Number'
-      [ a, b, c ] = vectors
-      mark.space = new Space2D [ a ], [ b, c ]
-      mark.width = new ConstantWidthChannel 0.8 unless mark.width
-      initFillAndStroke mark, 'fill'
-      mark
+      [ positionX, positionY1, positionY2 ] = vectors
+      space = new Space2D [ positionX ], [ positionY1, positionY2 ]
+      width = expr.width ? new ConstantWidthChannel 0.8
+      [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
+      new ColMark space, positionX, positionY1, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
     when 'Number, String'
-      newMark = new BarMark mark.position, undefined, mark.fillColor, mark.fillOpacity, mark.strokeColor, mark.strokeOpacity, mark.lineWidth
-
-      [ a, b ] = vectors
-      newMark.space = new Space2D [ a ], [ b ]
-      newMark.height = new ConstantHeightChannel 0.8 unless newMark.height
-      initFillAndStroke newMark, 'fill'
-      initFillAndStroke newMark, 'fill'
-      newMark
+      [ positionX2, positionY ] = vectors
+      space = new Space2D [ positionX2 ], [ positionY ]
+      height = expr.height ? new ConstantHeightChannel 0.8
+      [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
+      new BarMark space, undefined, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
     when 'Number, Number, String'
-      newMark = new BarMark mark.position, undefined, mark.fillColor, mark.fillOpacity, mark.strokeColor, mark.strokeOpacity, mark.lineWidth
-
-      [ a, b, c ] = vectors
-      newMark.space = new Space2D [ a, b ], [ c ]
-      newMark.height = new ConstantHeightChannel 0.8 unless newMark.height
-      initFillAndStroke newMark, 'fill'
-      newMark
+      [ positionX1, positionX2, positionY ] = vectors
+      space = new Space2D [ positionX1, positionX2 ], [ positionY ]
+      height = expr.height ? new ConstantHeightChannel 0.8
+      [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
+      new BarMark space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
     else
       throw new Error "Cannot render bar marks with vectors of type [#{types}]"
 
 
 encodeColMark = (frame, mark, axisX, axisY) ->
-  [ x ] = mark.space.x
-  positionX = encodePosition axisX, x
-  switch mark.space.y.length
-    when 1
-      [ y2 ] = mark.space.y
-      positionY1 = encodeConstantPosition axisY, 0
-      positionY2 = encodePosition axisY, y2
-    else #2
-      [ y1, y2 ] = mark.space.y
-      positionY1 = encodePosition axisY, y1
-      positionY2 = encodePosition axisY, y2
+  positionX = encodePosition axisX, mark.positionX
+  positionY1 = if mark.positionY1 then encodePosition axisY, mark.positionY1 else encodeConstantPosition axisY, 0
+  positionY2 = encodePosition axisY, mark.positionY2
 
   width = encodeSize frame, mark.width, axisX.size / axisX.domain.length
 
@@ -2015,7 +2064,7 @@ renderBarMarks = (indices, encoding, g) ->
   g.restore()
 
 
-# XXX Naive, need some kind of memoization during rendering.
+# TODO Naive, need some kind of memoization during rendering.
 selectColMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   positionX = encoding.positionX.encode
   positionY1 = encoding.positionY1.encode
@@ -2044,7 +2093,7 @@ selectColMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 
   selectedIndices
 
-# XXX Naive, need some kind of memoization during rendering.
+# TODO Naive, need some kind of memoization during rendering.
 selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
   positionX1 = encoding.positionX1.encode
   positionX2 = encoding.positionX2.encode
@@ -2077,18 +2126,16 @@ selectBarMarks = (indices, encoding, xmin, ymin, xmax, ymax) ->
 # Path Rendering
 # ==============================
 #
-initPathMark = (mark) ->
-  [ vectorX, vectorY ] = mark.vectors
-  mark.space = new Space2D [ vectorX ], [ vectorY ]
+createPathMark = (expr, vectors) ->
+  [ positionX, positionY ] = vectors
+  space = new Space2D [ positionX ], [ positionY ]
   initStroke mark
-  mark
+  [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
+  new PathMark space, positionX, positionY, strokeColor, strokeOpacity, lineWidth
 
 encodePathMark = (frame, mark, axisX, axisY) ->
-  [ x ] = mark.space.x
-  [ y ] = mark.space.y
-
-  positionX = encodePosition axisX, x
-  positionY = encodePosition axisY, y
+  positionX = encodePosition axisX, mark.positionX
+  positionY = encodePosition axisY, mark.positionY
 
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
@@ -2196,69 +2243,43 @@ renderPathMarks = (indices, encoding, g) ->
 # ==============================
 #
 
-initializeMark = dispatch(
-  [ PointMark , initPointMark ]
-  [ PathMark , initPathMark ]
-  [ ColMark , initColMark ]
+createMark = dispatch(
+  [ PointExpr, Array, createPointMark ] #XXX
+  [ PathExpr, Array, createPathMark ] #XXX
+  [ RectExpr, Array, createRectMark ]
 )
 
-Geometries = [
-  [
-    PointMark
-  ,
-    new Geometry(
-      encodePointMark
-      maskPointMarks
-      highlightPointMarks
-      renderPointMarks
-      selectMarks
-    )
-  ]
-,
-  [
-    PathMark
-  ,
-    new Geometry(
-      encodePathMark
-      maskPathMarks
-      highlightPathMarks
-      renderPathMarks
-      selectMarks
-    )
-  ]
-,
-  [
-    ColMark
-  ,
-    new Geometry(
-      encodeColMark
-      maskColMarks
-      highlightColMarks
-      renderColMarks
-      selectColMarks
-    )
-  ]
-,
-  [
-    BarMark
-  ,
-    new Geometry(
-      encodeBarMark
-      maskBarMarks
-      highlightBarMarks
-      renderBarMarks
-      selectBarMarks
-    )
-  ]
-]
+PointGeometry = new Geometry(
+  encodePointMark
+  maskPointMarks
+  highlightPointMarks
+  renderPointMarks
+  selectMarks
+)
 
-getGeometry = (mark) ->
-  for [ type, geom ] in Geometries when mark instanceof type
-    return geom
-  return
+PathGeometry = new Geometry(
+  encodePathMark
+  maskPathMarks
+  highlightPathMarks
+  renderPathMarks
+  selectMarks
+)
 
-registerGeometry = (type, geom) ->
-  Geometries.push [ type, geom ]
+ColGeometry = new Geometry(
+  encodeColMark
+  maskColMarks
+  highlightColMarks
+  renderColMarks
+  selectColMarks
+)
+
+BarGeometry = new Geometry(
+  encodeBarMark
+  maskBarMarks
+  highlightBarMarks
+  renderBarMarks
+  selectBarMarks
+)
 
 # Visualization operators
 # ==============================
@@ -2420,7 +2441,7 @@ plot_point = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new PointMark position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointExpr position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 plot_path = (ops...) ->
   position = getOp ops, PositionChannel
@@ -2430,7 +2451,7 @@ plot_path = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new PathMark position, strokeColor, strokeOpacity, lineWidth
+  new PathExpr position, strokeColor, strokeOpacity, lineWidth
 
 # TODO rect routines
 #   x, y, w, h       position(x, y), width()? for cat x, height()? for cat y
@@ -2442,7 +2463,7 @@ plot_path = (ops...) ->
 # interval x1, x2, y | x, y1, y2
 # rect x1, y1, x2, y2
 #
-plot_bar = (ops...) ->
+plot_rect = (ops...) ->
   position = getOp ops, PositionChannel
   
   width = getOp ops, WidthChannel #XXX ?
@@ -2455,7 +2476,7 @@ plot_bar = (ops...) ->
   strokeOpacity = getOp ops, StrokeOpacityChannel
   lineWidth = getOp ops, LineWidthChannel
 
-  new ColMark position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new RectExpr position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 
 # Expression parsing
@@ -2798,7 +2819,7 @@ createAxis = (type, label, domain, range, size) ->
   switch type
     when TString
       scale = createOrdinalScale domain, range
-      guide = -> domain #XXX pluck and return labels?
+      guide = -> domain #TODO pluck and return labels?
       new CategoricalAxis type, label, scale, domain, range, size, guide
 
     when TNumber
@@ -2817,10 +2838,13 @@ renderPlot = (_frame, ops) ->
   debug dumpFrame frame
 
   bounds = getOp ops, Bounds, plot_defaults.bounds
-  marks = map (getOps ops, Mark), (mark) ->
-    mark.vectors = for coord in mark.position.coordinates
+  marks = map (getOps ops, MarkExpr), (expr) ->
+    # XXX XXX XXX
+    # 1. get rid of vectors, space
+    # Should take in a spec and return a mark
+    positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
-    initializeMark mark
+    createMark expr, positionVectors
 
   spaces = map marks, (mark) -> mark.space
   vectorsX = flatMap spaces, (space) -> space.x
@@ -2829,7 +2853,7 @@ renderPlot = (_frame, ops) ->
   [ axisX, axisY ] = createAxes vectorsX, vectorsY, bounds
 
   layers = map marks, (mark) ->
-    geom = getGeometry mark
+    geom = mark.geometry
     encoding = geom.encode frame, mark, axisX, axisY
     new Layer encoding, geom.mask, geom.highlight, geom.render, geom.select
 
@@ -2913,7 +2937,7 @@ plot.variance = plot_variance
 plot.varianceP = plot_varianceP
 plot.parse = plot_parse
 plot.point = plot_point
-plot.bar = plot_bar
+plot.rect = plot_rect
 plot.path = plot_path
 plot.createFrame = createFrame
 plot.createVector = createVector

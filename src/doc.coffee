@@ -1,6 +1,6 @@
 ###
 plot cat-path
-bar
+rect
 Description goes here.
 ---
 tags:
@@ -27,7 +27,7 @@ tags:
 ###
 
 plot(
-  bar(
+  rect(
     position 'model', 'mpg'
   )
   from csv 'mtcars'
@@ -45,7 +45,7 @@ tags:
 ###
 
 plot(
-  bar(
+  rect(
     position 'mpg', 'model'
   )
   from csv 'mtcars'
