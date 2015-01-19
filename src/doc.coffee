@@ -1,61 +1,6 @@
 ###
-plot cat-path
-rect
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  path(
-    position 'model', 'mpg'
-  )
-  from csv 'mtcars'
-  # where 'model', like /Merc/
-)
-
-###
-plot column-chart
-Simple column chart.
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  rect(
-    position 'model', 'mpg'
-  )
-  from csv 'mtcars'
-  # where 'model', like /Merc/
-)
-
-###
-plot bar-chart
-Simple bar chart.
-Description goes here.
----
-tags:
- - point
- - ll
-###
-
-plot(
-  rect(
-    position 'mpg', 'model'
-  )
-  from csv 'mtcars'
-  # where 'model', like /Merc/
-)
-
-
-###
 plot point2
-point
+point, grouped
 Description goes here.
 ---
 tags:
@@ -71,6 +16,27 @@ plot(
   where 'model', like /Merc/
   group factor('cyl'), factor('carb')
 )
+
+###
+plot point3
+point, grouped, having
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  point(
+    position avg('wt'), avg('mpg')
+  )
+  from csv 'mtcars'
+  where 'model', like /Merc/
+  group factor('cyl'), factor('carb')
+  having avg('mpg'), gt 17
+)
+
 ###
 plot point
 point
@@ -483,7 +449,7 @@ plot(
 
 ###
 plot ll-point-11
-Sample plot
+point overplotting #1
 Description goes here.
 ---
 from: diamonds
@@ -502,7 +468,7 @@ plot(
 
 ###
 plot ll-point-12
-Sample plot
+point overplotting #2
 Description goes here.
 ---
 from: diamonds
@@ -521,7 +487,7 @@ plot(
 
 ###
 plot ll-point-13
-Sample plot
+point overplotting #3
 Description goes here.
 ---
 from: diamonds
@@ -539,7 +505,7 @@ plot(
 
 ###
 plot two-point-layers
-Multiple point layers
+point - multiple layers
 Description goes here.
 ---
 tags:
@@ -560,24 +526,6 @@ plot(
   from csv 'mtcars'
 )
 
-###
-plot line
-Line
-Line
----
-tags:
- - line
-###
-plot(
-  line(
-    position 'year', 'number'
-  )
-  from csv 'movies'
-  where 'movie', ne '' 
-  where 'mpaa', eq 'PG-13'
-  group 'year'
-  having 'number', le 10
-)
 ###
 plot path
 path
@@ -643,3 +591,58 @@ plot(
   )
   from csv 'mtcars'
 )
+###
+plot cat-path
+path
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  path(
+    position 'model', 'mpg'
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
+
+###
+plot column-chart
+rect (column)
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'model', 'mpg'
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
+
+###
+plot bar-chart
+rect (bar)
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'mpg', 'model'
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
+
+

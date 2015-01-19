@@ -922,7 +922,7 @@ aggregate_varianceP = (array) -> #XXX
 createAggregateField = (field, symbol, type, format, f) ->
   new ReducedField (frame, cube) ->
     name = "#{symbol}(#{field.name})"
-    if cube.frame.exists name
+    if frame.exists name
       new Field name
     else
       vector = cube.frame.evaluate field
@@ -995,8 +995,11 @@ plot_where = (names..., func) -> plot__where names, func
 # HAVING clause
 # ------------------------------
 
+#TODO should work on combos of fields and strings?
+#TODO BUG vis needs compute bounds post-HAVING
 plot__having = dispatch(
   [ [String], Function, (names, func) -> new HavingOp (createFields names), func ]
+  [ [Field], Function, (fields, func) -> new HavingOp fields, func ]
 )
 
 plot_having = (names..., func) -> plot__having names, func
@@ -1004,17 +1007,17 @@ plot_having = (names..., func) -> plot__having names, func
 # Filter predicates
 # ------------------------------
 
-plot_eq = (expected) -> (actual) -> expected is actual
+plot_eq = (value) -> (actual) -> actual is value
 
-plot_ne = (expected) -> (actual) -> expected isnt actual
+plot_ne = (value) -> (actual) -> actual isnt value
 
-plot_lt = (expected) -> (actual) -> expected < actual
+plot_lt = (value) -> (actual) -> actual < value
 
-plot_gt = (expected) -> (actual) -> expected > actual
+plot_gt = (value) -> (actual) -> actual > value
 
-plot_le = (expected) -> (actual) -> expected <= actual
+plot_le = (value) -> (actual) -> actual <= value
 
-plot_ge = (expected) -> (actual) -> expected >= actual
+plot_ge = (value) -> (actual) -> actual >= value
 
 plot_like = (regex) ->
   throw new Error "like [#{regex}]: expecting RegExp" if TRegExp isnt typeOf regex
@@ -1848,7 +1851,7 @@ createRectMark = (expr, vectors) ->
       new BarMark space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
     else
-      throw new Error "Cannot render bar marks with vectors of type [#{types}]"
+      throw new Error "Cannot create rect marks with vectors of type [#{types}]"
 
 
 encodeColMark = (frame, mark, axisX, axisY) ->
@@ -2184,8 +2187,8 @@ renderPathMarks = (indices, encoders, g) ->
 #
 
 createMark = dispatch(
-  [ PointExpr, Array, createPointMark ] #XXX
-  [ PathExpr, Array, createPathMark ] #XXX
+  [ PointExpr, Array, createPointMark ]
+  [ PathExpr, Array, createPathMark ]
   [ RectExpr, Array, createRectMark ]
 )
 
@@ -2779,9 +2782,6 @@ renderPlot = (_frame, ops) ->
 
   bounds = getOp ops, Bounds, plot_defaults.bounds
   marks = map (getOps ops, MarkExpr), (expr) ->
-    # XXX XXX XXX
-    # 1. get rid of vectors, space
-    # Should take in a spec and return a mark
     positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
     createMark expr, positionVectors
