@@ -306,12 +306,13 @@ class SchemaXMark extends Mark
     @q2
     @q3
     @qn
-    @y
+    @positionY
     @height
     @strokeColor
     @strokeOpacity
     @lineWidth
   ) ->
+    @geometry = SchemaXGeometry
 
 class SchemaYMark extends Mark
   constructor: (
@@ -1813,6 +1814,29 @@ doRectX = (g, x1, x2, y, h) ->
     g.rect x2, (y - h/2), (x1 - x2), h
   g.closePath()
 
+doSchemaX = (g, q0, q1, q2, q3, qn, y, h, s, lw) ->
+  if q0 isnt undefined and
+    q1 isnt undefined and
+    q2 isnt undefined and
+    q3 isnt undefined and
+    qn isnt undefined and
+    y isnt undefined and
+    h isnt undefined and 
+    s isnt undefined and
+    lw isnt undefined
+
+      g.strokeStyle = s
+      g.lineWidth = lw
+      doRectX g, q1, q3, y, h
+      g.stroke()
+      h2 = h/2
+      h4 = h/4
+      doLine g, q2, y - h2, q2, y + h2 # median
+      doLine g, q1, y, q0, y # lower whisker
+      doLine g, q3, y, qn, y # upper whisker
+      doLine g, q0, y - h4, q0, y + h4 # lower fence
+      doLine g, qn, y - h4, qn, y + h4 # upper fence
+
 doSchemaY = (g, x, q0, q1, q2, q3, qn, w, s, lw) ->
   if x isnt undefined and
     q0 isnt undefined and
@@ -2226,6 +2250,118 @@ createSchemaMark = (expr, vectors) ->
       [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
       new SchemaXMark space, q0, q1, q2, q3, qn, y, height, strokeColor, strokeOpacity, lineWidth
 
+encodeSchemaXMark = (frame, mark, axisX, axisY) ->
+  q0 = encodePosition axisX, mark.q0
+  q1 = encodePosition axisX, mark.q1
+  q2 = encodePosition axisX, mark.q2
+  q3 = encodePosition axisX, mark.q3
+  qn = encodePosition axisX, mark.qn
+  y = encodePosition axisY, mark.positionY
+
+  height = encodeSize frame, mark.height, axisY.size / axisY.domain.length
+
+  [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
+
+  new SchemaXEncoding q0, q1, q2, q3, qn, y, height, stroke, strokeColor, strokeOpacity, lineWidth
+
+highlightSchemaXMarks = (indices, encoders, g) ->
+  { positionY, q0, q1, q2, q3, qn, height, stroke, lineWidth } = encoders
+
+  g.save()
+  for i in indices
+    doSchemaX(
+      g
+      q0 i
+      q1 i
+      q2 i
+      q3 i
+      qn i
+      positionY i
+      height i
+      stroke i
+      2 + if stroke then lineWidth i else 1
+    )
+  g.restore()
+
+  g.save()
+  g.globalCompositeOperation = 'destination-out'
+  g.strokeStyle = 'black'
+  for i in indices
+    doSchemaX(
+      g
+      q0 i
+      q1 i
+      q2 i
+      q3 i
+      qn i
+      positionY i
+      height i
+      stroke i
+      lineWidth i
+    )
+  g.restore()
+
+maskSchemaXMarks = (indices, encoders, g, mask) ->
+  { positionY, q0, q1, q2, q3, qn, height, stroke, lineWidth } = encoders
+  g.save()
+  for i in indices
+    x1 = q0 i
+    x2 = qn i
+    y = positionY i
+    h = height i
+
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      maskStyle = mask.put i
+      doRectX g, x1, x2, y, h
+      doFill g, maskStyle
+      doStroke g, maskStyle, lineWidth i
+  g.restore()
+
+renderSchemaXMarks = (indices, encoders, g) ->
+  { positionY, q0, q1, q2, q3, qn, height, stroke, lineWidth } = encoders
+
+  g.save()
+  for i in indices
+    doSchemaX(
+      g
+      q0 i
+      q1 i
+      q2 i
+      q3 i
+      qn i
+      positionY i
+      height i
+      stroke i
+      lineWidth i
+    )
+  g.restore()
+
+# TODO Naive, need some kind of memoization during rendering.
+selectSchemaXMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
+  { positionY, q0, q1, q2, q3, qn, height, stroke, lineWidth } = encoders
+
+  selectedIndices = []
+
+  for i in indices
+    x1 = q0 i
+    x2 = qn i
+    y = positionY i
+
+    if x1 > x2
+      xt = x1
+      x1 = x2
+      x2 = xt 
+
+    h = height i
+    if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
+      y1 = y - h/2
+      y2 = y + h/2
+
+      unless xmin > x2 or xmax < x1 or ymin > y2 or ymax < y1
+        selectedIndices.push i
+
+  selectedIndices
+
 encodeSchemaYMark = (frame, mark, axisX, axisY) ->
   x = encodePosition axisX, mark.positionX
   q0 = encodePosition axisY, mark.q0
@@ -2490,6 +2626,14 @@ BarGeometry = new Geometry(
   highlightBarMarks
   renderBarMarks
   selectBarMarks
+)
+
+SchemaXGeometry = new Geometry(
+  encodeSchemaXMark
+  maskSchemaXMarks
+  highlightSchemaXMarks
+  renderSchemaXMarks
+  selectSchemaXMarks
 )
 
 SchemaYGeometry = new Geometry(

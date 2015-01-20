@@ -1,6 +1,21 @@
 ###
-plot schema
-schema
+plot schema-x
+schema-x
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  schema(
+    position 'min', 'q1', 'q2', 'q3', 'max', factor('cyl')
+  )
+  from csv 'mtcars_schema'
+)
+###
+plot schema-y
+schema-y
 Description goes here.
 ---
 tags:
