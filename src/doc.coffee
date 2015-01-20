@@ -1,4 +1,19 @@
 ###
+plot schema
+schema
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+plot(
+  schema(
+    position factor('cyl'), 'min', 'q1', 'q2', 'q3', 'max'
+  )
+  from csv 'mtcars_schema'
+)
+###
 plot point2
 point, grouped
 Description goes here.
@@ -14,7 +29,7 @@ plot(
   )
   from csv 'mtcars'
   where 'model', like /Merc/
-  group factor('cyl'), factor('carb')
+  groupBy factor('cyl'), factor('carb')
 )
 
 ###
@@ -33,7 +48,7 @@ plot(
   )
   from csv 'mtcars'
   where 'model', like /Merc/
-  group factor('cyl'), factor('carb')
+  groupBy factor('cyl'), factor('carb')
   having avg('mpg'), gt 17
 )
 

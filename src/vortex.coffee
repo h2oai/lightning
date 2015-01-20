@@ -261,6 +261,14 @@ class PathExpr extends MarkExpr
     @lineWidth
   ) ->
 
+class SchemaExpr extends MarkExpr
+  constructor: (
+    @position
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+
 class RectExpr extends MarkExpr
   constructor: (
     @position
@@ -289,6 +297,39 @@ class PointMark extends Mark
     @lineWidth
   ) ->
     @geometry = PointGeometry
+
+class SchemaXMark extends Mark
+  constructor: (
+    @space
+    @q0
+    @q1
+    @q2
+    @q3
+    @qn
+    @y
+    @height
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+
+class SchemaYMark extends Mark
+  constructor: (
+    @space
+    @positionX
+    @q0
+    @q1
+    @q2
+    @q3
+    @qn
+    @width
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+    @geometry = SchemaYGeometry
+
+
 
 class ColMark extends Mark
   constructor: (
@@ -359,6 +400,35 @@ class PointEncoding extends Encoding
     @strokeOpacity
     @lineWidth
   ) ->
+
+class SchemaXEncoding extends Encoding
+  constructor: (
+    @q0
+    @q1
+    @q2
+    @q3
+    @qn
+    @positionY
+    @height
+    @stroke
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) -> 
+class SchemaYEncoding extends Encoding
+  constructor: (
+    @positionX
+    @q0
+    @q1
+    @q2
+    @q3
+    @qn
+    @width
+    @stroke
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) -> 
 
 class ColEncoding extends Encoding
   constructor: (
@@ -878,14 +948,46 @@ plot_factor = dispatch(
   [ Field, (field) -> createFactorField field ]
 )
 
+# Schema computations
+# ------------------------------
+
+quantile_ = (values) -> 
+  clampIndex = clamp_ 0, values.length - 1
+  (percentile) ->
+    values[ clampIndex -1 + round percentile * values.length ]
+
+computeSchema = (array) ->
+  values = for value in array when value or value is 0
+    value
+  sort values, (a, b) -> a - b
+
+  minimum = values[0]
+  maximum = values[values.length - 1]
+  quantile = quantile_ values
+
+  q1 = quantile 0.25
+  q2 = quantile 0.5
+  q3 = quantile 0.75
+
+  # iqr = q3 - q1
+  # lo = q1 - 1.5 * iqr
+  # hi = q3 + 1.5 * iqr
+  #TODO values < lo and > hi are outliers
+
+  [ minimum, q1, q2, q3, maximum ]
+  
+  
+
 # Aggregate fields
 # ------------------------------
 
 aggregate_avg = (array) ->
   total = 0
+  count = 0
   for value in array when value isnt undefined
     total += value
-  total / array.length
+    count++
+  total / count
 
 aggregate_count = (array) -> 
   count = 0
@@ -963,7 +1065,7 @@ plot_varianceP = plot_aggregate 'varianceP', TNumber, identity, aggregate_varian
 # GROUP BY clause
 # ------------------------------
 
-plot_group = (args...) ->
+plot_groupBy = (args...) ->
   fields = for arg in args
     if arg instanceof Field
       arg
@@ -1689,7 +1791,13 @@ doFill = (g, style) ->
   g.fillStyle = style
   g.fill()
 
-doColumn = (g, x, y1, y2, w) ->
+doLine = (g, x1, y1, x2, y2) ->
+  g.beginPath()
+  g.moveTo x1, y1
+  g.lineTo x2, y2
+  g.stroke()
+
+doRectY = (g, x, y1, y2, w) ->
   g.beginPath()
   if y2 > y1
     g.rect (x - w/2), y1, w, y2 - y1 
@@ -1697,13 +1805,36 @@ doColumn = (g, x, y1, y2, w) ->
     g.rect (x - w/2), y2, w, y1 - y2 
   g.closePath()
 
-doBar = (g, x1, x2, y, h) ->
+doRectX = (g, x1, x2, y, h) ->
   g.beginPath()
   if x2 > x1
     g.rect x1, (y - h/2), (x2 - x1), h
   else
     g.rect x2, (y - h/2), (x1 - x2), h
   g.closePath()
+
+doSchemaY = (g, x, q0, q1, q2, q3, qn, w, s, lw) ->
+  if x isnt undefined and
+    q0 isnt undefined and
+    q1 isnt undefined and
+    q2 isnt undefined and
+    q3 isnt undefined and
+    qn isnt undefined and
+    w isnt undefined and 
+    s isnt undefined and
+    lw isnt undefined
+
+      g.strokeStyle = s
+      g.lineWidth = lw
+      doRectY g, x, q1, q3, w
+      g.stroke()
+      w2 = w/2
+      w4 = w/4
+      doLine g, x - w2, q2, x + w2, q2 # median
+      doLine g, x, q1, x, q0 # lower whisker
+      doLine g, x, q3, x, qn # upper whisker
+      doLine g, x - w4, q0, x + w4, q0 # lower fence
+      doLine g, x - w4, qn, x + w4, qn # upper fence
 
 #
 # Point Rendering
@@ -1819,9 +1950,12 @@ selectMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
 # ==============================
 #
 
+structureOf = (vectors) ->
+  join (map vectors, (vector) -> vector.type), ', '
+
 createRectMark = (expr, vectors) ->
-  types = join (map vectors, (vector) -> vector.type), ', '
-  switch types
+  structure = structureOf vectors
+  switch structure
     when 'String, Number'
       [ positionX, positionY2 ] = vectors
       space = new Space2D [ positionX ], [ positionY2 ]
@@ -1851,7 +1985,7 @@ createRectMark = (expr, vectors) ->
       new BarMark space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
     else
-      throw new Error "Cannot create rect marks with vectors of type [#{types}]"
+      throw new Error "Cannot create rect marks with vectors of type [#{structure}]"
 
 
 encodeColMark = (frame, mark, axisX, axisY) ->
@@ -1897,7 +2031,7 @@ highlightColMarks = (indices, encoders, g) ->
     y2 = positionY2 i
     w = width i
     if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
-      doColumn g, x, y1, y2, w
+      doRectY g, x, y1, y2, w
       g.lineWidth = 2 + if stroke then lineWidth i else 1
       g.stroke()
   g.restore()
@@ -1911,7 +2045,7 @@ highlightColMarks = (indices, encoders, g) ->
     y2 = positionY2 i
     w = width i
     if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
-      doColumn g, x, y1, y2, w
+      doRectY g, x, y1, y2, w
       if stroke
         g.lineWidth = lineWidth i
         g.stroke()
@@ -1928,7 +2062,7 @@ highlightBarMarks = (indices, encoders, g) ->
     y = positionY i
     h = height i
     if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
-      doBar g, x1, x2, y, h
+      doRectX g, x1, x2, y, h
       g.lineWidth = 2 + if stroke then lineWidth i else 1
       g.stroke()
   g.restore()
@@ -1942,7 +2076,7 @@ highlightBarMarks = (indices, encoders, g) ->
     y = positionY i
     h = height i
     if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
-      doBar g, x1, x2, y, h
+      doRectX g, x1, x2, y, h
       if stroke
         g.lineWidth = lineWidth i
         g.stroke()
@@ -1962,7 +2096,7 @@ maskColMarks = (indices, encoders, g, mask) ->
 
     if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
       maskStyle = mask.put i
-      doColumn g, x, y1, y2, w
+      doRectY g, x, y1, y2, w
       doFill g, maskStyle
       doStroke g, maskStyle, lineWidth i if stroke
   g.restore()
@@ -1978,7 +2112,7 @@ maskBarMarks = (indices, encoders, g, mask) ->
     h = height i
     if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
       maskStyle = mask.put i
-      doBar g, x1, x2, y, h
+      doRectX g, x1, x2, y, h
       doFill g, maskStyle
       doStroke g, maskStyle, lineWidth i if stroke
   g.restore()
@@ -1995,7 +2129,7 @@ renderColMarks = (indices, encoders, g) ->
     w = width i
 
     if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
-      doColumn g, x, y1, y2, w
+      doRectY g, x, y1, y2, w
       doStroke g, (stroke i), (lineWidth i) if stroke
       doFill g, fill i if fill
 
@@ -2012,7 +2146,7 @@ renderBarMarks = (indices, encoders, g) ->
     h = height i
 
     if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
-      doBar g, x1, x2, y, h
+      doRectX g, x1, x2, y, h
       doStroke g, (stroke i), (lineWidth i) if stroke
       doFill g, fill i if fill
 
@@ -2065,6 +2199,139 @@ selectBarMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
     if x1 isnt undefined and x2 isnt undefined and y isnt undefined and h isnt undefined
       y1 = y - h/2
       y2 = y + h/2
+
+      unless xmin > x2 or xmax < x1 or ymin > y2 or ymax < y1
+        selectedIndices.push i
+
+  selectedIndices
+
+#
+# Schema Rendering
+# ==============================
+#
+createSchemaMark = (expr, vectors) ->
+  structure = structureOf vectors
+  switch structure
+    when 'String, Number, Number, Number, Number, Number'
+      [ x, q0, q1, q2, q3, qn ] = vectors
+      space = new Space2D [ x ], [ q0, q1, q2, q3, qn ]
+      width = expr.width ? new ConstantWidthChannel 0.8
+      [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
+      new SchemaYMark space, x, q0, q1, q2, q3, qn, width, strokeColor, strokeOpacity, lineWidth
+
+    when 'Number, Number, Number, Number, Number, String'
+      [ q0, q1, q2, q3, qn, y ] = vectors
+      space = new Space2D [ q0, q1, q2, q3, qn ], [ y ]
+      height = expr.height ? new ConstantWidthChannel 0.8
+      [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
+      new SchemaXMark space, q0, q1, q2, q3, qn, y, height, strokeColor, strokeOpacity, lineWidth
+
+encodeSchemaYMark = (frame, mark, axisX, axisY) ->
+  x = encodePosition axisX, mark.positionX
+  q0 = encodePosition axisY, mark.q0
+  q1 = encodePosition axisY, mark.q1
+  q2 = encodePosition axisY, mark.q2
+  q3 = encodePosition axisY, mark.q3
+  qn = encodePosition axisY, mark.qn
+
+  width = encodeSize frame, mark.width, axisX.size / axisX.domain.length
+
+  [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
+
+  new SchemaYEncoding x, q0, q1, q2, q3, qn, width, stroke, strokeColor, strokeOpacity, lineWidth
+
+highlightSchemaYMarks = (indices, encoders, g) ->
+  { positionX, q0, q1, q2, q3, qn, width, stroke, lineWidth } = encoders
+
+  g.save()
+  for i in indices
+    doSchemaY(
+      g
+      positionX i
+      q0 i
+      q1 i
+      q2 i
+      q3 i
+      qn i
+      width i
+      stroke i
+      2 + if stroke then lineWidth i else 1
+    )
+  g.restore()
+
+  g.save()
+  g.globalCompositeOperation = 'destination-out'
+  g.strokeStyle = 'black'
+  for i in indices
+    doSchemaY(
+      g
+      positionX i
+      q0 i
+      q1 i
+      q2 i
+      q3 i
+      qn i
+      width i
+      stroke i
+      lineWidth i
+    )
+  g.restore()
+
+maskSchemaYMarks = (indices, encoders, g, mask) ->
+  { positionX, q0, q1, q2, q3, qn, width, stroke, lineWidth } = encoders
+  g.save()
+  for i in indices
+    x = positionX i
+    y1 = q0 i
+    y2 = qn i
+    w = width i
+
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
+      maskStyle = mask.put i
+      doRectY g, x, y1, y2, w
+      doFill g, maskStyle
+      doStroke g, maskStyle, lineWidth i
+  g.restore()
+
+renderSchemaYMarks = (indices, encoders, g) ->
+  { positionX, q0, q1, q2, q3, qn, width, stroke, lineWidth } = encoders
+
+  g.save()
+  for i in indices
+    doSchemaY(
+      g
+      positionX i
+      q0 i
+      q1 i
+      q2 i
+      q3 i
+      qn i
+      width i
+      stroke i
+      lineWidth i
+    )
+  g.restore()
+
+# TODO Naive, need some kind of memoization during rendering.
+selectSchemaYMarks = (indices, encoders, xmin, ymin, xmax, ymax) ->
+  { positionX, q0, q1, q2, q3, qn, width, stroke, lineWidth } = encoders
+
+  selectedIndices = []
+
+  for i in indices
+    x = positionX i
+    y1 = q0 i
+    y2 = qn i
+
+    if y1 > y2
+      yt = y1
+      y1 = y2
+      y2 = yt 
+
+    w = width i
+    if x isnt undefined and y1 isnt undefined and y2 isnt undefined and w isnt undefined
+      x1 = x - w/2
+      x2 = x + w/2
 
       unless xmin > x2 or xmax < x1 or ymin > y2 or ymax < y1
         selectedIndices.push i
@@ -2190,6 +2457,7 @@ createMark = dispatch(
   [ PointExpr, Array, createPointMark ]
   [ PathExpr, Array, createPathMark ]
   [ RectExpr, Array, createRectMark ]
+  [ SchemaExpr, Array, createSchemaMark ]
 )
 
 PointGeometry = new Geometry(
@@ -2222,6 +2490,14 @@ BarGeometry = new Geometry(
   highlightBarMarks
   renderBarMarks
   selectBarMarks
+)
+
+SchemaYGeometry = new Geometry(
+  encodeSchemaYMark
+  maskSchemaYMarks
+  highlightSchemaYMarks
+  renderSchemaYMarks
+  selectSchemaYMarks
 )
 
 # Visualization operators
@@ -2386,26 +2662,6 @@ plot_point = (ops...) ->
 
   new PointExpr position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
-plot_path = (ops...) ->
-  position = getOp ops, PositionChannel
-  #[ positionX, positionY ] = position.coordinates
-
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
-
-  new PathExpr position, strokeColor, strokeOpacity, lineWidth
-
-# TODO rect routines
-#   x, y, w, h       position(x, y), width()? for cat x, height()? for cat y
-#   x, y1, y2, w     position(x, [y1, y2]), width()?
-#   x1, x2, y1, y2   position([x1, x2], [y1, y2])
-#   x1, x2, y, h     position([x1, x2], y), height()?
-#
-# bar x, y; opt width/height
-# interval x1, x2, y | x, y1, y2
-# rect x1, y1, x2, y2
-#
 plot_rect = (ops...) ->
   position = getOp ops, PositionChannel
   
@@ -2421,6 +2677,27 @@ plot_rect = (ops...) ->
 
   new RectExpr position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
+plot_path = (ops...) ->
+  position = getOp ops, PositionChannel
+
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new PathExpr position, strokeColor, strokeOpacity, lineWidth
+
+plot_schema = (ops...) ->
+  position = getOp ops, PositionChannel
+
+  #XXX Can simplify using a single size parameter
+  width = getOp ops, WidthChannel #XXX ?
+  height = getOp ops, HeightChannel #XXX ?
+
+  strokeColor = getOp ops, StrokeColorChannel
+  strokeOpacity = getOp ops, StrokeOpacityChannel
+  lineWidth = getOp ops, LineWidthChannel
+
+  new SchemaExpr position, width, height, strokeColor, strokeOpacity, lineWidth
 
 # Expression parsing
 # ==============================
@@ -2859,7 +3136,7 @@ plot.height = plot_height
 plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
 plot.factor = plot_factor
-plot.group = plot_group
+plot.groupBy = plot_groupBy
 plot.select = plot_select
 plot.where = plot_where
 plot.having = plot_having
@@ -2883,6 +3160,7 @@ plot.parse = plot_parse
 plot.point = plot_point
 plot.rect = plot_rect
 plot.path = plot_path
+plot.schema = plot_schema
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createFactor = createFactor
