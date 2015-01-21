@@ -494,28 +494,28 @@ class ConstantEncoder extends Encoder
     super 'Constant', always value
 
 class VariableEncoder extends Encoder
-  constructor: (label, encode) ->
+  constructor: (label, encode, @vector) ->
     super label, encode
 
 class PositionEncoder extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
+  constructor: (label, encode, vector, @domain, @range, @guide) ->
+    super label, encode, vector
 
 class ColorEncoder extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
+  constructor: (label, encode, vector, @domain, @range, @guide) ->
+    super label, encode, vector
 
 class OpacityEncoder extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
+  constructor: (label, encode, vector, @domain, @range, @guide) ->
+    super label, encode, vector
 
 class SizeEncoder extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
+  constructor: (label, encode, vector, @domain, @range, @guide) ->
+    super label, encode, vector
 
 class ShapeEncoder extends VariableEncoder
-  constructor: (label, encode, @domain, @range, @guide) ->
-    super label, encode
+  constructor: (label, encode, vector, @domain, @range, @guide) ->
+    super label, encode, vector
 
 class Channel
 
@@ -625,11 +625,22 @@ class Canvas
   constructor: (@element, @context, @bounds, @ratio) ->
 
 class Viewport
-  constructor: ( @bounds, @container, @baseCanvas, @highlightCanvas,
-    @hoverCanvas, @maskCanvas, @clipCanvas, @marquee, @mask, @clip) ->
+  constructor: (
+    @bounds
+    @container
+    @baseCanvas
+    @highlightCanvas
+    @hoverCanvas
+    @maskCanvas
+    @clipCanvas
+    @marquee
+    @tooltip
+    @mask
+    @clip
+  ) ->
 
 class Layer
-  constructor: (@encoding, @encoders, @mask, @highlight, @render, @select) ->
+  constructor: (@encodings, @encoders, @mask, @highlight, @render, @select) ->
 
 class Visualization
   constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, 
@@ -1550,7 +1561,7 @@ encodePosition = (axis, vector) ->
   { label, at } = vector
 
   encode = (i) -> scale at i
-  new PositionEncoder label, encode, domain, range, guide
+  new PositionEncoder label, encode, vector, domain, range, guide
 
 encodeConstantPosition = (axis, value) ->
   new ConstantEncoder axis.scale value
@@ -1564,7 +1575,7 @@ encodeColor = (frame, channel) ->
       scale = createCategoricalScale vector.domain, channel.range
       at = vector.at
       encode = (i) -> chroma scale at i
-      new ColorEncoder vector.label, encode, vector.domain, channel.range, null #XXX
+      new ColorEncoder vector.label, encode, vector, vector.domain, channel.range, null #XXX
     else
       domain = switch computeSkew0 vector.domain
         when 1
@@ -1613,7 +1624,7 @@ encodeColor = (frame, channel) ->
       scale = createColorScale domain, range
       at = vector.at
       encode = (i) -> scale at i
-      new ColorEncoder vector.label, encode, domain, range, null #XXX
+      new ColorEncoder vector.label, encode, vector, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
 
@@ -1631,7 +1642,7 @@ encodeOpacity = (frame, channel) ->
     scale = createLinearScale domain, range
     at = vector.at
     encode = (i) -> scale at i
-    new OpacityEncoder vector.label, encode, domain, range, null #XXX
+    new OpacityEncoder vector.label, encode, vector, domain, range, null #XXX
   else
     new ConstantEncoder clampNorm channel.value
 
@@ -1690,7 +1701,7 @@ encodeArea = (frame, channel) ->
     scale = createLinearScale domain, range 
     at = vector.at
     encode = (i) -> scale at i
-    new SizeEncoder vector.label, encode, domain, range, null #XXX
+    new SizeEncoder vector.label, encode, vector, domain, range, null #XXX
   else
     new ConstantEncoder sq channel.value
 
@@ -1707,7 +1718,7 @@ encodeLineWidth = (frame, channel) ->
     scale = createLinearScale domain, range 
     at = vector.at
     encode = (i) -> scale at i
-    new SizeEncoder vector.label, encode, domain, range, null #XXX
+    new SizeEncoder vector.label, encode, vector, domain, range, null #XXX
   else
     new ConstantEncoder channel.value
 
@@ -1721,7 +1732,7 @@ encodeShape = (frame, channel) ->
     scale = createCategoricalScale vector.domain, channel.range
     at = vector.at
     encode = (i) -> Shapes[ scale at i ]
-    new ShapeEncoder vector.label, encode, vector.domain, channel.range, null #XXX
+    new ShapeEncoder vector.label, encode, vector, vector.domain, channel.range, null #XXX
   else
     #REVIEW: throw error or switch to circle?
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
@@ -2906,6 +2917,38 @@ createDOMElement = (tag, styles) ->
     style[name] = value
   el
 
+removeDOMChildren = (el) ->
+  while child = el.firstChild
+    el.removeChild child
+  return
+
+createStylesheet = (styles) ->
+  sheet = for selector, style of styles
+    lines = for property, value of style
+      "#{property}:#{value}"
+    "#{selector}{#{join lines, ';'};}"
+
+  el = document.createElement 'style'
+  el.type = 'text/css'
+  el.innerHTML = join sheet, '\n'
+  headEl = head document.getElementsByTagName 'head'
+  headEl.appendChild el
+  return
+
+createTooltipTable = (dict) ->
+  table = document.createElement 'table'
+  table.appendChild tbody = document.createElement 'tbody'
+  for label, value of dict
+    tbody.appendChild tr = document.createElement 'tr'
+    
+    tr.appendChild td = document.createElement 'td'
+    td.appendChild document.createTextNode "#{label}:"
+
+    tr.appendChild th = document.createElement 'th'
+    th.appendChild document.createTextNode value
+
+  table
+
 createCanvas = (bounds) ->
   { width, height } = bounds
 
@@ -2957,10 +3000,19 @@ createViewport = (bounds) ->
     outline: '1px dotted #999'
     background: 'rgba(0, 0, 0, 0.05)'
 
+  tooltip = createDOMElement 'div',
+    position: 'absolute'
+    left: px 0
+    top: px 0
+    display: 'none'
+
+  tooltip.className = 'vortex-tooltip'
+
   container.appendChild baseCanvas.element
   container.appendChild highlightCanvas.element
   container.appendChild marquee
   container.appendChild hoverCanvas.element
+  container.appendChild tooltip
 
   mask = createMask maskCanvas
   clip = createClip clipCanvas
@@ -2974,6 +3026,7 @@ createViewport = (bounds) ->
     maskCanvas
     clipCanvas
     marquee
+    tooltip
     mask
     clip
   )
@@ -3027,11 +3080,11 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 # ==============================
 #
 
-createVisualization = (bounds, frame, layers) ->
-  viewport = createViewport bounds
+createVisualization = (_bounds, _frame, _layers) ->
+  _viewport = createViewport _bounds
 
-  { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, mask, clip } = viewport
-  _indices = frame.indices
+  { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
+  _indices = _frame.indices
   _index = undefined
 
   test = (x, y) ->
@@ -3039,31 +3092,72 @@ createVisualization = (bounds, frame, layers) ->
     if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
       clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
-      for layer in layers
+      for layer in _layers
         layer.mask [ i ], layer.encoders, clipCanvas.context, clip
         return i if clip.test x, y
     return
+
+  displayTooltip = (x, y, data) ->
+    tableEl = createTooltipTable data
+    removeDOMChildren tooltip
+    tooltip.appendChild tableEl
+    tooltip.style.display = 'block'
+    moveTooltip x, y
+
+  moveTooltip = (x, y) ->
+    tooltipWidth = tooltip.clientWidth
+    tooltipHeight = tooltip.clientHeight
+
+    p = x + 7
+    q = y - 7 - tooltipHeight
+
+    # Flip horizontal if over the right edge
+    p = x - 7 - tooltipWidth if p + tooltipWidth > _bounds.width 
+
+    # Flip vertical if over the top edge
+    q = y + 7 if q < 0
+
+    tooltip.style.left = px p
+    tooltip.style.top = px q
+
+  hideTooltip = ->
+    tooltip.style.display = 'none'
 
   hover = (x, y) ->
     debug x, y
     i = test x, y
     if i isnt _index
       _index = i
+
       hoverCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+      hideTooltip()
+
       if i isnt undefined
-        tooltip = {}
-        for vector in frame.vectors
-          tooltip[vector.name] = vector.format i
-        debug tooltip
-        for layer in layers
+        for layer in _layers
           layer.highlight [ i ], layer.encoders, hoverCanvas.context
+
+        # tt1 = {}
+        # for vector in _frame.vectors
+        #  tt1[vector.name] = vector.format i
+
+        #XXX hover event
+
+        tooltipData = {}
+        for layer in _layers
+          for aes, encoding of layer.encodings when encoding
+            if vector = encoding.vector
+              tooltipData[vector.name] = vector.format i
+
+        displayTooltip x, y, tooltipData
+    else
+      moveTooltip x, y
     return
 
   highlight = (indices) ->
     highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
-      for layer in layers
+      for layer in _layers
         layer.highlight indices, layer.encoders, highlightCanvas.context
         layer.render indices, layer.encoders, highlightCanvas.context
     else
@@ -3073,7 +3167,12 @@ createVisualization = (bounds, frame, layers) ->
   selectAt = (x, y) ->
     i = test x, y
     debug 'selectAt', x, y
-    highlight if i isnt undefined then [ i ] else []
+    if i isnt undefined
+      highlight [ i ]
+      #XXX selection event
+    else
+      highlight []
+      #XXX deselection event
     return
 
   selectWithin = (x1, y1, x2, y2) ->
@@ -3082,19 +3181,24 @@ createVisualization = (bounds, frame, layers) ->
     ymin = if y1 > y2 then y2 else y1
     ymax = if y1 > y2 then y1 else y2
     debug 'selectWithin', xmin, ymin, xmax, ymax
-    for layer in layers
-      highlight layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
+    for layer in _layers
+      selectedIndices = layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
+      highlight selectedIndices
+      if selectedIndices.length
+        #XXX selection event
+      else
+        #XXX deselection event
     return
 
   render = ->
-    for layer in layers
+    for layer in _layers
       layer.render _indices, layer.encoders, baseCanvas.context
       layer.mask _indices, layer.encoders, maskCanvas.context, mask
     return
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
-  new Visualization viewport, frame, test, highlight, hover, selectAt, selectWithin, render
+  new Visualization _viewport, _frame, test, highlight, hover, selectAt, selectWithin, render
 
 #
 # Main
@@ -3215,12 +3319,12 @@ renderPlot = (_frame, ops) ->
 
   layers = map marks, (mark) ->
     geom = mark.geometry
-    encoding = geom.encode frame, mark, axisX, axisY
+    encodings = geom.encode frame, mark, axisX, axisY
     encoders = {}
-    for k, v of encoding when v?.encode
+    for k, v of encodings when v?.encode
       encoders[k] = v.encode
 
-    new Layer encoding, encoders, geom.mask, geom.highlight, geom.render, geom.select
+    new Layer encodings, encoders, geom.mask, geom.highlight, geom.render, geom.select
 
   visualization = createVisualization bounds, frame, layers
 
@@ -3251,8 +3355,27 @@ createPlot = dispatch(
   ]
 )
 
+initializeStylesheet = ->
+  createStylesheet
+    '.vortex-tooltip':
+      background: '#fef9c2'
+      outline: '1px solid #cbc36b'
+      'font-size': '12px'
+    '.vortex-tooltip th, .vortex-tooltip td':
+      padding: '0px 4px'
+      'vertical-align': 'middle'
+    '.vortex-tooltip th':
+      'text-align': 'left'
+
+_isLibInitialized = no
+initializeLib = ->
+  unless _isLibInitialized
+    do initializeStylesheet
+    _isLibInitialized = yes
+
 plot = (ops...) ->
   if datasource = findByType ops, Datasource, Frame
+    do initializeLib
     (go) -> createPlot datasource, (without ops, datasource), go
   else
     (more...) -> apply plot, null, concat ops, more
