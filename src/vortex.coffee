@@ -481,10 +481,10 @@ class Space1D
 class Axis
 
 class CategoricalAxis extends Axis
-  constructor: (@type, @label, @scale, @domain, @range, @size, @guide) ->
+  constructor: (@type, @label, @scale, @domain, @range, @rect, @guide) ->
 
 class LinearAxis extends Axis
-  constructor: (@type, @label, @scale, @domain, @range, @size, @guide) ->
+  constructor: (@type, @label, @scale, @domain, @range, @rect, @guide) ->
 
 class Encoder
   constructor: (@label, @encode) ->
@@ -626,7 +626,7 @@ class Canvas
 
 class Viewport
   constructor: (
-    @bounds
+    @box
     @container
     @baseCanvas
     @highlightCanvas
@@ -648,6 +648,37 @@ class Visualization
 
 class Bounds
   constructor: (@width, @height) ->
+
+class Regions
+  constructor: (
+    @center
+    @left
+    @top
+    @right
+    @bottom
+  ) ->
+
+class Margin
+  constructor: (
+    @left
+    @top
+    @right
+    @bottom
+  ) ->
+
+class Box
+  constructor: (
+    @width
+    @height
+    @margin
+  ) ->
+    @regions = new Regions(
+      rect = new Rect margin.left, margin.top, width - margin.left - margin.right, height - margin.top - margin.bottom
+      new Rect 0, margin.top, margin.left, rect.height
+      new Rect margin.left + rect.width, margin.top, margin.right, rect.height
+      new Rect margin.left, 0, rect.width, margin.top
+      new Rect margin.left, margin.top + rect.height, rect.width, margin.bottom
+    )
 
 class Query
   constructor: (@select, @where, @group, @having) ->
@@ -2028,7 +2059,7 @@ encodeColMark = (frame, mark, axisX, axisY) ->
   positionY1 = if mark.positionY1 then encodePosition axisY, mark.positionY1 else encodeConstantPosition axisY, 0
   positionY2 = encodePosition axisY, mark.positionY2
 
-  width = encodeSize frame, mark.width, axisX.size / axisX.domain.length
+  width = encodeSize frame, mark.width, axisX.rect.width / axisX.domain.length
 
   [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
@@ -2049,7 +2080,7 @@ encodeBarMark = (frame, mark, axisX, axisY) ->
   [ y ] = mark.space.y
   positionY = encodePosition axisY, y
 
-  height = encodeSize frame, mark.height, axisY.size / axisY.domain.length
+  height = encodeSize frame, mark.height, axisY.rect.height / axisY.domain.length
 
   [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
@@ -2269,7 +2300,7 @@ encodeSchemaXMark = (frame, mark, axisX, axisY) ->
   qn = encodePosition axisX, mark.qn
   y = encodePosition axisY, mark.positionY
 
-  height = encodeSize frame, mark.height, axisY.size / axisY.domain.length
+  height = encodeSize frame, mark.height, axisY.rect.height / axisY.domain.length
 
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
@@ -2381,7 +2412,7 @@ encodeSchemaYMark = (frame, mark, axisX, axisY) ->
   q3 = encodePosition axisY, mark.q3
   qn = encodePosition axisY, mark.qn
 
-  width = encodeSize frame, mark.width, axisX.size / axisX.domain.length
+  width = encodeSize frame, mark.width, axisX.rect.width / axisX.domain.length
 
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
@@ -2979,16 +3010,16 @@ createCanvas = (bounds) ->
 
   new Canvas element, context, bounds, ratio
 
-createViewport = (bounds) ->
-  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas bounds for i in [ 1 .. 5 ])
+createViewport = (box) ->
+  [ baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas ] = (createCanvas box for i in [ 1 .. 5 ])
 
   # Set position to 'relative'. This has two effects: 
   #  1. The canvases contained in it (which are set to position: absolute), overlap instead of flowing.
   #  2. Mouse events captured on the top-most canvas get reported with the offset relative to this container instead of the page.
   container = createDOMElement 'div',
     position: 'relative'
-    width: px bounds.width
-    height: px bounds.height
+    width: px box.width
+    height: px box.height
 
   marquee = createDOMElement 'div',
     position: 'absolute'
@@ -3018,7 +3049,7 @@ createViewport = (bounds) ->
   clip = createClip clipCanvas
 
   new Viewport(
-    bounds
+    box
     container
     baseCanvas
     highlightCanvas
@@ -3080,10 +3111,13 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 # ==============================
 #
 
-createVisualization = (_bounds, _frame, _layers) ->
-  _viewport = createViewport _bounds
+createVisualization = (_box, _frame, _layers) ->
+  _viewport = createViewport _box
 
-  { bounds, baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
+  { baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
+
+  visRect = _box.regions.center
+
   _indices = _frame.indices
   _index = undefined
 
@@ -3091,9 +3125,13 @@ createVisualization = (_bounds, _frame, _layers) ->
     i = mask.test x, y
     if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
-      clipCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+      clipCanvas.context.clearRect 0, 0, _box.width, _box.height
+
       for layer in _layers
+        clipCanvas.context.save()
+        clipCanvas.context.translate visRect.left, visRect.top
         layer.mask [ i ], layer.encoders, clipCanvas.context, clip
+        clipCanvas.context.restore()
         return i if clip.test x, y
     return
 
@@ -3112,7 +3150,7 @@ createVisualization = (_bounds, _frame, _layers) ->
     q = y - 7 - tooltipHeight
 
     # Flip horizontal if over the right edge
-    p = x - 7 - tooltipWidth if p + tooltipWidth > _bounds.width 
+    p = x - 7 - tooltipWidth if p + tooltipWidth > _box.width 
 
     # Flip vertical if over the top edge
     q = y + 7 if q < 0
@@ -3124,17 +3162,20 @@ createVisualization = (_bounds, _frame, _layers) ->
     tooltip.style.display = 'none'
 
   hover = (x, y) ->
-    debug x, y
+    # debug x, y
     i = test x, y
     if i isnt _index
       _index = i
 
-      hoverCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+      hoverCanvas.context.clearRect 0, 0, _box.width, _box.height
       hideTooltip()
 
       if i isnt undefined
+        hoverCanvas.context.save()
+        hoverCanvas.context.translate visRect.left, visRect.top
         for layer in _layers
           layer.highlight [ i ], layer.encoders, hoverCanvas.context
+        hoverCanvas.context.restore()
 
         # tt1 = {}
         # for vector in _frame.vectors
@@ -3147,26 +3188,31 @@ createVisualization = (_bounds, _frame, _layers) ->
           for aes, encoding of layer.encodings when encoding
             if vector = encoding.vector
               tooltipData[vector.name] = vector.format i
-
+        
         displayTooltip x, y, tooltipData
     else
       moveTooltip x, y
     return
 
   highlight = (indices) ->
-    highlightCanvas.context.clearRect 0, 0, bounds.width, bounds.height
+    highlightCanvas.context.clearRect 0, 0, _box.width, _box.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
+
+      highlightCanvas.context.save()
+      highlightCanvas.context.translate visRect.left, visRect.top
       for layer in _layers
         layer.highlight indices, layer.encoders, highlightCanvas.context
         layer.render indices, layer.encoders, highlightCanvas.context
+      highlightCanvas.context.restore()
+
     else
       baseCanvas.element.style.opacity = 1
     return
 
   selectAt = (x, y) ->
     i = test x, y
-    debug 'selectAt', x, y
+    # debug 'selectAt', x, y
     if i isnt undefined
       highlight [ i ]
       #XXX selection event
@@ -3176,11 +3222,11 @@ createVisualization = (_bounds, _frame, _layers) ->
     return
 
   selectWithin = (x1, y1, x2, y2) ->
-    xmin = if x1 > x2 then x2 else x1
-    xmax = if x1 > x2 then x1 else x2
-    ymin = if y1 > y2 then y2 else y1
-    ymax = if y1 > y2 then y1 else y2
-    debug 'selectWithin', xmin, ymin, xmax, ymax
+    xmin = -visRect.left + if x1 > x2 then x2 else x1
+    xmax = -visRect.left + if x1 > x2 then x1 else x2
+    ymin = -visRect.top + if y1 > y2 then y2 else y1
+    ymax = -visRect.top + if y1 > y2 then y1 else y2
+    # debug 'selectWithin', xmin, ymin, xmax, ymax
     for layer in _layers
       selectedIndices = layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
       highlight selectedIndices
@@ -3191,9 +3237,18 @@ createVisualization = (_bounds, _frame, _layers) ->
     return
 
   render = ->
+    baseCanvas.context.save()
+    baseCanvas.context.translate visRect.left, visRect.top
+    maskCanvas.context.save()
+    maskCanvas.context.translate visRect.left, visRect.top
+
     for layer in _layers
       layer.render _indices, layer.encoders, baseCanvas.context
       layer.mask _indices, layer.encoders, maskCanvas.context, mask
+
+    maskCanvas.context.restore()
+    baseCanvas.context.restore()
+
     return
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
@@ -3256,7 +3311,9 @@ createAxisLabel = (vectors) ->
     vector.label
   join labels, ', '
 
-createAxes = (vectorsX, vectorsY, bounds) ->
+createAxes = (vectorsX, vectorsY, box) ->
+  rectX = box.regions.bottom
+  rectY = box.regions.left
 
   spaceX = createSpace1D vectorsX
   spaceY = createSpace1D vectorsY
@@ -3277,25 +3334,34 @@ createAxes = (vectorsX, vectorsY, bounds) ->
   else
     spaceY.domain
 
+  # XXX Compute approx axis size
+  #switch spaceX.type
+  #  when TString
+  #    # measure longest string
+  #
+  #  when TNumber
+  #    # measure formatted extent
+
+
   [
-    createAxis spaceX.type, (createAxisLabel vectorsX), domainX, (new SequentialRange 0, bounds.width), bounds.width
+    createAxis spaceX.type, (createAxisLabel vectorsX), domainX, (new SequentialRange 0, rectX.width), rectX
   ,
-    createAxis spaceY.type, (createAxisLabel vectorsY), domainY, (new SequentialRange bounds.height, 0), bounds.height
+    createAxis spaceY.type, (createAxisLabel vectorsY), domainY, (new SequentialRange rectY.height, 0), rectY
   ]
 
-createAxis = (type, label, domain, range, size) ->
+createAxis = (type, label, domain, range, rect) ->
   switch type
     when TString
       scale = createOrdinalScale domain, range
       guide = -> domain #TODO pluck and return labels?
-      new CategoricalAxis type, label, scale, domain, range, size, guide
+      new CategoricalAxis type, label, scale, domain, range, rect, guide
 
     when TNumber
       scale = createNicedSequentialLinearScale domain, range
       guide = (count) ->
         format = scale.tickFormat count
         scale.ticks count
-      new LinearAxis type, label, scale, domain, range, size, guide
+      new LinearAxis type, label, scale, domain, range, rect, guide
 
     else
       throw new Error "Unhandled axis type [#{type}]."
@@ -3303,7 +3369,7 @@ createAxis = (type, label, domain, range, size) ->
 renderPlot = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
-  debug dumpFrame frame
+  # debug dumpFrame frame
 
   bounds = getOp ops, Bounds, plot_defaults.bounds
   marks = map (getOps ops, MarkExpr), (expr) ->
@@ -3315,7 +3381,12 @@ renderPlot = (_frame, ops) ->
   vectorsX = flatMap spaces, (space) -> space.x
   vectorsY = flatMap spaces, (space) -> space.y
 
-  [ axisX, axisY ] = createAxes vectorsX, vectorsY, bounds
+  axisXFraction = 0.25
+  axisYFraction = 0.25
+
+  box = new Box bounds.width, bounds.height, new Margin axisXFraction * bounds.width, 0, 0, axisYFraction * bounds.height
+
+  [ axisX, axisY ] = createAxes vectorsX, vectorsY, box
 
   layers = map marks, (mark) ->
     geom = mark.geometry
@@ -3326,7 +3397,7 @@ renderPlot = (_frame, ops) ->
 
     new Layer encodings, encoders, geom.mask, geom.highlight, geom.render, geom.select
 
-  visualization = createVisualization bounds, frame, layers
+  visualization = createVisualization box, frame, layers
 
   visualization.render() #TODO should be callable externally, with indices.
   
