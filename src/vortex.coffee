@@ -2943,9 +2943,9 @@ plot_defaults =
   maxCanvasSize: new Size 795, 600
   visualizationSize: new Size 300, 300
   axisLabelFont: '10px monospace'
-  axisTickColor: '#000'
+  axisTickColor: '#4d4d4d'
   axisTitleFont: 'bold 10px monospace'
-  axisLabelColor: '#000'
+  axisLabelColor: '#4d4d4d'
   gridLineColor: '#eee'
 
 px = (pixels) -> "#{round pixels}px"
