@@ -3370,9 +3370,13 @@ renderAxis = (g, axis, width, height, orientation) ->
 
   g.restore()
 
-renderGridlines = (g, axis, width) ->
-  if axis instanceof LinearAxis
-    g.strokeStyle = plot_defaults.gridLineColor
+renderGridlines = (g, axis, width, height) ->
+  g.strokeStyle = plot_defaults.gridLineColor
+  if axis instanceof CategoricalAxis
+    # Rule a line at the bottom
+    doLine g, 0, height - 0.5, width, height - 0.5
+  else if axis instanceof LinearAxis
+    # Rule a line for each tick
     for tick in axis.guide()
       position = axis.scale tick.value
       tickPosition = mmax 0.5, -0.5 + round position
@@ -3383,13 +3387,13 @@ renderGridlinesX = (g, axis, rect) ->
   g.save()
   g.translate rect.left, rect.top + rect.height
   g.rotate -Halfπ
-  renderGridlines g, axis, rect.height
+  renderGridlines g, axis, rect.height, rect.width
   g.restore()
 
 renderGridlinesY = (g, axis, rect) ->
   g.save()
   g.translate rect.left, rect.top
-  renderGridlines g, axis, rect.width
+  renderGridlines g, axis, rect.width, rect.height
   g.restore()
 
 
