@@ -846,8 +846,8 @@ computeSkew0 = computeSkew_ 0
 
 combineExtents = (extent1, extent2) ->
   new Extent(
-    Math.min extent1.min, extent2.min
-    Math.max extent1.max, extent2.max
+    mmin extent1.min, extent2.min
+    mmax extent1.max, extent2.max
   )
 
 includeOrigin_ = (origin) -> (extent) ->
@@ -1385,7 +1385,7 @@ drawDiamond = (g, x, y, area) ->
 
 
 drawTriangleUp = (g, x, y, area) ->
-  rx = Math.sqrt area / Sqrt3
+  rx = sqrt area / Sqrt3
   ry = rx * Sqrt3 / 2
   g.save()
   g.translate x, y
@@ -1397,7 +1397,7 @@ drawTriangleUp = (g, x, y, area) ->
   g.restore()
 
 drawTriangleDown = (g, x, y, area) ->
-  rx = Math.sqrt area / Sqrt3
+  rx = sqrt area / Sqrt3
   ry = rx * Sqrt3 / 2
   g.save()
   g.translate x, y
@@ -1409,7 +1409,7 @@ drawTriangleDown = (g, x, y, area) ->
   g.restore()
 
 drawTriangleRight = (g, x, y, area) ->
-  ry = Math.sqrt area / Sqrt3
+  ry = sqrt area / Sqrt3
   rx = ry * Sqrt3 / 2
   g.save()
   g.translate x, y
@@ -1421,7 +1421,7 @@ drawTriangleRight = (g, x, y, area) ->
   g.restore()
 
 drawTriangleLeft = (g, x, y, area) ->
-  ry = Math.sqrt area / Sqrt3
+  ry = sqrt area / Sqrt3
   rx = ry * Sqrt3 / 2
   g.save()
   g.translate x, y
@@ -2950,6 +2950,11 @@ plot_parse = (esprima, escodegen) ->
 
 plot_defaults =
   bounds: new Bounds 400, 400
+  axisLabelFont: '10px monospace'
+  axisTickColor: '#000'
+  axisTitleFont: 'bold 10px monospace'
+  axisLabelColor: '#000'
+  gridLineColor: '#eee'
 
 px = (pixels) -> "#{round pixels}px"
 
@@ -3276,6 +3281,9 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
     baseContext = baseCanvas.context
     maskContext = maskCanvas.context
 
+    renderGridlinesX baseContext, _axisX, visRect
+    renderGridlinesY baseContext, _axisY, visRect
+
     baseContext.save()
     baseContext.translate visRect.left, visRect.top
     maskContext.save()
@@ -3300,9 +3308,9 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
 
 renderAxis = (g, axis, width, height, orientation) ->
 
-  g.font = '10px monospace'
-  g.fillStyle = 'black'
-  g.strokeStyle = 'black'
+  g.font = plot_defaults.axisLabelFont
+  g.fillStyle = plot_defaults.axisLabelColor
+  g.strokeStyle = plot_defaults.axisTickColor
   g.textBaseline = 'middle'
 
   titleHeight = __emWidth + 4
@@ -3333,12 +3341,11 @@ renderAxis = (g, axis, width, height, orientation) ->
   else if axis instanceof LinearAxis
     minPosition = 6
     maxPosition = height - 6
-    for tick, i in axis.guide()
+    for tick in axis.guide()
       label = tick.label
       position = axis.scale tick.value
 
-      tickPosition = -0.5 + round position
-      tickPosition = 0.5 if tickPosition <= 0
+      tickPosition = mmax 0.5, -0.5 + round position
       doLine g, tickStart, tickPosition, width, tickPosition
 
       labelPosition = if position < minPosition
@@ -3355,13 +3362,37 @@ renderAxis = (g, axis, width, height, orientation) ->
   g.restore()
 
   # Axis title
-  g.font = 'bold 10px monospace'
+  g.font = plot_defaults.axisTitleFont
   g.textAlign = 'center'
   g.translate titleHeight/2, height/2
   g.rotate orientation * Halfπ
   g.fillText axis.label, 0, 0, height
 
   g.restore()
+
+renderGridlines = (g, axis, width) ->
+  if axis instanceof LinearAxis
+    g.strokeStyle = plot_defaults.gridLineColor
+    for tick in axis.guide()
+      position = axis.scale tick.value
+      tickPosition = mmax 0.5, -0.5 + round position
+      doLine g, 0, tickPosition, width, tickPosition
+  return
+
+renderGridlinesX = (g, axis, rect) ->
+  g.save()
+  g.translate rect.left, rect.top + rect.height
+  g.rotate -Halfπ
+  renderGridlines g, axis, rect.height
+  g.restore()
+
+renderGridlinesY = (g, axis, rect) ->
+  g.save()
+  g.translate rect.left, rect.top
+  renderGridlines g, axis, rect.width
+  g.restore()
+
+
 
 renderAxisX = (g, axis, rect) ->
   g.save()
@@ -3448,7 +3479,7 @@ computeApproxAxisSize = (type, domain, maxSize) ->
     throw new Error "Invalid axis type."
 
   # Max label width + title size + tick offset + label offset
-  ceil Math.min maxSize, longest * __emWidth + (__emWidth + 4) + 6 + 10
+  ceil mmin maxSize, longest * __emWidth + (__emWidth + 4) + 6 + 10
 
 createAxis = (type, label, domain, range, rect) ->
   switch type
