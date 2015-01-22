@@ -3069,6 +3069,14 @@ createViewport = (box) ->
     clip
   )
 
+# Fix for FF:
+# jquery/FF does not report e.offsetX / e.offsetY, 
+#   so retry with getBoundingClientRect().
+getFFMouseCoords = (e) ->
+  target = e.target ? e.srcElement
+  rect = target.getBoundingClientRect()
+  [ e.clientX - rect.left, e.clientY - rect.top ]
+
 # XXX disable RMB
 # TODO implement additive selections
 # TODO remove jquery dependency
@@ -3083,6 +3091,10 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 
   $canvas.on 'mousemove', (e) -> 
     { offsetX:x, offsetY:y }  = e
+
+    unless x isnt undefined and y isnt undefined
+      [ x, y ] = getFFMouseCoords e # FF patch
+
     if isDragging
       marquee.left = px if x > x1 then x1 else x
       marquee.top = px if y > y1 then y1 else y
@@ -3094,6 +3106,10 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
   $canvas.on 'mousedown', (e) ->
     e.preventDefault()
     { offsetX:x1, offsetY:y1 }  = e
+
+    unless x1 isnt undefined and y1 isnt undefined
+      [ x1, y1 ] = getFFMouseCoords e # FF patch
+
     isDragging = yes
     marquee.display = 'block'
     marquee.left = px x1
@@ -3101,6 +3117,10 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
     $document.on 'mouseup', (e) ->
       e.preventDefault()
       { offsetX:x2, offsetY:y2 }  = e
+
+      unless x2 isnt undefined and y2 isnt undefined
+        [ x2, y2 ] = getFFMouseCoords e # FF patch
+
       isDragging = no
       marquee.display = 'none'
       marquee.width = px 0
