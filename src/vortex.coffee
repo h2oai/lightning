@@ -3298,7 +3298,10 @@ renderAxis = (g, axis, width, height, orientation) ->
     for category in axis.guide()
       label = category.value
       position = axis.scale category
-      doLine g, tickStart, position, width, position
+
+      tickPosition = -0.5 + round position
+      doLine g, tickStart, tickPosition, width, tickPosition
+
       g.fillText label, labelAnchor, position, maxLabelSize - 6
     doLine g, width - 0.5, 0, width - 0.5, height
 
@@ -3308,14 +3311,16 @@ renderAxis = (g, axis, width, height, orientation) ->
     for tick in axis.guide()
       label = tick.label
       position = axis.scale tick.value
+
+      tickPosition = -0.5 + round position
+      doLine g, tickStart, tickPosition, width, tickPosition
+
       labelPosition = if position < minPosition
         minPosition
       else if position > maxPosition
         maxPosition
       else
         position
-      
-      doLine g, tickStart, position, width, position
       g.fillText label, labelAnchor, labelPosition, maxLabelSize - 6
     doLine g, width - 0.5, 0, width - 0.5, height
   else
