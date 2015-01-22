@@ -3373,13 +3373,13 @@ renderAxis = (g, axis, width, height, orientation) ->
 renderGridlines = (g, axis, width, height) ->
   g.strokeStyle = plot_defaults.gridLineColor
   if axis instanceof CategoricalAxis
-    # Rule a line at the bottom
+    # Rule lines at the top and bottom
+    doLine g, 0, 0.5, width, 0.5
     doLine g, 0, height - 0.5, width, height - 0.5
   else if axis instanceof LinearAxis
     # Rule a line for each tick
     for tick in axis.guide()
-      position = axis.scale tick.value
-      tickPosition = mmax 0.5, -0.5 + round position
+      tickPosition = mmax 0.5, -0.5 + round axis.scale tick.value
       doLine g, 0, tickPosition, width, tickPosition
   return
 
@@ -3625,8 +3625,8 @@ __emWidth = 18
 initializeScratchCanvas = ->
   __scratchCanvas = canvas = createCanvas new Bounds 100, 100
   g = canvas.context
-  g.font = '10px monospace'
-  __emWidth = (g.measureText 'M').width
+  g.font = plot_defaults.axisLabelFont
+  __emWidth = (g.measureText 'M').width #FIXME won't work for non-monospace fonts
 
 __isLibInitialized = no
 initializeLib = ->
