@@ -805,15 +805,6 @@ findByType = (args, types...) ->
     return arg for type in types when arg instanceof type
   return
 
-# [a], T, a -> a
-getOp = (ops, type, def) ->
-  if op = findByType ops, type
-    op
-  else
-    def
-
-getOps = filterByType
-
 # real, real -> Extent
 createExtent = (a, b) ->
   if a < b
@@ -961,10 +952,10 @@ dumpFrame = (frame) ->
 
 createQuery = (ops) ->
   new Query(
-    getOps ops, SelectOp
-    getOps ops, WhereOp
-    getOps ops, GroupOp
-    getOps ops, HavingOp
+    filterByType ops, SelectOp
+    filterByType ops, WhereOp
+    filterByType ops, GroupOp
+    filterByType ops, HavingOp
   )
 
 createFields = (names) ->
@@ -2846,54 +2837,54 @@ plot_shape = dispatch(
 )
 
 plot_point = (ops...) ->
-  position = getOp ops, PositionChannel
+  position = findByType ops, PositionChannel
 
-  shape = getOp ops, ShapeChannel
-  size = getOp ops, SizeChannel
+  shape = findByType ops, ShapeChannel
+  size = findByType ops, SizeChannel
 
-  fillColor = getOp ops, FillColorChannel
-  fillOpacity = getOp ops, FillOpacityChannel
+  fillColor = findByType ops, FillColorChannel
+  fillOpacity = findByType ops, FillOpacityChannel
 
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
+  strokeColor = findByType ops, StrokeColorChannel
+  strokeOpacity = findByType ops, StrokeOpacityChannel
+  lineWidth = findByType ops, LineWidthChannel
 
   new PointExpr position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 plot_rect = (ops...) ->
-  position = getOp ops, PositionChannel
+  position = findByType ops, PositionChannel
   
-  width = getOp ops, WidthChannel #XXX ?
-  height = getOp ops, HeightChannel #XXX ?
+  width = findByType ops, WidthChannel #XXX ?
+  height = findByType ops, HeightChannel #XXX ?
 
-  fillColor = getOp ops, FillColorChannel
-  fillOpacity = getOp ops, FillOpacityChannel
+  fillColor = findByType ops, FillColorChannel
+  fillOpacity = findByType ops, FillOpacityChannel
 
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
+  strokeColor = findByType ops, StrokeColorChannel
+  strokeOpacity = findByType ops, StrokeOpacityChannel
+  lineWidth = findByType ops, LineWidthChannel
 
   new RectExpr position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
 
 plot_path = (ops...) ->
-  position = getOp ops, PositionChannel
+  position = findByType ops, PositionChannel
 
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
+  strokeColor = findByType ops, StrokeColorChannel
+  strokeOpacity = findByType ops, StrokeOpacityChannel
+  lineWidth = findByType ops, LineWidthChannel
 
   new PathExpr position, strokeColor, strokeOpacity, lineWidth
 
 plot_schema = (ops...) ->
-  position = getOp ops, PositionChannel
+  position = findByType ops, PositionChannel
 
   #XXX Can simplify using a single size parameter
-  width = getOp ops, WidthChannel #XXX ?
-  height = getOp ops, HeightChannel #XXX ?
+  width = findByType ops, WidthChannel #XXX ?
+  height = findByType ops, HeightChannel #XXX ?
 
-  strokeColor = getOp ops, StrokeColorChannel
-  strokeOpacity = getOp ops, StrokeOpacityChannel
-  lineWidth = getOp ops, LineWidthChannel
+  strokeColor = findByType ops, StrokeColorChannel
+  strokeOpacity = findByType ops, StrokeOpacityChannel
+  lineWidth = findByType ops, LineWidthChannel
 
   new SchemaExpr position, width, height, strokeColor, strokeOpacity, lineWidth
 
@@ -2949,6 +2940,7 @@ plot_parse = (esprima, escodegen) ->
 #
 
 plot_defaults =
+  maxCanvasSize: new Size 795, 600
   visualizationSize: new Size 300, 300
   axisLabelFont: '10px monospace'
   axisTickColor: '#000'
@@ -3526,7 +3518,7 @@ renderPlot = (_frame, ops) ->
   frame = queryFrame _frame, query
   # debug dumpFrame frame
 
-  marks = map (getOps ops, MarkExpr), (expr) ->
+  marks = map (filterByType ops, MarkExpr), (expr) ->
     positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
     createMark expr, positionVectors
@@ -3557,12 +3549,21 @@ renderPlot = (_frame, ops) ->
   axisBoundsX = computeApproxAxisSize spaceX.type, domainX
   axisBoundsY = computeApproxAxisSize spaceY.type, domainY
 
-  bounds = getOp ops, Bounds
+  bounds = (findByType ops, Bounds) ? new Bounds(
+    mmin plot_defaults.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height
+    mmin plot_defaults.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height
+  )
 
-  unless bounds
-    bounds = new Bounds axisBoundsY.width + axisBoundsX.height, axisBoundsX.width + axisBoundsY.height
-
-  box = new Box bounds.width, bounds.height, new Margin axisBoundsY.width, 0, 0, axisBoundsX.width 
+  box = new Box(
+    bounds.width
+    bounds.height
+    new Margin(
+      mmin 0.3 * plot_defaults.maxCanvasSize.width, axisBoundsY.width
+      0
+      0
+      mmin 0.3 * plot_defaults.maxCanvasSize.height, axisBoundsX.width 
+    )
+  )
 
   axisRectX = box.regions.bottom
   axisRectY = box.regions.left
