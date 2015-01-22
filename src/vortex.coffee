@@ -1832,6 +1832,11 @@ encodeStroke = (frame, mark) ->
   else
     []
 
+clipRect = (g, x, y, w, h) ->
+  g.beginPath()
+  g.rect x, y, w, h
+  g.clip()
+
 doStroke = (g, style, lineWidth) ->
   g.lineWidth = lineWidth
   g.strokeStyle = style
@@ -3295,19 +3300,19 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
 
 renderAxis = (g, axis, width, height, orientation) ->
 
+  g.font = '10px monospace'
   g.fillStyle = 'black'
   g.strokeStyle = 'black'
   g.textBaseline = 'middle'
 
-  titleHeight = 4 + (g.measureText 'M').width
+  titleHeight = __emWidth + 4
+
   maxLabelSize = width - titleHeight
 
   g.save()
 
   # Set a clip region for labels
-  g.beginPath()
-  g.rect titleHeight, 0, maxLabelSize, height
-  g.clip()
+  clipRect g, titleHeight, 0, maxLabelSize, height
 
   g.textAlign = 'right'
 
@@ -3328,11 +3333,12 @@ renderAxis = (g, axis, width, height, orientation) ->
   else if axis instanceof LinearAxis
     minPosition = 6
     maxPosition = height - 6
-    for tick in axis.guide()
+    for tick, i in axis.guide()
       label = tick.label
       position = axis.scale tick.value
 
       tickPosition = -0.5 + round position
+      tickPosition = 0.5 if tickPosition <= 0
       doLine g, tickStart, tickPosition, width, tickPosition
 
       labelPosition = if position < minPosition
@@ -3349,6 +3355,7 @@ renderAxis = (g, axis, width, height, orientation) ->
   g.restore()
 
   # Axis title
+  g.font = 'bold 10px monospace'
   g.textAlign = 'center'
   g.translate titleHeight/2, height/2
   g.rotate orientation * Halfπ
@@ -3425,43 +3432,23 @@ createAxisLabel = (vectors) ->
     vector.label
   join labels, ', '
 
-createAxes = (vectorsX, vectorsY, box) ->
-  rectX = box.regions.bottom
-  rectY = box.regions.left
-
-  spaceX = createSpace1D vectorsX
-  spaceY = createSpace1D vectorsY
-
-  domainX = if spaceX.type is TNumber
-    if spaceY.type is TString
-      includeOrigin0 spaceX.domain
-    else
-      spaceX.domain
+computeApproxAxisSize = (type, domain, maxSize) ->
+  rect = new Rect 0, 0, 400, 400
+  axis = createAxis type, '', domain, (new SequentialRange 0, rect.width), rect
+  longest = 0
+  if axis instanceof CategoricalAxis
+    for category in axis.guide()
+      if longest < length = category.value.length
+        longest = length
+  else if axis instanceof LinearAxis
+    for tick in axis.guide()
+      if longest < length = tick.label.length
+        longest = length
   else
-    spaceX.domain
+    throw new Error "Invalid axis type."
 
-  domainY = if spaceY.type is TNumber
-    if spaceX.type is TString
-      includeOrigin0 spaceY.domain
-    else
-      spaceY.domain
-  else
-    spaceY.domain
-
-  # XXX Compute approx axis size
-  #switch spaceX.type
-  #  when TString
-  #    # measure longest string
-  #
-  #  when TNumber
-  #    # measure formatted extent
-
-
-  [
-    createAxis spaceX.type, (createAxisLabel vectorsX), domainX, (new SequentialRange 0, rectX.width), rectX
-  ,
-    createAxis spaceY.type, (createAxisLabel vectorsY), domainY, (new SequentialRange rectY.height, 0), rectY
-  ]
+  # Max label width + title size + tick offset + label offset
+  ceil Math.min maxSize, longest * __emWidth + (__emWidth + 4) + 6 + 10
 
 createAxis = (type, label, domain, range, rect) ->
   switch type
@@ -3498,12 +3485,34 @@ renderPlot = (_frame, ops) ->
   vectorsX = flatMap spaces, (space) -> space.x
   vectorsY = flatMap spaces, (space) -> space.y
 
-  axisXFraction = 0.25
-  axisYFraction = 0.25
+  spaceX = createSpace1D vectorsX
+  spaceY = createSpace1D vectorsY
 
-  box = new Box bounds.width, bounds.height, new Margin (round axisXFraction * bounds.width), 0, 0, (round axisYFraction * bounds.height)
+  domainX = if spaceX.type is TNumber
+    if spaceY.type is TString
+      includeOrigin0 spaceX.domain
+    else
+      spaceX.domain
+  else
+    spaceX.domain
 
-  [ axisX, axisY ] = createAxes vectorsX, vectorsY, box
+  domainY = if spaceY.type is TNumber
+    if spaceX.type is TString
+      includeOrigin0 spaceY.domain
+    else
+      spaceY.domain
+  else
+    spaceY.domain
+
+  axisSizeX = computeApproxAxisSize spaceX.type, domainX, 0.3 * bounds.height
+  axisSizeY = computeApproxAxisSize spaceY.type, domainY, 0.3 * bounds.width
+
+  box = new Box bounds.width, bounds.height, new Margin axisSizeY, 0, 0, axisSizeX 
+
+  axisRectX = box.regions.bottom
+  axisRectY = box.regions.left
+  axisX = createAxis spaceX.type, (createAxisLabel vectorsX), domainX, (new SequentialRange 0, axisRectX.width), axisRectX
+  axisY = createAxis spaceY.type, (createAxisLabel vectorsY), domainY, (new SequentialRange axisRectY.height, 0), axisRectY
 
   layers = map marks, (mark) ->
     geom = mark.geometry
@@ -3555,11 +3564,21 @@ initializeStylesheet = ->
     '.vortex-tooltip th':
       'text-align': 'left'
 
-_isLibInitialized = no
+__scratchCanvas = null
+__emWidth = 18
+
+initializeScratchCanvas = ->
+  __scratchCanvas = canvas = createCanvas new Bounds 100, 100
+  g = canvas.context
+  g.font = '10px monospace'
+  __emWidth = (g.measureText 'M').width
+
+__isLibInitialized = no
 initializeLib = ->
-  unless _isLibInitialized
+  unless __isLibInitialized
     do initializeStylesheet
-    _isLibInitialized = yes
+    do initializeScratchCanvas
+    __isLibInitialized = yes
 
 plot = (ops...) ->
   if datasource = findByType ops, Datasource, Frame
