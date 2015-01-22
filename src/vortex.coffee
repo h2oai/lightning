@@ -2949,7 +2949,7 @@ plot_parse = (esprima, escodegen) ->
 #
 
 plot_defaults =
-  bounds: new Bounds 400, 400
+  visualizationSize: new Size 300, 300
   axisLabelFont: '10px monospace'
   axisTickColor: '#000'
   axisTitleFont: 'bold 10px monospace'
@@ -3467,30 +3467,46 @@ createAxisLabel = (vectors) ->
     vector.label
   join labels, ', '
 
-computeApproxAxisSize = (type, domain, maxSize) ->
+computeApproxAxisSize = (type, domain) ->
   rect = new Rect 0, 0, 400, 400
   axis = createAxis type, '', domain, (new SequentialRange 0, rect.width), rect
-  longest = 0
+
+  # title size + tick offset + label offset
+  padding = (__emWidth + 4) + 6 + 10
+
   if axis instanceof CategoricalAxis
-    for category in axis.guide()
+    longest = 0
+    categories = axis.guide()
+    for category in categories
       if longest < length = category.value.length
         longest = length
+    new Bounds(
+      ceil longest * __emWidth + padding
+      ceil categories.length * (__emWidth + 8)
+    )
+
   else if axis instanceof LinearAxis
+    longest = 0
+    categories = axis.guide()
     for tick in axis.guide()
       if longest < length = tick.label.length
         longest = length
+    new Bounds(
+      ceil longest * __emWidth + padding
+      plot_defaults.visualizationSize.height
+    )
+
   else
     throw new Error "Invalid axis type."
 
-  # Max label width + title size + tick offset + label offset
-  ceil mmin maxSize, longest * __emWidth + (__emWidth + 4) + 6 + 10
 
 createAxis = (type, label, domain, range, rect) ->
   switch type
     when TString
       scale = createOrdinalScale domain, range
       guide = ->
-        domain #TODO pluck and return labels?
+        domain
+
       new CategoricalAxis type, label, scale, domain, range, rect, guide
 
     when TNumber
@@ -3510,7 +3526,6 @@ renderPlot = (_frame, ops) ->
   frame = queryFrame _frame, query
   # debug dumpFrame frame
 
-  bounds = getOp ops, Bounds, plot_defaults.bounds
   marks = map (getOps ops, MarkExpr), (expr) ->
     positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
@@ -3539,10 +3554,15 @@ renderPlot = (_frame, ops) ->
   else
     spaceY.domain
 
-  axisSizeX = computeApproxAxisSize spaceX.type, domainX, 0.3 * bounds.height
-  axisSizeY = computeApproxAxisSize spaceY.type, domainY, 0.3 * bounds.width
+  axisBoundsX = computeApproxAxisSize spaceX.type, domainX
+  axisBoundsY = computeApproxAxisSize spaceY.type, domainY
 
-  box = new Box bounds.width, bounds.height, new Margin axisSizeY, 0, 0, axisSizeX 
+  bounds = getOp ops, Bounds
+
+  unless bounds
+    bounds = new Bounds axisBoundsY.width + axisBoundsX.height, axisBoundsX.width + axisBoundsY.height
+
+  box = new Box bounds.width, bounds.height, new Margin axisBoundsY.width, 0, 0, axisBoundsX.width 
 
   axisRectX = box.regions.bottom
   axisRectY = box.regions.left
