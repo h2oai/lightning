@@ -3566,8 +3566,15 @@ renderPlot = (_frame, ops) ->
 
   axisRectX = box.regions.bottom
   axisRectY = box.regions.left
-  axisX = createAxis spaceX.type, (createAxisLabel vectorsX), domainX, (new SequentialRange 0, axisRectX.width), axisRectX
-  axisY = createAxis spaceY.type, (createAxisLabel vectorsY), domainY, (new SequentialRange axisRectY.height, 0), axisRectY
+
+  rangeX = new SequentialRange 0, axisRectX.width
+  rangeY = if spaceY.type is TNumber
+    new SequentialRange axisRectY.height, 0
+  else
+    new SequentialRange 0, axisRectY.height
+
+  axisX = createAxis spaceX.type, (createAxisLabel vectorsX), domainX, rangeX, axisRectX
+  axisY = createAxis spaceY.type, (createAxisLabel vectorsY), domainY, rangeY, axisRectY
 
   layers = map marks, (mark) ->
     geom = mark.geometry
