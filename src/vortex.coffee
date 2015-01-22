@@ -486,6 +486,9 @@ class CategoricalAxis extends Axis
 class LinearAxis extends Axis
   constructor: (@type, @label, @scale, @domain, @range, @rect, @guide) ->
 
+class Tick
+  constructor: (@value, @label) ->
+
 class Encoder
   constructor: (@label, @encode) ->
 
@@ -1461,12 +1464,16 @@ scaleSafe_ = (scale) -> (value) ->
     undefined
 
 createNicedSequentialLinearScale = (domain, range) ->
-  scaleSafe_(
-    d3.scale.linear()
-      .domain [ domain.min, domain.max ]
-      .range [ range.min, range.max ]
-      .nice()
-  )
+  scale = d3.scale.linear()
+    .domain [ domain.min, domain.max ]
+    .range [ range.min, range.max ]
+    .nice()
+
+  [ 
+    scaleSafe_ scale
+    scale.tickFormat
+    scale.ticks
+  ]
 
 createOrdinalScale = (domain, range) -> #TODO rename
   _index = 0
@@ -3111,7 +3118,7 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 # ==============================
 #
 
-createVisualization = (_box, _frame, _layers) ->
+createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
   _viewport = createViewport _box
 
   { baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
@@ -3125,13 +3132,14 @@ createVisualization = (_box, _frame, _layers) ->
     i = mask.test x, y
     if i isnt undefined
       # Anti-aliasing artifacts on the mask canvas can cause false positives. Redraw this single mark and check if it ends up at the same (x, y) position.
-      clipCanvas.context.clearRect 0, 0, _box.width, _box.height
+      clipContext = clipCanvas.context
+      clipContext.clearRect 0, 0, _box.width, _box.height
 
       for layer in _layers
-        clipCanvas.context.save()
-        clipCanvas.context.translate visRect.left, visRect.top
-        layer.mask [ i ], layer.encoders, clipCanvas.context, clip
-        clipCanvas.context.restore()
+        clipContext.save()
+        clipContext.translate visRect.left, visRect.top
+        layer.mask [ i ], layer.encoders, clipContext, clip
+        clipContext.restore()
         return i if clip.test x, y
     return
 
@@ -3142,18 +3150,19 @@ createVisualization = (_box, _frame, _layers) ->
     tooltip.style.display = 'block'
     moveTooltip x, y
 
+  _tooltipOffset = 7 # sq distance from cursor to nearest tooltip corner.
   moveTooltip = (x, y) ->
     tooltipWidth = tooltip.clientWidth
     tooltipHeight = tooltip.clientHeight
 
-    p = x + 7
-    q = y - 7 - tooltipHeight
+    p = x + _tooltipOffset
+    q = y - _tooltipOffset - tooltipHeight
 
     # Flip horizontal if over the right edge
-    p = x - 7 - tooltipWidth if p + tooltipWidth > _box.width 
+    p = x - _tooltipOffset - tooltipWidth if p + tooltipWidth > _box.width 
 
     # Flip vertical if over the top edge
-    q = y + 7 if q < 0
+    q = y + _tooltipOffset if q < 0
 
     tooltip.style.left = px p
     tooltip.style.top = px q
@@ -3167,15 +3176,16 @@ createVisualization = (_box, _frame, _layers) ->
     if i isnt _index
       _index = i
 
-      hoverCanvas.context.clearRect 0, 0, _box.width, _box.height
+      hoverContext = hoverCanvas.context
+      hoverContext.clearRect 0, 0, _box.width, _box.height
       hideTooltip()
 
       if i isnt undefined
-        hoverCanvas.context.save()
-        hoverCanvas.context.translate visRect.left, visRect.top
+        hoverContext.save()
+        hoverContext.translate visRect.left, visRect.top
         for layer in _layers
-          layer.highlight [ i ], layer.encoders, hoverCanvas.context
-        hoverCanvas.context.restore()
+          layer.highlight [ i ], layer.encoders, hoverContext
+        hoverContext.restore()
 
         # tt1 = {}
         # for vector in _frame.vectors
@@ -3195,16 +3205,17 @@ createVisualization = (_box, _frame, _layers) ->
     return
 
   highlight = (indices) ->
-    highlightCanvas.context.clearRect 0, 0, _box.width, _box.height
+    highlightContext = highlightCanvas.context
+    highlightContext.clearRect 0, 0, _box.width, _box.height
     if indices.length
       baseCanvas.element.style.opacity = 0.5
 
-      highlightCanvas.context.save()
-      highlightCanvas.context.translate visRect.left, visRect.top
+      highlightContext.save()
+      highlightContext.translate visRect.left, visRect.top
       for layer in _layers
-        layer.highlight indices, layer.encoders, highlightCanvas.context
-        layer.render indices, layer.encoders, highlightCanvas.context
-      highlightCanvas.context.restore()
+        layer.highlight indices, layer.encoders, highlightContext
+        layer.render indices, layer.encoders, highlightContext
+      highlightContext.restore()
 
     else
       baseCanvas.element.style.opacity = 1
@@ -3237,23 +3248,86 @@ createVisualization = (_box, _frame, _layers) ->
     return
 
   render = ->
-    baseCanvas.context.save()
-    baseCanvas.context.translate visRect.left, visRect.top
-    maskCanvas.context.save()
-    maskCanvas.context.translate visRect.left, visRect.top
+    baseContext = baseCanvas.context
+    maskContext = maskCanvas.context
+
+    baseContext.save()
+    baseContext.translate visRect.left, visRect.top
+    maskContext.save()
+    maskContext.translate visRect.left, visRect.top
 
     for layer in _layers
-      layer.render _indices, layer.encoders, baseCanvas.context
-      layer.mask _indices, layer.encoders, maskCanvas.context, mask
+      layer.render _indices, layer.encoders, baseContext
+      layer.mask _indices, layer.encoders, maskContext, mask
 
-    maskCanvas.context.restore()
-    baseCanvas.context.restore()
+    maskContext.restore()
+    baseContext.restore()
+
+    renderAxisX baseContext, _axisX, _box.regions.bottom
+    renderAxisY baseContext, _axisY, _box.regions.left
 
     return
 
   captureMouseEvents hoverCanvas.element, marquee, hover, selectWithin, selectAt
 
   new Visualization _viewport, _frame, test, highlight, hover, selectAt, selectWithin, render
+
+
+renderAxis = (g, axis, width, height) ->
+  if axis instanceof CategoricalAxis
+    for category in axis.guide()
+      label = category.value
+      position = axis.scale category
+      doLine g, width - 5, position, width, position
+      g.fillText label, width - 6, position, width - 10
+    doLine g, width - 0.5, 0, width - 0.5, height
+
+  else if axis instanceof LinearAxis
+    minPosition = 6
+    maxPosition = height - 6
+    for tick in axis.guide()
+      label = tick.label
+      position = axis.scale tick.value
+      labelPosition = if position < minPosition
+        minPosition
+      else if position > maxPosition
+        maxPosition
+      else
+        position
+      
+      doLine g, width - 5, position, width, position
+      g.fillText label, width - 6, labelPosition, width - 10
+    doLine g, width - 0.5, 0, width - 0.5, height
+  else
+    throw new Error "Invalid axis type."
+
+renderAxisX = (g, axis, rect) ->
+  g.save()
+  g.translate rect.left, rect.top + rect.height
+  g.rotate -Halfπ
+
+  g.strokeStyle = 'black'
+  g.textAlign = 'right'
+  g.textBaseline = 'middle'
+
+  renderAxis g, axis, rect.height, rect.width
+
+  g.restore()
+
+renderAxisY = (g, axis, rect) ->
+  g.save()
+  g.translate rect.left, rect.top
+
+  g.strokeStyle = 'black'
+  g.textAlign = 'right'
+  g.textBaseline = 'middle'
+
+  renderAxis g, axis, rect.width, rect.height
+
+  g.restore()
+
+
+
 
 #
 # Main
@@ -3353,14 +3427,17 @@ createAxis = (type, label, domain, range, rect) ->
   switch type
     when TString
       scale = createOrdinalScale domain, range
-      guide = -> domain #TODO pluck and return labels?
+      guide = ->
+        domain #TODO pluck and return labels?
       new CategoricalAxis type, label, scale, domain, range, rect, guide
 
     when TNumber
-      scale = createNicedSequentialLinearScale domain, range
-      guide = (count) ->
-        format = scale.tickFormat count
-        scale.ticks count
+      [ scale, tickFormat, ticks ] = createNicedSequentialLinearScale domain, range
+      guide = (count=10) ->
+        format = tickFormat count
+        for value in ticks count
+          new Tick value, format value
+
       new LinearAxis type, label, scale, domain, range, rect, guide
 
     else
@@ -3384,7 +3461,7 @@ renderPlot = (_frame, ops) ->
   axisXFraction = 0.25
   axisYFraction = 0.25
 
-  box = new Box bounds.width, bounds.height, new Margin axisXFraction * bounds.width, 0, 0, axisYFraction * bounds.height
+  box = new Box bounds.width, bounds.height, new Margin (round axisXFraction * bounds.width), 0, 0, (round axisYFraction * bounds.height)
 
   [ axisX, axisY ] = createAxes vectorsX, vectorsY, box
 
@@ -3397,7 +3474,7 @@ renderPlot = (_frame, ops) ->
 
     new Layer encodings, encoders, geom.mask, geom.highlight, geom.render, geom.select
 
-  visualization = createVisualization box, frame, layers
+  visualization = createVisualization box, frame, layers, axisX, axisY
 
   visualization.render() #TODO should be callable externally, with indices.
   
