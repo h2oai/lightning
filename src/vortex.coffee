@@ -3618,8 +3618,8 @@ createPlot = dispatch(
 initializeStylesheet = ->
   createStylesheet
     '.vortex-tooltip':
-      background: '#fef9c2'
-      outline: '1px solid #cbc36b'
+      background: '#2c2c2c'
+      color: '#fff'
       'font-size': '12px'
     '.vortex-tooltip th, .vortex-tooltip td':
       padding: '0px 4px'
