@@ -3273,13 +3273,33 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
   new Visualization _viewport, _frame, test, highlight, hover, selectAt, selectWithin, render
 
 
-renderAxis = (g, axis, width, height) ->
+renderAxis = (g, axis, width, height, orientation) ->
+
+  g.fillStyle = 'black'
+  g.strokeStyle = 'black'
+  g.textBaseline = 'middle'
+
+  titleHeight = 4 + (g.measureText 'M').width
+  maxLabelSize = width - titleHeight
+
+  g.save()
+
+  # Set a clip region for labels
+  g.beginPath()
+  g.rect titleHeight, 0, maxLabelSize, height
+  g.clip()
+
+  g.textAlign = 'right'
+
+  tickStart = width - 5
+  labelAnchor = width - 6
+
   if axis instanceof CategoricalAxis
     for category in axis.guide()
       label = category.value
       position = axis.scale category
-      doLine g, width - 5, position, width, position
-      g.fillText label, width - 6, position, width - 10
+      doLine g, tickStart, position, width, position
+      g.fillText label, labelAnchor, position, maxLabelSize - 6
     doLine g, width - 0.5, 0, width - 0.5, height
 
   else if axis instanceof LinearAxis
@@ -3295,39 +3315,34 @@ renderAxis = (g, axis, width, height) ->
       else
         position
       
-      doLine g, width - 5, position, width, position
-      g.fillText label, width - 6, labelPosition, width - 10
+      doLine g, tickStart, position, width, position
+      g.fillText label, labelAnchor, labelPosition, maxLabelSize - 6
     doLine g, width - 0.5, 0, width - 0.5, height
   else
     throw new Error "Invalid axis type."
+
+  g.restore()
+
+  # Axis title
+  g.textAlign = 'center'
+  g.translate titleHeight/2, height/2
+  g.rotate orientation * Halfπ
+  g.fillText axis.label, 0, 0, height
+
+  g.restore()
 
 renderAxisX = (g, axis, rect) ->
   g.save()
   g.translate rect.left, rect.top + rect.height
   g.rotate -Halfπ
-
-  g.strokeStyle = 'black'
-  g.textAlign = 'right'
-  g.textBaseline = 'middle'
-
-  renderAxis g, axis, rect.height, rect.width
-
+  renderAxis g, axis, rect.height, rect.width, 1
   g.restore()
 
 renderAxisY = (g, axis, rect) ->
   g.save()
   g.translate rect.left, rect.top
-
-  g.strokeStyle = 'black'
-  g.textAlign = 'right'
-  g.textBaseline = 'middle'
-
-  renderAxis g, axis, rect.width, rect.height
-
+  renderAxis g, axis, rect.width, rect.height, -1
   g.restore()
-
-
-
 
 #
 # Main
