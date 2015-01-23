@@ -14,6 +14,7 @@ marked = require 'marked'
 highlight = require 'highlight.js'
 esprima = require 'esprima'
 escodegen = require 'escodegen'
+Uglify = require 'uglify-js'
 shorthand = require './tools/shorthand/shorthand.coffee'
 
 EOL = "\n"
@@ -180,7 +181,7 @@ buildDoc = ->
   return
 
 
-build = ->
+build = (argv) ->
   console.log "Building..."
 
   vortex_coffee = read 'src/vortex.coffee'
@@ -192,6 +193,12 @@ build = ->
   write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ vortex_coffee, tests_coffee ].join(EOL)
 
   cp 'build/js/vortex.js', 'dist/vortex.js'
+
+  if argv.m
+    uglification = Uglify.minify [ 'dist/vortex.js' ], warnings: yes
+    write 'dist/vortex.min.js', uglification.code
+
+  return
 
 test = ->
   console.log 'Testing...'
@@ -209,7 +216,7 @@ serve = ->
     .use server locate 'build'
     .listen port
 
-watch = ->
+watch = (argv) ->
   console.log 'Watching...'
   hound
     .watch locate 'src'
@@ -218,7 +225,7 @@ watch = ->
       if /\.(coffee)$/.test file
         console.log "#{file} changed..."
         try
-          build()
+          build argv
           test()
         catch error
           console.error error
@@ -229,11 +236,11 @@ clean = ->
   rm 'build'
 
 main = (argv) ->
-  do clean if argv.c
-  do build if argv.b or argv.d
-  do buildDoc if argv.d
-  do test if argv.t
-  do watch if argv.w
+  clean() if argv.c
+  build argv if argv.b or argv.d
+  buildDoc() if argv.d
+  test() if argv.t
+  watch argv if argv.w
 
 main minimist (process.argv.slice 2),
   default:

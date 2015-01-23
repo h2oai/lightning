@@ -6,6 +6,7 @@
   "scripts": {
     "start": "coffee make.coffee -bdt",
     "build": "coffee make.coffee -bd",
+    "minify": "coffee make.coffee -bm",
     "watch": "coffee make.coffee -w",
     "test": "coffee make.coffee -bt | faucet",
     "cover": "coffee make.coffee -b && mkdir -p build/cover && istanbul cover --dir build/cover build/js/tests.js && istanbul report --dir build/cover html",
