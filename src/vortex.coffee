@@ -4,25 +4,6 @@
 #
 
 #
-# TODO
-# ------------------------------
-#
-# - fix mmin, mmax, vvalues in shorthand
-# - Tooltips
-# - Stack
-# - Jitter
-# - Missing value handling for all aes encodings
-# - Axes
-# - Legends
-# - Bar
-# - Line
-# - Area
-# - Polygon
-# - Detail
-# - Events (selection, hover)
-
-
-#
 # Constants
 # ==============================
 #
@@ -649,6 +630,10 @@ class Visualization
   constructor: (@viewport, @frame, @test, @highlight, @hover, @selectAt, 
     @selectWithin, @render) ->
 
+class Plot
+  constructor: (@element, @subscribe, @unsubscribe) ->
+    
+
 class Bounds
   constructor: (@width, @height) ->
 
@@ -744,6 +729,15 @@ class WhereOp
 
 class HavingOp
   constructor: (@fields, @predicate) ->
+
+class HoverEventArg
+  constructor: (@vectors, @index) ->
+
+class SelectEventArg
+  constructor: (@vectors, @indices) ->
+
+class DeselectEventArg
+  constructor: (@vectors) ->
 
 #
 # Utility functions
@@ -3140,7 +3134,35 @@ captureMouseEvents = (canvasEl, marqueeEl, hover, selectWithin, selectAt) ->
 # ==============================
 #
 
-createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
+createEventDispatcher = ->
+  _subscribersByEvent = {}
+  subscribe = (event, subscriber) ->
+    if subscribers = _subscribersByEvent[event]
+      subscribers.push subscriber
+    else
+      _subscribersByEvent[event] = [ subscriber ]
+
+  unsubscribe = (_event, _subscriber) ->
+    if _event
+      if _subscriber
+        subscribers = _subscribersByEvent[_event]
+        if subscribers
+          for subscriber, i in subscribers when subscriber is _subscriber
+            splice subscribers, i, 1
+            break
+      else
+        delete _subscribersByEvent[_event]
+    return
+
+  dispatch = (event, args...) ->
+    if subscribers = _subscribersByEvent[event]
+      for subscriber in subscribers
+        apply subscriber, null, args
+    return
+
+  [ subscribe, unsubscribe, dispatch ]
+
+createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
   _viewport = createViewport _box
 
   { baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
@@ -3213,7 +3235,7 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
         # for vector in _frame.vectors
         #  tt1[vector.name] = vector.format i
 
-        #XXX hover event
+        _dispatch 'hover', new HoverEventArg _frame.vectors, i
 
         tooltipData = {}
         for layer in _layers
@@ -3248,10 +3270,10 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
     # debug 'selectAt', x, y
     if i isnt undefined
       highlight [ i ]
-      #XXX selection event
+      _dispatch 'select', new SelectEventArg _frame.vectors, [ i ]
     else
       highlight []
-      #XXX deselection event
+      _dispatch 'deselect', new DeselectEventArg _frame.vectors
     return
 
   selectWithin = (x1, y1, x2, y2) ->
@@ -3264,9 +3286,9 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY) ->
       selectedIndices = layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
       highlight selectedIndices
       if selectedIndices.length
-        #XXX selection event
+        _dispatch 'select', new SelectEventArg _frame.vectors, selectedIndices
       else
-        #XXX deselection event
+        _dispatch 'deselect', new DeselectEventArg _frame.vectors
     return
 
   render = ->
@@ -3586,11 +3608,12 @@ renderPlot = (_frame, ops) ->
 
     new Layer encodings, encoders, geom.mask, geom.highlight, geom.render, geom.select
 
-  visualization = createVisualization box, frame, layers, axisX, axisY
+  [ subscribe, unsubscribe, dispatch ] = do createEventDispatcher
+
+  visualization = createVisualization box, frame, layers, axisX, axisY, dispatch
 
   visualization.render() #TODO should be callable externally, with indices.
-  
-  visualization.viewport.container
+  new Plot visualization.viewport.container, subscribe, unsubscribe
 
 #
 # Bootstrap
