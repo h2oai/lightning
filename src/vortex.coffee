@@ -100,9 +100,9 @@ dispatch = do ->
             a is pattern or 
             ((isNaN a) and (isNaN pattern))
       when TRegExp
-        (a) -> pattern is RegExp
+        -> pattern is RegExp
       when Error
-        (a) -> pattern is Error
+        -> pattern is Error
       when TDate
         (a) -> pattern is Date or a is pattern
       when TArray
@@ -132,7 +132,7 @@ dispatch = do ->
           return no for k, v of pattern when a[k] isnt v
           yes
       else
-        (a) -> no
+        -> no
 
   matchPatterns_ = (patterns) ->
     matchers = map patterns, matchPattern_ 
@@ -1044,13 +1044,12 @@ aggregate_sum = (array) ->
     total += value
   total
 
-aggregate_stddev = (array) -> #XXX
-
-aggregate_stddevP = (array) -> #XXX
-
-aggregate_variance = (array) -> #XXX
-
-aggregate_varianceP = (array) -> #XXX
+###
+aggregate_stddev = (array) -> #TODO
+aggregate_stddevP = (array) -> #TODO
+aggregate_variance = (array) -> #TODO
+aggregate_varianceP = (array) -> #TODO
+###
 
 createAggregateField = (field, symbol, type, format, f) ->
   new ReducedField (frame, cube) ->
@@ -1085,13 +1084,11 @@ plot_min = plot_aggregate 'min', TNumber, identity, aggregate_min
 
 plot_sum = plot_aggregate 'sum', TNumber, identity, aggregate_sum
 
-plot_stddev = plot_aggregate 'stddev', TNumber, identity, aggregate_stddev
-
-plot_stddevP = plot_aggregate 'stddevP', TNumber, identity, aggregate_stddevP
-
-plot_variance = plot_aggregate 'variance', TNumber, identity, aggregate_variance
-
-plot_varianceP = plot_aggregate 'varianceP', TNumber, identity, aggregate_varianceP
+# TODO
+#plot_stddev = plot_aggregate 'stddev', TNumber, identity, aggregate_stddev
+#plot_stddevP = plot_aggregate 'stddevP', TNumber, identity, aggregate_stddevP
+#plot_variance = plot_aggregate 'variance', TNumber, identity, aggregate_variance
+#plot_varianceP = plot_aggregate 'varianceP', TNumber, identity, aggregate_varianceP
 
 # GROUP BY clause
 # ------------------------------
@@ -1433,7 +1430,7 @@ ShapePalettes =
     'triangleUp', 'triangleDown', 'triangleLeft', 'triangleRight'
   ] 
 
-pickCategoricalShapePalette = (cardinality) -> ShapePalettes.c8
+pickCategoricalShapePalette = -> ShapePalettes.c8
 
 #
 # Scales
@@ -1541,7 +1538,7 @@ byteToHex = (b) ->
 
 createClip = (canvas) ->
   { context, ratio } = canvas
-  put = (index) -> "#fff"
+  put = -> "#fff"
   test = (x, y) ->
     [ r, g, b, a ] = context.getImageData x * ratio, y * ratio, 1, 1
       .data
@@ -2691,12 +2688,6 @@ plot_from = dispatch(
   [ Function, (read) -> new Datasource read ]
 )
 
-plot_rectangular = (scaleX, scaleY) ->
-
-plot_polar = (scaleR, scaleA) ->
-
-plot_parallel = (scales...) ->
-
 plot_value = dispatch(
   [ Number, (value) -> new NumberValue value ]
   [ Boolean, (value) -> new BooleanValue value ]
@@ -3679,9 +3670,6 @@ plot = (ops...) ->
 # 
 
 plot.from = plot_from
-plot.rectangular = plot_rectangular
-plot.polar = plot_polar
-plot.parallel = plot_parallel
 plot.value = plot_value
 plot.domain = plot_domain
 plot.range = plot_range
@@ -3712,10 +3700,10 @@ plot.count = plot_count
 plot.max = plot_max
 plot.min = plot_min
 plot.sum = plot_sum
-plot.stddev = plot_stddev
-plot.stddevP = plot_stddevP
-plot.variance = plot_variance
-plot.varianceP = plot_varianceP
+#plot.stddev = plot_stddev
+#plot.stddevP = plot_stddevP
+#plot.variance = plot_variance
+#plot.varianceP = plot_varianceP
 plot.parse = plot_parse
 plot.point = plot_point
 plot.rect = plot_rect
