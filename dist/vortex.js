@@ -4608,6 +4608,7 @@
             };
         }
     };
+    plot.VERSION = '999.999.999';
     plot.from = plot_from;
     plot.value = plot_value;
     plot.domain = plot_domain;
