@@ -675,4 +675,54 @@ plot(
   # where 'model', like /Merc/
 )
 
+###
+plot table
+table
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  table() 
+  from csv 'mtcars'
+)
+
+###
+plot table-where
+table + where
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  table() 
+  from csv 'mtcars'
+  where 'model', like /Merc/
+)
+
+###
+plot histogram
+rect + width
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'model', 'mpg'
+    width value 1
+  )
+  from csv 'mtcars'
+  # where 'model', like /Merc/
+)
+
 

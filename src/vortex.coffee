@@ -220,6 +220,8 @@ class Stroke
     @size
   ) ->
 
+class TableExpr
+
 class MarkExpr
 
 class PointExpr extends MarkExpr
@@ -2821,6 +2823,9 @@ plot_shape = dispatch(
   [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
+plot_table = ->
+  new TableExpr()
+
 plot_point = (ops...) ->
   position = findByType ops, PositionChannel
 
@@ -3031,7 +3036,7 @@ createViewport = (box) ->
     top: px 0
     display: 'none'
 
-  tooltip.className = 'vortex-tooltip'
+  tooltip.className = 'vx-tooltip'
 
   container.appendChild baseCanvas.element
   container.appendChild highlightCanvas.element
@@ -3417,6 +3422,60 @@ renderAxisY = (g, axis, rect) ->
   g.restore()
 
 #
+# HTML Templating
+# ===============
+#
+
+compileHtmlTemplate = (template, type) ->
+  if 0 <= index = template.indexOf ' '
+    tmpl = template.substr 0, index
+    attrs = template.substr index
+  else
+    tmpl = template
+
+  [ name, classes... ] = tmpl.split /\.+/g
+  if 0 is name.indexOf '#'
+    id = name.substr 1
+    name = 'div'
+
+  if name is ''
+    name = 'div'
+
+  beginTag = "<#{name}"
+  beginTag += " id='#{id}'" if id
+  beginTag += " class='#{classes.join ' '}'" if classes.length
+  beginTag += attrs if attrs
+  beginTag += ">"
+  closeTag = "</#{name}>"
+
+  if type is '='
+    (content) -> beginTag + (if content isnt null and content isnt undefined then content else '') + closeTag
+  else if type is '+'
+    (content, arg0) -> #TODO add more args as necessary
+      tag = replace beginTag, '{0}', arg0
+      tag + content + closeTag
+  else
+    (contents) -> beginTag + (contents.join '') + closeTag
+
+_htmlTemplateCache = {}
+createHtmlTemplates = (templates...) ->
+  for template in templates
+    if cached = _htmlTemplateCache[template]
+      cached
+    else
+      type = charAt template, 0
+      if type is '=' or type is '+'
+        _htmlTemplateCache[template] = compileHtmlTemplate (template.substr 1), type
+      else
+        _htmlTemplateCache[template] = compileHtmlTemplate template
+
+# String -> HTMLElement
+renderHtml = (htmlString) ->
+  el = document.createElement 'div'
+  el.innerHTML = htmlString
+  el.childNodes[0]
+
+#
 # Main
 # ==============================
 #
@@ -3483,7 +3542,7 @@ computeApproxAxisSize = (type, domain) ->
     longest = 0
     categories = axis.guide()
     for category in categories
-      if longest < length = category.value.length
+      if longest < length = ('' + category.value).length #XXX Number and Date valued categoricals need a format() function
         longest = length
     new Bounds(
       ceil longest * __emWidth + padding
@@ -3526,9 +3585,52 @@ createAxis = (type, label, domain, range, rect) ->
     else
       throw new Error "Unhandled axis type [#{type}]."
 
-renderPlot = (_frame, ops) ->
+renderVisualization = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
+
+  if findByType ops, TableExpr
+    renderTable frame, ops
+  else
+    renderPlot frame, ops
+
+renderTable = (frame, ops) ->
+  tableExpr = findByType ops, TableExpr
+  
+  [ table, thead, tbody, tr, th, thr, td, tdr ] = createHtmlTemplates 'table.vx-table', '=thead', 'tbody', 'tr', '=th', '=th.vx-number', '=td', '=td.vx-number'
+  
+  ths = for name, vector of frame.schema
+    switch vector.type
+      when TNumber
+        thr escape vector.label
+      else
+        th escape vector.label
+
+  trs = for i in frame.indices
+    tds = for name, vector of frame.schema
+      value = vector.format i
+      switch vector.type
+        when TString
+          td if value isnt undefined then escape value else '-'
+        when TNumber
+          tdr if value isnt undefined then escape value else '-'
+        else
+          throw new Error "Cannot render table cell of type #{variable.type}"
+    tr tds
+
+  element = renderHtml table [
+    thead tr ths
+    tbody trs
+  ]
+
+  subscribe = noop #TODO
+  unsubscribe = noop #TODO
+
+  new Plot element, subscribe, unsubscribe
+
+renderPlot = (frame, ops) ->
+  #query = createQuery ops
+  #frame = queryFrame _frame, query
   # debug dumpFrame frame
 
   marks = map (filterByType ops, MarkExpr), (expr) ->
@@ -3611,19 +3713,19 @@ renderPlot = (_frame, ops) ->
 # ==============================
 #
 
-createPlot = dispatch(
+visualize = dispatch(
   [ 
     Datasource, Array, Function, (ds, ops, go) -> 
       ds.read (error, frame) -> 
         if error
           go error
         else
-          createPlot frame, ops, go
+          visualize frame, ops, go
   ] 
   [
     Frame, Array, Function, (frame, ops, go) ->
       try
-        go null, renderPlot frame, ops
+        go null, renderVisualization frame, ops
       catch error
         go error
   ]
@@ -3631,15 +3733,22 @@ createPlot = dispatch(
 
 initializeStylesheet = ->
   createStylesheet
-    '.vortex-tooltip':
+    '.vx-tooltip':
       background: '#2c2c2c'
       color: '#fff'
       'font-size': '12px'
-    '.vortex-tooltip th, .vortex-tooltip td':
+    '.vx-tooltip th, .vx-tooltip td':
       padding: '0px 4px'
       'vertical-align': 'middle'
-    '.vortex-tooltip th':
+    '.vx-tooltip th':
       'text-align': 'left'
+    '.vx-table th, .vx-table td':
+      padding: '0px 8px'
+      'vertical-align': 'middle'
+    '.vx-table tbody > tr:nth-child(odd)':
+      'background-color': '#f3f3f3'
+    '.vx-table .vx-number':
+      'text-align': 'right'
 
 __scratchCanvas = null
 __emWidth = 18
@@ -3660,7 +3769,7 @@ initializeLib = ->
 plot = (ops...) ->
   if datasource = findByType ops, Datasource, Frame
     do initializeLib
-    (go) -> createPlot datasource, (without ops, datasource), go
+    (go) -> visualize datasource, (without ops, datasource), go
   else
     (more...) -> apply plot, null, concat ops, more
 
@@ -3710,6 +3819,7 @@ plot.point = plot_point
 plot.rect = plot_rect
 plot.path = plot_path
 plot.schema = plot_schema
+plot.table = plot_table
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createFactor = createFactor
