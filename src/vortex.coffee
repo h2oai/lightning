@@ -181,7 +181,7 @@ class Factor extends Vector
 class Group
 
 class Frame
-  constructor: (@label, @vectors, @schema, @indices, @cube, @at, @evaluate, @attach) ->
+  constructor: (@label, @vectors, @schema, @indices, @cube, @at, @evaluate, @attach, @metadata) ->
 
 class Value
   constructor: (@value) ->
@@ -900,10 +900,10 @@ createFactor = (label, type, data, domain) ->
 #
 
 # string, [Vector], [int], Cube? -> Frame
-createFrame = (label, vectors, indices, cube) ->
+createFrame = (label, vectors, indices, cube, metadata) ->
   schema = indexBy vectors, (vector) -> vector.name
 
-  frame = new Frame label, vectors, schema, indices, cube, null, null, null
+  frame = new Frame label, vectors, schema, indices, cube, null, null, null, metadata or {}
 
   frame.evaluate = (field) ->
     if field instanceof MappedField
