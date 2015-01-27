@@ -3017,6 +3017,7 @@ createViewport = (box) ->
   #  2. Mouse events captured on the top-most canvas get reported with the offset relative to this container instead of the page.
   container = createDOMElement 'div',
     position: 'relative'
+    overflow: 'visible' # Tooltips should be able to bleed out
     width: px box.width
     height: px box.height
 
