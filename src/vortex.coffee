@@ -178,6 +178,10 @@ class Factor extends Vector
   constructor: (name, label, type, at, @valueAt, count, domain, format) ->
     super name, label, type, at, count, domain, format
 
+class List extends Vector
+  constructor: (name, label, at, count, domain, format) ->
+    super name, label, TObject, at, count, domain, format
+
 class Group
 
 class Frame
@@ -852,13 +856,19 @@ includeOrigin0 = includeOrigin_ 0
 # ==============================
 #
 
+createList = (label, data, _format) ->
+  count = -> data.length
+  at = (i) -> data[i]
+  format = if _format then (i) -> _format data[i] else at
+  new List label, label, at, count, data, format
+
 # string, type, [a], (int -> string) -> Vector
-createVector = (label, type, data, format) ->
+createVector = (label, type, data, _format) ->
   domain = computeExtent data
   count = -> data.length
   at = (i) -> data[i]
-  _format = (i) -> format data[i]
-  new Vector label, label, type, at, count, domain, _format
+  format = if _format then (i) -> _format data[i] else at
+  new Vector label, label, type, at, count, domain, format
 
 #
 # Factor
@@ -3611,12 +3621,12 @@ renderTable = (frame, ops) ->
     tds = for name, vector of frame.schema
       value = vector.format i
       switch vector.type
-        when TString
+        when TString, TObject
           td if value isnt undefined then escape value else '-'
         when TNumber
           tdr if value isnt undefined then escape value else '-'
         else
-          throw new Error "Cannot render table cell of type #{variable.type}"
+          throw new Error "Cannot render table cell of type #{vector.type}"
     tr tds
 
   element = renderHtml table [
@@ -3823,6 +3833,7 @@ plot.schema = plot_schema
 plot.table = plot_table
 plot.createFrame = createFrame
 plot.createVector = createVector
+plot.createList = createList
 plot.createFactor = createFactor
 
 
