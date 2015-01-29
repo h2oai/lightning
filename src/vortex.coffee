@@ -3621,10 +3621,12 @@ renderTable = (frame, ops) ->
     tds = for name, vector of frame.schema
       value = vector.format i
       switch vector.type
-        when TString, TObject
+        when TString
           td if value isnt undefined then escape value else '-'
         when TNumber
           tdr if value isnt undefined then escape value else '-'
+        when TObject
+          td if value isnt undefined then value else '-'
         else
           throw new Error "Cannot render table cell of type #{vector.type}"
     tr tds
