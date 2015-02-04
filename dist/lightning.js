@@ -1,5 +1,5 @@
 (function () {
-    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectCoordinates, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createSpace2D, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, evaluateVectors, extractFactor, factorize, filterByType, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _htmlTemplateCache, __slice = [].slice, __hasProp = {}.hasOwnProperty, __extends = function (child, parent) {
+    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectCoordinates, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createSpace2D, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, evaluateVectors, extractFactor, factorize, filterByType, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -11,7 +11,7 @@
             child.prototype = new ctor();
             child.__super__ = parent.prototype;
             return child;
-        };
+        }, __hasProp = {}.hasOwnProperty;
     π = Math.PI;
     τ = 2 * π;
     Halfπ = π / 2;
@@ -70,9 +70,9 @@
         }
     };
     Matcher = function () {
-        function Matcher(match, func) {
-            this.match = match;
-            this.func = func;
+        function Matcher(_at_match, _at_func) {
+            this.match = _at_match;
+            this.func = _at_func;
         }
         return Matcher;
     }();
@@ -209,51 +209,51 @@
         };
     }();
     Clip = function () {
-        function Clip(put, test) {
-            this.put = put;
-            this.test = test;
+        function Clip(_at_put, _at_test) {
+            this.put = _at_put;
+            this.test = _at_test;
         }
         return Clip;
     }();
     Mask = function () {
-        function Mask(put, test) {
-            this.put = put;
-            this.test = test;
+        function Mask(_at_put, _at_test) {
+            this.put = _at_put;
+            this.test = _at_test;
         }
         return Mask;
     }();
     Size = function () {
-        function Size(width, height) {
-            this.width = width;
-            this.height = height;
+        function Size(_at_width, _at_height) {
+            this.width = _at_width;
+            this.height = _at_height;
         }
         return Size;
     }();
     Rect = function () {
-        function Rect(left, top, width, height) {
-            this.left = left;
-            this.top = top;
-            this.width = width;
-            this.height = height;
+        function Rect(_at_left, _at_top, _at_width, _at_height) {
+            this.left = _at_left;
+            this.top = _at_top;
+            this.width = _at_width;
+            this.height = _at_height;
         }
         return Rect;
     }();
     Vector = function () {
-        function Vector(name, label, type, at, count, domain, format) {
-            this.name = name;
-            this.label = label;
-            this.type = type;
-            this.at = at;
-            this.count = count;
-            this.domain = domain;
-            this.format = format;
+        function Vector(_at_name, _at_label, _at_type, _at_at, _at_count, _at_domain, _at_format) {
+            this.name = _at_name;
+            this.label = _at_label;
+            this.type = _at_type;
+            this.at = _at_at;
+            this.count = _at_count;
+            this.domain = _at_domain;
+            this.format = _at_format;
         }
         return Vector;
     }();
     Factor = function (_super) {
         __extends(Factor, _super);
-        function Factor(name, label, type, at, valueAt, count, domain, format) {
-            this.valueAt = valueAt;
+        function Factor(name, label, type, at, _at_valueAt, count, domain, format) {
+            this.valueAt = _at_valueAt;
             Factor.__super__.constructor.call(this, name, label, type, at, count, domain, format);
         }
         return Factor;
@@ -271,22 +271,22 @@
         return Group;
     }();
     Frame = function () {
-        function Frame(label, vectors, schema, indices, cube, at, evaluate, attach, metadata) {
-            this.label = label;
-            this.vectors = vectors;
-            this.schema = schema;
-            this.indices = indices;
-            this.cube = cube;
-            this.at = at;
-            this.evaluate = evaluate;
-            this.attach = attach;
-            this.metadata = metadata;
+        function Frame(_at_label, _at_vectors, _at_schema, _at_indices, _at_cube, _at_at, _at_evaluate, _at_attach, _at_metadata) {
+            this.label = _at_label;
+            this.vectors = _at_vectors;
+            this.schema = _at_schema;
+            this.indices = _at_indices;
+            this.cube = _at_cube;
+            this.at = _at_at;
+            this.evaluate = _at_evaluate;
+            this.attach = _at_attach;
+            this.metadata = _at_metadata;
         }
         return Frame;
     }();
     Value = function () {
-        function Value(value) {
-            this.value = value;
+        function Value(_at_value) {
+            this.value = _at_value;
         }
         return Value;
     }();
@@ -319,37 +319,37 @@
         return BooleanValue;
     }(Value);
     Field = function () {
-        function Field(name) {
-            this.name = name;
+        function Field(_at_name) {
+            this.name = _at_name;
         }
         return Field;
     }();
     MappedField = function (_super) {
         __extends(MappedField, _super);
-        function MappedField(evaluate) {
-            this.evaluate = evaluate;
+        function MappedField(_at_evaluate) {
+            this.evaluate = _at_evaluate;
         }
         return MappedField;
     }(Field);
     ReducedField = function (_super) {
         __extends(ReducedField, _super);
-        function ReducedField(evaluate) {
-            this.evaluate = evaluate;
+        function ReducedField(_at_evaluate) {
+            this.evaluate = _at_evaluate;
         }
         return ReducedField;
     }(Field);
     Fill = function () {
-        function Fill(color, opacity) {
-            this.color = color;
-            this.opacity = opacity;
+        function Fill(_at_color, _at_opacity) {
+            this.color = _at_color;
+            this.opacity = _at_opacity;
         }
         return Fill;
     }();
     Stroke = function () {
-        function Stroke(color, opacity, size) {
-            this.color = color;
-            this.opacity = opacity;
-            this.size = size;
+        function Stroke(_at_color, _at_opacity, _at_size) {
+            this.color = _at_color;
+            this.opacity = _at_opacity;
+            this.size = _at_size;
         }
         return Stroke;
     }();
@@ -365,49 +365,49 @@
     }();
     PointExpr = function (_super) {
         __extends(PointExpr, _super);
-        function PointExpr(position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth) {
-            this.position = position;
-            this.shape = shape;
-            this.size = size;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function PointExpr(_at_position, _at_shape, _at_size, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.position = _at_position;
+            this.shape = _at_shape;
+            this.size = _at_size;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return PointExpr;
     }(MarkExpr);
     PathExpr = function (_super) {
         __extends(PathExpr, _super);
-        function PathExpr(position, strokeColor, strokeOpacity, lineWidth) {
-            this.position = position;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function PathExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.position = _at_position;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return PathExpr;
     }(MarkExpr);
     SchemaExpr = function (_super) {
         __extends(SchemaExpr, _super);
-        function SchemaExpr(position, strokeColor, strokeOpacity, lineWidth) {
-            this.position = position;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function SchemaExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.position = _at_position;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return SchemaExpr;
     }(MarkExpr);
     RectExpr = function (_super) {
         __extends(RectExpr, _super);
-        function RectExpr(position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth) {
-            this.position = position;
-            this.width = width;
-            this.height = height;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function RectExpr(_at_position, _at_width, _at_height, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.position = _at_position;
+            this.width = _at_width;
+            this.height = _at_height;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return RectExpr;
     }(MarkExpr);
@@ -418,114 +418,114 @@
     }();
     PointMark = function (_super) {
         __extends(PointMark, _super);
-        function PointMark(space, positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth) {
-            this.space = space;
-            this.positionX = positionX;
-            this.positionY = positionY;
-            this.shape = shape;
-            this.size = size;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function PointMark(_at_space, _at_positionX, _at_positionY, _at_shape, _at_size, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.space = _at_space;
+            this.positionX = _at_positionX;
+            this.positionY = _at_positionY;
+            this.shape = _at_shape;
+            this.size = _at_size;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
             this.geometry = PointGeometry;
         }
         return PointMark;
     }(Mark);
     SchemaXMark = function (_super) {
         __extends(SchemaXMark, _super);
-        function SchemaXMark(space, q0, q1, q2, q3, qn, positionY, height, strokeColor, strokeOpacity, lineWidth) {
-            this.space = space;
-            this.q0 = q0;
-            this.q1 = q1;
-            this.q2 = q2;
-            this.q3 = q3;
-            this.qn = qn;
-            this.positionY = positionY;
-            this.height = height;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function SchemaXMark(_at_space, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_positionY, _at_height, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.space = _at_space;
+            this.q0 = _at_q0;
+            this.q1 = _at_q1;
+            this.q2 = _at_q2;
+            this.q3 = _at_q3;
+            this.qn = _at_qn;
+            this.positionY = _at_positionY;
+            this.height = _at_height;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
             this.geometry = SchemaXGeometry;
         }
         return SchemaXMark;
     }(Mark);
     SchemaYMark = function (_super) {
         __extends(SchemaYMark, _super);
-        function SchemaYMark(space, positionX, q0, q1, q2, q3, qn, width, strokeColor, strokeOpacity, lineWidth) {
-            this.space = space;
-            this.positionX = positionX;
-            this.q0 = q0;
-            this.q1 = q1;
-            this.q2 = q2;
-            this.q3 = q3;
-            this.qn = qn;
-            this.width = width;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function SchemaYMark(_at_space, _at_positionX, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_width, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.space = _at_space;
+            this.positionX = _at_positionX;
+            this.q0 = _at_q0;
+            this.q1 = _at_q1;
+            this.q2 = _at_q2;
+            this.q3 = _at_q3;
+            this.qn = _at_qn;
+            this.width = _at_width;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
             this.geometry = SchemaYGeometry;
         }
         return SchemaYMark;
     }(Mark);
     ColMark = function (_super) {
         __extends(ColMark, _super);
-        function ColMark(space, positionX, positionY1, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth) {
-            this.space = space;
-            this.positionX = positionX;
-            this.positionY1 = positionY1;
-            this.positionY2 = positionY2;
-            this.width = width;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function ColMark(_at_space, _at_positionX, _at_positionY1, _at_positionY2, _at_width, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.space = _at_space;
+            this.positionX = _at_positionX;
+            this.positionY1 = _at_positionY1;
+            this.positionY2 = _at_positionY2;
+            this.width = _at_width;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
             this.geometry = ColGeometry;
         }
         return ColMark;
     }(Mark);
     BarMark = function (_super) {
         __extends(BarMark, _super);
-        function BarMark(space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth) {
-            this.space = space;
-            this.positionX1 = positionX1;
-            this.positionX2 = positionX2;
-            this.positionY = positionY;
-            this.height = height;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function BarMark(_at_space, _at_positionX1, _at_positionX2, _at_positionY, _at_height, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.space = _at_space;
+            this.positionX1 = _at_positionX1;
+            this.positionX2 = _at_positionX2;
+            this.positionY = _at_positionY;
+            this.height = _at_height;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
             this.geometry = BarGeometry;
         }
         return BarMark;
     }(Mark);
     PathMark = function (_super) {
         __extends(PathMark, _super);
-        function PathMark(space, positionX, positionY, strokeColor, strokeOpacity, lineWidth) {
-            this.space = space;
-            this.positionX = positionX;
-            this.positionY = positionY;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function PathMark(_at_space, _at_positionX, _at_positionY, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.space = _at_space;
+            this.positionX = _at_positionX;
+            this.positionY = _at_positionY;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
             this.geometry = PathGeometry;
         }
         return PathMark;
     }(Mark);
     TextMark = function (_super) {
         __extends(TextMark, _super);
-        function TextMark(space, positionX, positionY, text, size, fillColor, fillOpacity) {
-            this.space = space;
-            this.positionX = positionX;
-            this.positionY = positionY;
-            this.text = text;
-            this.size = size;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
+        function TextMark(_at_space, _at_positionX, _at_positionY, _at_text, _at_size, _at_fillColor, _at_fillOpacity) {
+            this.space = _at_space;
+            this.positionX = _at_positionX;
+            this.positionY = _at_positionY;
+            this.text = _at_text;
+            this.size = _at_size;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
             this.geometry = TextGeometry;
         }
         return TextMark;
@@ -537,113 +537,113 @@
     }();
     PointEncoding = function (_super) {
         __extends(PointEncoding, _super);
-        function PointEncoding(positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth) {
-            this.positionX = positionX;
-            this.positionY = positionY;
-            this.shape = shape;
-            this.size = size;
-            this.fill = fill;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.stroke = stroke;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function PointEncoding(_at_positionX, _at_positionY, _at_shape, _at_size, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.positionX = _at_positionX;
+            this.positionY = _at_positionY;
+            this.shape = _at_shape;
+            this.size = _at_size;
+            this.fill = _at_fill;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.stroke = _at_stroke;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return PointEncoding;
     }(Encoding);
     SchemaXEncoding = function (_super) {
         __extends(SchemaXEncoding, _super);
-        function SchemaXEncoding(q0, q1, q2, q3, qn, positionY, height, stroke, strokeColor, strokeOpacity, lineWidth) {
-            this.q0 = q0;
-            this.q1 = q1;
-            this.q2 = q2;
-            this.q3 = q3;
-            this.qn = qn;
-            this.positionY = positionY;
-            this.height = height;
-            this.stroke = stroke;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function SchemaXEncoding(_at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_positionY, _at_height, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.q0 = _at_q0;
+            this.q1 = _at_q1;
+            this.q2 = _at_q2;
+            this.q3 = _at_q3;
+            this.qn = _at_qn;
+            this.positionY = _at_positionY;
+            this.height = _at_height;
+            this.stroke = _at_stroke;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return SchemaXEncoding;
     }(Encoding);
     SchemaYEncoding = function (_super) {
         __extends(SchemaYEncoding, _super);
-        function SchemaYEncoding(positionX, q0, q1, q2, q3, qn, width, stroke, strokeColor, strokeOpacity, lineWidth) {
-            this.positionX = positionX;
-            this.q0 = q0;
-            this.q1 = q1;
-            this.q2 = q2;
-            this.q3 = q3;
-            this.qn = qn;
-            this.width = width;
-            this.stroke = stroke;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function SchemaYEncoding(_at_positionX, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_width, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.positionX = _at_positionX;
+            this.q0 = _at_q0;
+            this.q1 = _at_q1;
+            this.q2 = _at_q2;
+            this.q3 = _at_q3;
+            this.qn = _at_qn;
+            this.width = _at_width;
+            this.stroke = _at_stroke;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return SchemaYEncoding;
     }(Encoding);
     ColEncoding = function (_super) {
         __extends(ColEncoding, _super);
-        function ColEncoding(positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth) {
-            this.positionX = positionX;
-            this.positionY1 = positionY1;
-            this.positionY2 = positionY2;
-            this.width = width;
-            this.fill = fill;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.stroke = stroke;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function ColEncoding(_at_positionX, _at_positionY1, _at_positionY2, _at_width, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.positionX = _at_positionX;
+            this.positionY1 = _at_positionY1;
+            this.positionY2 = _at_positionY2;
+            this.width = _at_width;
+            this.fill = _at_fill;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.stroke = _at_stroke;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return ColEncoding;
     }(Encoding);
     BarEncoding = function (_super) {
         __extends(BarEncoding, _super);
-        function BarEncoding(positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth) {
-            this.positionX1 = positionX1;
-            this.positionX2 = positionX2;
-            this.positionY = positionY;
-            this.height = height;
-            this.fill = fill;
-            this.fillColor = fillColor;
-            this.fillOpacity = fillOpacity;
-            this.stroke = stroke;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function BarEncoding(_at_positionX1, _at_positionX2, _at_positionY, _at_height, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.positionX1 = _at_positionX1;
+            this.positionX2 = _at_positionX2;
+            this.positionY = _at_positionY;
+            this.height = _at_height;
+            this.fill = _at_fill;
+            this.fillColor = _at_fillColor;
+            this.fillOpacity = _at_fillOpacity;
+            this.stroke = _at_stroke;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return BarEncoding;
     }(Encoding);
     PathEncoding = function (_super) {
         __extends(PathEncoding, _super);
-        function PathEncoding(positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth) {
-            this.positionX = positionX;
-            this.positionY = positionY;
-            this.stroke = stroke;
-            this.strokeColor = strokeColor;
-            this.strokeOpacity = strokeOpacity;
-            this.lineWidth = lineWidth;
+        function PathEncoding(_at_positionX, _at_positionY, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.positionX = _at_positionX;
+            this.positionY = _at_positionY;
+            this.stroke = _at_stroke;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
         }
         return PathEncoding;
     }(Encoding);
     Space2D = function () {
-        function Space2D(x, y) {
-            this.x = x;
-            this.y = y;
+        function Space2D(_at_x, _at_y) {
+            this.x = _at_x;
+            this.y = _at_y;
         }
         return Space2D;
     }();
     Space1D = function () {
-        function Space1D(type, vectors, domain) {
-            this.type = type;
-            this.vectors = vectors;
-            this.domain = domain;
+        function Space1D(_at_type, _at_vectors, _at_domain) {
+            this.type = _at_type;
+            this.vectors = _at_vectors;
+            this.domain = _at_domain;
         }
         return Space1D;
     }();
@@ -654,106 +654,106 @@
     }();
     CategoricalAxis = function (_super) {
         __extends(CategoricalAxis, _super);
-        function CategoricalAxis(type, label, scale, domain, range, rect, guide) {
-            this.type = type;
-            this.label = label;
-            this.scale = scale;
-            this.domain = domain;
-            this.range = range;
-            this.rect = rect;
-            this.guide = guide;
+        function CategoricalAxis(_at_type, _at_label, _at_scale, _at_domain, _at_range, _at_rect, _at_guide) {
+            this.type = _at_type;
+            this.label = _at_label;
+            this.scale = _at_scale;
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.rect = _at_rect;
+            this.guide = _at_guide;
         }
         return CategoricalAxis;
     }(Axis);
     LinearAxis = function (_super) {
         __extends(LinearAxis, _super);
-        function LinearAxis(type, label, scale, domain, range, rect, guide) {
-            this.type = type;
-            this.label = label;
-            this.scale = scale;
-            this.domain = domain;
-            this.range = range;
-            this.rect = rect;
-            this.guide = guide;
+        function LinearAxis(_at_type, _at_label, _at_scale, _at_domain, _at_range, _at_rect, _at_guide) {
+            this.type = _at_type;
+            this.label = _at_label;
+            this.scale = _at_scale;
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.rect = _at_rect;
+            this.guide = _at_guide;
         }
         return LinearAxis;
     }(Axis);
     Tick = function () {
-        function Tick(value, label) {
-            this.value = value;
-            this.label = label;
+        function Tick(_at_value, _at_label) {
+            this.value = _at_value;
+            this.label = _at_label;
         }
         return Tick;
     }();
     Encoder = function () {
-        function Encoder(label, encode) {
-            this.label = label;
-            this.encode = encode;
+        function Encoder(_at_label, _at_encode) {
+            this.label = _at_label;
+            this.encode = _at_encode;
         }
         return Encoder;
     }();
     ConstantEncoder = function (_super) {
         __extends(ConstantEncoder, _super);
-        function ConstantEncoder(value) {
-            this.value = value;
+        function ConstantEncoder(_at_value) {
+            this.value = _at_value;
             ConstantEncoder.__super__.constructor.call(this, 'Constant', always(value));
         }
         return ConstantEncoder;
     }(Encoder);
     VariableEncoder = function (_super) {
         __extends(VariableEncoder, _super);
-        function VariableEncoder(label, encode, vector) {
-            this.vector = vector;
+        function VariableEncoder(label, encode, _at_vector) {
+            this.vector = _at_vector;
             VariableEncoder.__super__.constructor.call(this, label, encode);
         }
         return VariableEncoder;
     }(Encoder);
     PositionEncoder = function (_super) {
         __extends(PositionEncoder, _super);
-        function PositionEncoder(label, encode, vector, domain, range, guide) {
-            this.domain = domain;
-            this.range = range;
-            this.guide = guide;
+        function PositionEncoder(label, encode, vector, _at_domain, _at_range, _at_guide) {
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.guide = _at_guide;
             PositionEncoder.__super__.constructor.call(this, label, encode, vector);
         }
         return PositionEncoder;
     }(VariableEncoder);
     ColorEncoder = function (_super) {
         __extends(ColorEncoder, _super);
-        function ColorEncoder(label, encode, vector, domain, range, guide) {
-            this.domain = domain;
-            this.range = range;
-            this.guide = guide;
+        function ColorEncoder(label, encode, vector, _at_domain, _at_range, _at_guide) {
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.guide = _at_guide;
             ColorEncoder.__super__.constructor.call(this, label, encode, vector);
         }
         return ColorEncoder;
     }(VariableEncoder);
     OpacityEncoder = function (_super) {
         __extends(OpacityEncoder, _super);
-        function OpacityEncoder(label, encode, vector, domain, range, guide) {
-            this.domain = domain;
-            this.range = range;
-            this.guide = guide;
+        function OpacityEncoder(label, encode, vector, _at_domain, _at_range, _at_guide) {
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.guide = _at_guide;
             OpacityEncoder.__super__.constructor.call(this, label, encode, vector);
         }
         return OpacityEncoder;
     }(VariableEncoder);
     SizeEncoder = function (_super) {
         __extends(SizeEncoder, _super);
-        function SizeEncoder(label, encode, vector, domain, range, guide) {
-            this.domain = domain;
-            this.range = range;
-            this.guide = guide;
+        function SizeEncoder(label, encode, vector, _at_domain, _at_range, _at_guide) {
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.guide = _at_guide;
             SizeEncoder.__super__.constructor.call(this, label, encode, vector);
         }
         return SizeEncoder;
     }(VariableEncoder);
     ShapeEncoder = function (_super) {
         __extends(ShapeEncoder, _super);
-        function ShapeEncoder(label, encode, vector, domain, range, guide) {
-            this.domain = domain;
-            this.range = range;
-            this.guide = guide;
+        function ShapeEncoder(label, encode, vector, _at_domain, _at_range, _at_guide) {
+            this.domain = _at_domain;
+            this.range = _at_range;
+            this.guide = _at_guide;
             ShapeEncoder.__super__.constructor.call(this, label, encode, vector);
         }
         return ShapeEncoder;
@@ -772,15 +772,15 @@
     }(Channel);
     CoordChannel = function (_super) {
         __extends(CoordChannel, _super);
-        function CoordChannel(field) {
-            this.field = field;
+        function CoordChannel(_at_field) {
+            this.field = _at_field;
         }
         return CoordChannel;
     }(Channel);
     PositionChannel = function (_super) {
         __extends(PositionChannel, _super);
-        function PositionChannel(coordinates) {
-            this.coordinates = coordinates;
+        function PositionChannel(_at_coordinates) {
+            this.coordinates = _at_coordinates;
         }
         return PositionChannel;
     }(Channel);
@@ -849,143 +849,143 @@
     }(Channel);
     ConstantFillColorChannel = function (_super) {
         __extends(ConstantFillColorChannel, _super);
-        function ConstantFillColorChannel(value) {
-            this.value = value;
+        function ConstantFillColorChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantFillColorChannel;
     }(FillColorChannel);
     VariableFillColorChannel = function (_super) {
         __extends(VariableFillColorChannel, _super);
-        function VariableFillColorChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableFillColorChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableFillColorChannel;
     }(FillColorChannel);
     ConstantFillOpacityChannel = function (_super) {
         __extends(ConstantFillOpacityChannel, _super);
-        function ConstantFillOpacityChannel(value) {
-            this.value = value;
+        function ConstantFillOpacityChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantFillOpacityChannel;
     }(FillOpacityChannel);
     VariableFillOpacityChannel = function (_super) {
         __extends(VariableFillOpacityChannel, _super);
-        function VariableFillOpacityChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableFillOpacityChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableFillOpacityChannel;
     }(FillOpacityChannel);
     ConstantStrokeColorChannel = function (_super) {
         __extends(ConstantStrokeColorChannel, _super);
-        function ConstantStrokeColorChannel(value) {
-            this.value = value;
+        function ConstantStrokeColorChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantStrokeColorChannel;
     }(StrokeColorChannel);
     VariableStrokeColorChannel = function (_super) {
         __extends(VariableStrokeColorChannel, _super);
-        function VariableStrokeColorChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableStrokeColorChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableStrokeColorChannel;
     }(StrokeColorChannel);
     ConstantStrokeOpacityChannel = function (_super) {
         __extends(ConstantStrokeOpacityChannel, _super);
-        function ConstantStrokeOpacityChannel(value) {
-            this.value = value;
+        function ConstantStrokeOpacityChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantStrokeOpacityChannel;
     }(StrokeOpacityChannel);
     VariableStrokeOpacityChannel = function (_super) {
         __extends(VariableStrokeOpacityChannel, _super);
-        function VariableStrokeOpacityChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableStrokeOpacityChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableStrokeOpacityChannel;
     }(StrokeOpacityChannel);
     ConstantSizeChannel = function (_super) {
         __extends(ConstantSizeChannel, _super);
-        function ConstantSizeChannel(value) {
-            this.value = value;
+        function ConstantSizeChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantSizeChannel;
     }(SizeChannel);
     VariableSizeChannel = function (_super) {
         __extends(VariableSizeChannel, _super);
-        function VariableSizeChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableSizeChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableSizeChannel;
     }(SizeChannel);
     ConstantWidthChannel = function (_super) {
         __extends(ConstantWidthChannel, _super);
-        function ConstantWidthChannel(value) {
-            this.value = value;
+        function ConstantWidthChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantWidthChannel;
     }(WidthChannel);
     VariableWidthChannel = function (_super) {
         __extends(VariableWidthChannel, _super);
-        function VariableWidthChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableWidthChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableWidthChannel;
     }(WidthChannel);
     ConstantHeightChannel = function (_super) {
         __extends(ConstantHeightChannel, _super);
-        function ConstantHeightChannel(value) {
-            this.value = value;
+        function ConstantHeightChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantHeightChannel;
     }(HeightChannel);
     VariableHeightChannel = function (_super) {
         __extends(VariableHeightChannel, _super);
-        function VariableHeightChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableHeightChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableHeightChannel;
     }(HeightChannel);
     ConstantLineWidthChannel = function (_super) {
         __extends(ConstantLineWidthChannel, _super);
-        function ConstantLineWidthChannel(value) {
-            this.value = value;
+        function ConstantLineWidthChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantLineWidthChannel;
     }(LineWidthChannel);
     VariableLineWidthChannel = function (_super) {
         __extends(VariableLineWidthChannel, _super);
-        function VariableLineWidthChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableLineWidthChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableLineWidthChannel;
     }(LineWidthChannel);
     ConstantShapeChannel = function (_super) {
         __extends(ConstantShapeChannel, _super);
-        function ConstantShapeChannel(value) {
-            this.value = value;
+        function ConstantShapeChannel(_at_value) {
+            this.value = _at_value;
         }
         return ConstantShapeChannel;
     }(ShapeChannel);
     VariableShapeChannel = function (_super) {
         __extends(VariableShapeChannel, _super);
-        function VariableShapeChannel(field, range) {
-            this.field = field;
-            this.range = range;
+        function VariableShapeChannel(_at_field, _at_range) {
+            this.field = _at_field;
+            this.range = _at_range;
         }
         return VariableShapeChannel;
     }(ShapeChannel);
     Extent = function () {
-        function Extent(min, max) {
-            this.min = min;
-            this.max = max;
+        function Extent(_at_min, _at_max) {
+            this.min = _at_min;
+            this.max = _at_max;
         }
         return Extent;
     }();
@@ -996,8 +996,8 @@
     }();
     CategoricalRange = function (_super) {
         __extends(CategoricalRange, _super);
-        function CategoricalRange(values) {
-            this.values = values;
+        function CategoricalRange(_at_values) {
+            this.values = _at_values;
         }
         return CategoricalRange;
     }(Range);
@@ -1010,18 +1010,18 @@
     }(Range);
     SequentialRange = function (_super) {
         __extends(SequentialRange, _super);
-        function SequentialRange(min, max) {
-            this.min = min;
-            this.max = max;
+        function SequentialRange(_at_min, _at_max) {
+            this.min = _at_min;
+            this.max = _at_max;
         }
         return SequentialRange;
     }(QuantitativeRange);
     DivergingRange = function (_super) {
         __extends(DivergingRange, _super);
-        function DivergingRange(min, mid, max) {
-            this.min = min;
-            this.mid = mid;
-            this.max = max;
+        function DivergingRange(_at_min, _at_mid, _at_max) {
+            this.min = _at_min;
+            this.mid = _at_mid;
+            this.max = _at_max;
         }
         return DivergingRange;
     }(QuantitativeRange);
@@ -1034,226 +1034,226 @@
     }(Range);
     SequentialColorRange = function (_super) {
         __extends(SequentialColorRange, _super);
-        function SequentialColorRange(min, max) {
-            this.min = min;
-            this.max = max;
+        function SequentialColorRange(_at_min, _at_max) {
+            this.min = _at_min;
+            this.max = _at_max;
         }
         return SequentialColorRange;
     }(ColorRange);
     DivergingColorRange = function (_super) {
         __extends(DivergingColorRange, _super);
-        function DivergingColorRange(min, mid, max) {
-            this.min = min;
-            this.mid = mid;
-            this.max = max;
+        function DivergingColorRange(_at_min, _at_mid, _at_max) {
+            this.min = _at_min;
+            this.mid = _at_mid;
+            this.max = _at_max;
         }
         return DivergingColorRange;
     }(ColorRange);
     Geometry = function () {
-        function Geometry(encode, mask, highlight, render, select) {
-            this.encode = encode;
-            this.mask = mask;
-            this.highlight = highlight;
-            this.render = render;
-            this.select = select;
+        function Geometry(_at_encode, _at_mask, _at_highlight, _at_render, _at_select) {
+            this.encode = _at_encode;
+            this.mask = _at_mask;
+            this.highlight = _at_highlight;
+            this.render = _at_render;
+            this.select = _at_select;
         }
         return Geometry;
     }();
     Datasource = function () {
-        function Datasource(read) {
-            this.read = read;
+        function Datasource(_at_read) {
+            this.read = _at_read;
         }
         return Datasource;
     }();
     Canvas = function () {
-        function Canvas(element, context, bounds, ratio) {
-            this.element = element;
-            this.context = context;
-            this.bounds = bounds;
-            this.ratio = ratio;
+        function Canvas(_at_element, _at_context, _at_bounds, _at_ratio) {
+            this.element = _at_element;
+            this.context = _at_context;
+            this.bounds = _at_bounds;
+            this.ratio = _at_ratio;
         }
         return Canvas;
     }();
     Viewport = function () {
-        function Viewport(box, container, baseCanvas, highlightCanvas, hoverCanvas, maskCanvas, clipCanvas, marquee, tooltip, mask, clip) {
-            this.box = box;
-            this.container = container;
-            this.baseCanvas = baseCanvas;
-            this.highlightCanvas = highlightCanvas;
-            this.hoverCanvas = hoverCanvas;
-            this.maskCanvas = maskCanvas;
-            this.clipCanvas = clipCanvas;
-            this.marquee = marquee;
-            this.tooltip = tooltip;
-            this.mask = mask;
-            this.clip = clip;
+        function Viewport(_at_box, _at_container, _at_baseCanvas, _at_highlightCanvas, _at_hoverCanvas, _at_maskCanvas, _at_clipCanvas, _at_marquee, _at_tooltip, _at_mask, _at_clip) {
+            this.box = _at_box;
+            this.container = _at_container;
+            this.baseCanvas = _at_baseCanvas;
+            this.highlightCanvas = _at_highlightCanvas;
+            this.hoverCanvas = _at_hoverCanvas;
+            this.maskCanvas = _at_maskCanvas;
+            this.clipCanvas = _at_clipCanvas;
+            this.marquee = _at_marquee;
+            this.tooltip = _at_tooltip;
+            this.mask = _at_mask;
+            this.clip = _at_clip;
         }
         return Viewport;
     }();
     Layer = function () {
-        function Layer(encodings, encoders, mask, highlight, render, select) {
-            this.encodings = encodings;
-            this.encoders = encoders;
-            this.mask = mask;
-            this.highlight = highlight;
-            this.render = render;
-            this.select = select;
+        function Layer(_at_encodings, _at_encoders, _at_mask, _at_highlight, _at_render, _at_select) {
+            this.encodings = _at_encodings;
+            this.encoders = _at_encoders;
+            this.mask = _at_mask;
+            this.highlight = _at_highlight;
+            this.render = _at_render;
+            this.select = _at_select;
         }
         return Layer;
     }();
     Visualization = function () {
-        function Visualization(viewport, frame, test, highlight, hover, selectAt, selectWithin, render) {
-            this.viewport = viewport;
-            this.frame = frame;
-            this.test = test;
-            this.highlight = highlight;
-            this.hover = hover;
-            this.selectAt = selectAt;
-            this.selectWithin = selectWithin;
-            this.render = render;
+        function Visualization(_at_viewport, _at_frame, _at_test, _at_highlight, _at_hover, _at_selectAt, _at_selectWithin, _at_render) {
+            this.viewport = _at_viewport;
+            this.frame = _at_frame;
+            this.test = _at_test;
+            this.highlight = _at_highlight;
+            this.hover = _at_hover;
+            this.selectAt = _at_selectAt;
+            this.selectWithin = _at_selectWithin;
+            this.render = _at_render;
         }
         return Visualization;
     }();
     Plot = function () {
-        function Plot(element, subscribe, unsubscribe) {
-            this.element = element;
-            this.subscribe = subscribe;
-            this.unsubscribe = unsubscribe;
+        function Plot(_at_element, _at_subscribe, _at_unsubscribe) {
+            this.element = _at_element;
+            this.subscribe = _at_subscribe;
+            this.unsubscribe = _at_unsubscribe;
         }
         return Plot;
     }();
     Bounds = function () {
-        function Bounds(width, height) {
-            this.width = width;
-            this.height = height;
+        function Bounds(_at_width, _at_height) {
+            this.width = _at_width;
+            this.height = _at_height;
         }
         return Bounds;
     }();
     Regions = function () {
-        function Regions(center, left, top, right, bottom) {
-            this.center = center;
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
+        function Regions(_at_center, _at_left, _at_top, _at_right, _at_bottom) {
+            this.center = _at_center;
+            this.left = _at_left;
+            this.top = _at_top;
+            this.right = _at_right;
+            this.bottom = _at_bottom;
         }
         return Regions;
     }();
     Margin = function () {
-        function Margin(left, top, right, bottom) {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
+        function Margin(_at_left, _at_top, _at_right, _at_bottom) {
+            this.left = _at_left;
+            this.top = _at_top;
+            this.right = _at_right;
+            this.bottom = _at_bottom;
         }
         return Margin;
     }();
     Box = function () {
-        function Box(width, height, margin) {
+        function Box(_at_width, _at_height, _at_margin) {
             var rect;
-            this.width = width;
-            this.height = height;
-            this.margin = margin;
+            this.width = _at_width;
+            this.height = _at_height;
+            this.margin = _at_margin;
             this.regions = new Regions(rect = new Rect(margin.left, margin.top, width - margin.left - margin.right, height - margin.top - margin.bottom), new Rect(0, margin.top, margin.left, rect.height), new Rect(margin.left + rect.width, margin.top, margin.right, rect.height), new Rect(margin.left, 0, rect.width, margin.top), new Rect(margin.left, margin.top + rect.height, rect.width, margin.bottom));
         }
         return Box;
     }();
     Query = function () {
-        function Query(select, where, group, having) {
-            this.select = select;
-            this.where = where;
-            this.group = group;
-            this.having = having;
+        function Query(_at_select, _at_where, _at_group, _at_having) {
+            this.select = _at_select;
+            this.where = _at_where;
+            this.group = _at_group;
+            this.having = _at_having;
         }
         return Query;
     }();
     Category = function () {
-        function Category(key, value) {
-            this.key = key;
-            this.value = value;
+        function Category(_at_key, _at_value) {
+            this.key = _at_key;
+            this.value = _at_value;
         }
         return Category;
     }();
     All = new Category(0, 'All');
     Cube = function () {
-        function Cube(frame, hierarchy, cells, dimension) {
-            this.frame = frame;
-            this.hierarchy = hierarchy;
-            this.cells = cells;
-            this.dimension = dimension;
+        function Cube(_at_frame, _at_hierarchy, _at_cells, _at_dimension) {
+            this.frame = _at_frame;
+            this.hierarchy = _at_hierarchy;
+            this.cells = _at_cells;
+            this.dimension = _at_dimension;
         }
         return Cube;
     }();
     Level = function () {
-        function Level(category, indices, children) {
-            this.category = category;
-            this.indices = indices;
-            this.children = children;
+        function Level(_at_category, _at_indices, _at_children) {
+            this.category = _at_category;
+            this.indices = _at_indices;
+            this.children = _at_children;
         }
         return Level;
     }();
     Cell = function () {
-        function Cell(levels, indices) {
-            this.levels = levels;
-            this.indices = indices;
+        function Cell(_at_levels, _at_indices) {
+            this.levels = _at_levels;
+            this.indices = _at_indices;
         }
         return Cell;
     }();
     Factoring = function () {
-        function Factoring(at, valueAt, count, domain, format) {
-            this.at = at;
-            this.valueAt = valueAt;
-            this.count = count;
-            this.domain = domain;
-            this.format = format;
+        function Factoring(_at_at, _at_valueAt, _at_count, _at_domain, _at_format) {
+            this.at = _at_at;
+            this.valueAt = _at_valueAt;
+            this.count = _at_count;
+            this.domain = _at_domain;
+            this.format = _at_format;
         }
         return Factoring;
     }();
     GroupOp = function () {
-        function GroupOp(fields) {
-            this.fields = fields;
+        function GroupOp(_at_fields) {
+            this.fields = _at_fields;
         }
         return GroupOp;
     }();
     SelectOp = function () {
-        function SelectOp(name, fields, func) {
-            this.name = name;
-            this.fields = fields;
-            this.func = func;
+        function SelectOp(_at_name, _at_fields, _at_func) {
+            this.name = _at_name;
+            this.fields = _at_fields;
+            this.func = _at_func;
         }
         return SelectOp;
     }();
     WhereOp = function () {
-        function WhereOp(fields, predicate) {
-            this.fields = fields;
-            this.predicate = predicate;
+        function WhereOp(_at_fields, _at_predicate) {
+            this.fields = _at_fields;
+            this.predicate = _at_predicate;
         }
         return WhereOp;
     }();
     HavingOp = function () {
-        function HavingOp(fields, predicate) {
-            this.fields = fields;
-            this.predicate = predicate;
+        function HavingOp(_at_fields, _at_predicate) {
+            this.fields = _at_fields;
+            this.predicate = _at_predicate;
         }
         return HavingOp;
     }();
     HoverEventArg = function () {
-        function HoverEventArg(vectors, index) {
-            this.vectors = vectors;
-            this.index = index;
+        function HoverEventArg(_at_vectors, _at_index) {
+            this.vectors = _at_vectors;
+            this.index = _at_index;
         }
         return HoverEventArg;
     }();
     SelectEventArg = function () {
-        function SelectEventArg(vectors, indices) {
-            this.vectors = vectors;
-            this.indices = indices;
+        function SelectEventArg(_at_vectors, _at_indices) {
+            this.vectors = _at_vectors;
+            this.indices = _at_indices;
         }
         return SelectEventArg;
     }();
     DeselectEventArg = function () {
-        function DeselectEventArg(vectors) {
-            this.vectors = vectors;
+        function DeselectEventArg(_at_vectors) {
+            this.vectors = _at_vectors;
         }
         return DeselectEventArg;
     }();
@@ -1670,7 +1670,7 @@
     createAggregateField = function (field, symbol, type, format, f) {
         return new ReducedField(function (frame, cube) {
             var at, cell, computedVector, data, i, j, name, value, values, vector, _i, _j, _len, _len1, _ref, _ref1;
-            name = '' + symbol + '(' + field.name + ')';
+            name = symbol + '(' + field.name + ')';
             if (frame.exists(name)) {
                 return new Field(name);
             } else {
@@ -3903,7 +3903,7 @@
         gridLineColor: '#eee'
     };
     px = function (pixels) {
-        return '' + Math.round(pixels) + 'px';
+        return Math.round(pixels) + 'px';
     };
     createDOMElement = function (tag, styles) {
         var el, name, style, value;
@@ -3933,11 +3933,11 @@
                     _results1 = [];
                     for (property in style) {
                         value = style[property];
-                        _results1.push('' + property + ':' + value);
+                        _results1.push(property + ':' + value);
                     }
                     return _results1;
                 }();
-                _results.push('' + selector + '{' + lines.join(';') + ';}');
+                _results.push(selector + '{' + lines.join(';') + ';}');
             }
             return _results;
         }();
@@ -3955,7 +3955,7 @@
             value = dict[label];
             tbody.appendChild(tr = document.createElement('tr'));
             tr.appendChild(td = document.createElement('td'));
-            td.appendChild(document.createTextNode('' + label + ':'));
+            td.appendChild(document.createTextNode(label + ':'));
             tr.appendChild(th = document.createElement('th'));
             th.appendChild(document.createTextNode(value));
         }
