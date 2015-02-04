@@ -696,7 +696,7 @@
         __extends(ConstantEncoder, _super);
         function ConstantEncoder(_at_value) {
             this.value = _at_value;
-            ConstantEncoder.__super__.constructor.call(this, 'Constant', always(value));
+            ConstantEncoder.__super__.constructor.call(this, 'Constant', always(this.value));
         }
         return ConstantEncoder;
     }(Encoder);
@@ -1149,11 +1149,11 @@
         return Margin;
     }();
     Box = function () {
-        function Box(_at_width, _at_height, _at_margin) {
+        function Box(width, height, margin) {
             var rect;
-            this.width = _at_width;
-            this.height = _at_height;
-            this.margin = _at_margin;
+            this.width = width;
+            this.height = height;
+            this.margin = margin;
             this.regions = new Regions(rect = new Rect(margin.left, margin.top, width - margin.left - margin.right, height - margin.top - margin.bottom), new Rect(0, margin.top, margin.left, rect.height), new Rect(margin.left + rect.width, margin.top, margin.right, rect.height), new Rect(margin.left, 0, rect.width, margin.top), new Rect(margin.left, margin.top + rect.height, rect.width, margin.bottom));
         }
         return Box;

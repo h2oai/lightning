@@ -481,7 +481,7 @@ class Encoder
 
 class ConstantEncoder extends Encoder
   constructor: (@value) ->
-    super 'Constant', always value
+    super 'Constant', always @value
 
 class VariableEncoder extends Encoder
   constructor: (label, encode, @vector) ->
@@ -662,10 +662,13 @@ class Margin
 
 class Box
   constructor: (
-    @width
-    @height
-    @margin
+    width
+    height
+    margin
   ) ->
+    @width = width
+    @height = height
+    @margin = margin
     @regions = new Regions(
       rect = new Rect margin.left, margin.top, width - margin.left - margin.right, height - margin.top - margin.bottom
       new Rect 0, margin.top, margin.left, rect.height
