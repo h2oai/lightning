@@ -1,5 +1,5 @@
 {
-  "name": "vortex",
+  "name": "lightning",
   "version": "0.0.0",
   "description": "High performance, interactive statistical graphics engine for the web.",
   "main": "make.coffee",
@@ -12,11 +12,11 @@
     "cover": "coffee make.coffee -b && mkdir -p build/cover && istanbul cover --dir build/cover build/js/tests.js && istanbul report --dir build/cover html",
     "clean": "coffee make.coffee -c",
     "serve": "http-server build",
-    "doc": "groc src/vortex.coffee"
+    "doc": "groc src/lightning.coffee"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/h2oai/vortex.git"
+    "url": "https://github.com/h2oai/lightning.git"
   },
   "keywords": [
     "graphics",
@@ -26,9 +26,9 @@
   "author": "Prithvi Prabhu <prithvi@h2o.ai>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/h2oai/vortex/issues"
+    "url": "https://github.com/h2oai/lightning/issues"
   },
-  "homepage": "https://github.com/h2oai/vortex",
+  "homepage": "https://github.com/h2oai/lightning",
   "devDependencies": {
     "async": "^0.9.0",
     "bower": "^1.3.12",

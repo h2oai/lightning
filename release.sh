@@ -7,7 +7,7 @@ git pull --rebase
 npm run minify
 
 sed -E "s/.+version.+/  \"version\": \"$LIB_VERSION\",/" bower.json > bower.json.tmp && mv bower.json.tmp bower.json
-sed -E "s/999\.999\.999/$LIB_VERSION/" dist/vortex.min.js > dist/vortex.min.js.tmp && mv dist/vortex.min.js.tmp dist/vortex.min.js
+sed -E "s/999\.999\.999/$LIB_VERSION/" dist/lightning.min.js > dist/lightning.min.js.tmp && mv dist/lightning.min.js.tmp dist/lightning.min.js
 
 git add .
 git commit -m "Release $LIB_VERSION"

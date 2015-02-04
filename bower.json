@@ -1,7 +1,7 @@
 {
-  "name": "vortex",
+  "name": "lightning",
   "version": "0.1.0",
-  "homepage": "https://github.com/h2oai/vortex",
+  "homepage": "https://github.com/h2oai/lightning",
   "authors": [
     "Prithvi Prabhu <prithvi@h2o.ai>"
   ],

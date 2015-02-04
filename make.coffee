@@ -159,7 +159,7 @@ buildDoc = ->
     filename: templatePath
     pretty: yes
 
-  plot_coffee = locate 'build/js/vortex-node.js'
+  plot_coffee = locate 'build/js/lightning-node.js'
   if key = require.resolve plot_coffee
     delete require.cache[ key ]
   plot = require plot_coffee
@@ -184,21 +184,21 @@ buildDoc = ->
 build = (argv) ->
   console.log "Building..."
 
-  vortex_coffee = read 'src/vortex.coffee'
+  lightning_coffee = read 'src/lightning.coffee'
   tests_coffee = read 'src/tests.coffee'
-  vortex = compileCoffee vortex_coffee
-  write 'build/js/vortex.js', vortex
-  write 'build/js/vortex-node.js', node_header_js + EOL + vortex
-  #TODO compile vortex only once.
-  write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ vortex_coffee, tests_coffee ].join(EOL)
+  lightning = compileCoffee lightning_coffee
+  write 'build/js/lightning.js', lightning
+  write 'build/js/lightning-node.js', node_header_js + EOL + lightning
+  #TODO compile lightning only once.
+  write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ lightning_coffee, tests_coffee ].join(EOL)
 
-  cp 'build/js/vortex.js', 'dist/vortex.js'
-  #cp 'dist/vortex.js', '../h2o-flow/vendor/h2oai/vortex.min.js'
+  cp 'build/js/lightning.js', 'dist/lightning.js'
+  #cp 'dist/lightning.js', '../h2o-flow/vendor/h2oai/lightning.min.js'
 
   if argv.m
-    uglification = Uglify.minify [ 'dist/vortex.js' ], warnings: yes
-    write 'dist/vortex.min.js', uglification.code
-    cp 'dist/vortex.min.js', '../h2o-flow/vendor/h2oai/vortex.min.js'
+    uglification = Uglify.minify [ 'dist/lightning.js' ], warnings: yes
+    write 'dist/lightning.min.js', uglification.code
+    cp 'dist/lightning.min.js', '../h2o-flow/vendor/h2oai/lightning.min.js'
 
   return
 
