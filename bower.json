@@ -7,6 +7,21 @@
   ],
   "description": "High performance, interactive statistical graphics engine for the web.",
   "main": "index.js",
+  "ignore": [
+    "Makefile",
+    "README.md",
+    "bower.json",
+    "build",
+    "data",
+    "lib",
+    "make.coffee",
+    "node_modules",
+    "package.json",
+    "release.sh",
+    "shorthand.yml",
+    "src",
+    "tools"
+  ],
   "keywords": [
     "graphics",
     "visualization",
