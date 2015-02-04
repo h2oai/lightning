@@ -193,7 +193,9 @@ build = (argv) ->
   write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ lightning_coffee, tests_coffee ].join(EOL)
 
   cp 'build/js/lightning.js', 'dist/lightning.js'
-  #cp 'dist/lightning.js', '../h2o-flow/vendor/h2oai/lightning.min.js'
+
+  # *** DANGER ***
+  # cp 'dist/lightning.js', '../h2o-flow/vendor/h2oai/lightning.min.js'
 
   if argv.m
     uglification = Uglify.minify [ 'dist/lightning.js' ], warnings: yes

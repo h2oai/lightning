@@ -1,5 +1,5 @@
 (function () {
-    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectCoordinates, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createSpace2D, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, evaluateVectors, extractFactor, factorize, filterByType, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
+    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectCoordinates, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createSpace2D, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, evaluateVectors, extractFactor, factorize, filterByType, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_record, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -357,6 +357,12 @@
         function TableExpr() {
         }
         return TableExpr;
+    }();
+    RecordExpr = function () {
+        function RecordExpr(_at_index) {
+            this.index = _at_index;
+        }
+        return RecordExpr;
     }();
     MarkExpr = function () {
         function MarkExpr() {
@@ -3775,6 +3781,12 @@
     plot_table = function () {
         return new TableExpr();
     };
+    plot_record = function (index) {
+        if (index == null) {
+            index = 0;
+        }
+        return new RecordExpr(index);
+    };
     plot_point = function () {
         var fillColor, fillOpacity, lineWidth, ops, position, shape, size, strokeColor, strokeOpacity;
         ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -4014,7 +4026,7 @@
             top: px(0),
             display: 'none'
         });
-        tooltip.className = 'vx-tooltip';
+        tooltip.className = 'lightning-tooltip';
         container.appendChild(baseCanvas.element);
         container.appendChild(highlightCanvas.element);
         container.appendChild(marquee);
@@ -4581,14 +4593,67 @@
         frame = queryFrame(_frame, query);
         if (findByType(ops, TableExpr)) {
             return renderTable(frame, ops);
+        } else if (findByType(ops, RecordExpr)) {
+            return renderRecord(frame, ops);
         } else {
             return renderPlot(frame, ops);
         }
     };
+    renderRecord = function (frame, ops) {
+        var element, escapedValue, index, name, recordExpr, subscribe, table, tbody, td, th, tr, trs, unsubscribe, value, vector, _ref;
+        recordExpr = findByType(ops, RecordExpr);
+        index = recordExpr.index;
+        _ref = createHtmlTemplates('=table.lightning-record', 'tbody', 'tr', '=th', '=td'), table = _ref[0], tbody = _ref[1], tr = _ref[2], th = _ref[3], td = _ref[4];
+        trs = function () {
+            var _ref1, _results;
+            _ref1 = frame.schema;
+            _results = [];
+            for (name in _ref1) {
+                vector = _ref1[name];
+                value = vector.format(index);
+                escapedValue = function () {
+                    switch (vector.type) {
+                    case TString:
+                        if (value !== void 0) {
+                            return _.escape(value);
+                        } else {
+                            return '-';
+                        }
+                        break;
+                    case TNumber:
+                        if (value !== void 0) {
+                            return _.escape(value);
+                        } else {
+                            return '-';
+                        }
+                        break;
+                    case TObject:
+                        if (value !== void 0) {
+                            return value;
+                        } else {
+                            return '-';
+                        }
+                        break;
+                    default:
+                        throw new Error('Cannot render table cell of type ' + vector.type);
+                    }
+                }();
+                _results.push(tr([
+                    th(_.escape(vector.label)),
+                    td(escapedValue)
+                ]));
+            }
+            return _results;
+        }();
+        element = renderHtml(table(tbody(trs)));
+        subscribe = _.noop;
+        unsubscribe = _.noop;
+        return new Plot(element, subscribe, unsubscribe);
+    };
     renderTable = function (frame, ops) {
         var element, i, name, subscribe, table, tableExpr, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, _ref;
         tableExpr = findByType(ops, TableExpr);
-        _ref = createHtmlTemplates('table.vx-table', '=thead', 'tbody', 'tr', '=th', '=th.vx-number', '=td', '=td.vx-number'), table = _ref[0], thead = _ref[1], tbody = _ref[2], tr = _ref[3], th = _ref[4], thr = _ref[5], td = _ref[6], tdr = _ref[7];
+        _ref = createHtmlTemplates('table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'), table = _ref[0], thead = _ref[1], tbody = _ref[2], tr = _ref[3], th = _ref[4], thr = _ref[5], td = _ref[6], tdr = _ref[7];
         ths = function () {
             var _ref1, _results;
             _ref1 = frame.schema;
@@ -4732,22 +4797,28 @@
     ]);
     initializeStylesheet = function () {
         return createStylesheet({
-            '.vx-tooltip': {
+            '.lightning-tooltip': {
                 background: '#2c2c2c',
                 color: '#fff',
                 'font-size': '12px'
             },
-            '.vx-tooltip th, .vx-tooltip td': {
+            '.lightning-tooltip th, .lightning-tooltip td': {
                 padding: '0px 4px',
                 'vertical-align': 'middle'
             },
-            '.vx-tooltip th': { 'text-align': 'left' },
-            '.vx-table th, .vx-table td': {
+            '.lightning-tooltip th': { 'text-align': 'left' },
+            '.lightning-table th, .lightning-table td': {
                 padding: '0px 8px',
                 'vertical-align': 'middle'
             },
-            '.vx-table tbody > tr:nth-child(odd)': { 'background-color': '#f3f3f3' },
-            '.vx-table .vx-number': { 'text-align': 'right' }
+            '.lightning-table tbody > tr:nth-child(odd)': { 'background-color': '#f3f3f3' },
+            '.lightning-table .lightning-number': { 'text-align': 'right' },
+            '.lightning-record th, .lightning-record td': {
+                padding: '0px 8px',
+                'vertical-align': 'middle'
+            },
+            '.lightning-record th': { 'text-align': 'right' },
+            '.lightning-record tbody > tr:nth-child(odd)': { 'background-color': '#f3f3f3' }
         });
     };
     __scratchCanvas = null;
@@ -4821,6 +4892,7 @@
     plot.path = plot_path;
     plot.schema = plot_schema;
     plot.table = plot_table;
+    plot.record = plot_record;
     plot.createFrame = createFrame;
     plot.createVector = createVector;
     plot.createList = createList;

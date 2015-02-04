@@ -674,6 +674,20 @@ plot(
   from csv 'mtcars'
   # where 'model', like /Merc/
 )
+###
+plot record
+record
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  record 5
+  from csv 'mtcars'
+)
 
 ###
 plot table

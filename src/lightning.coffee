@@ -226,6 +226,9 @@ class Stroke
 
 class TableExpr
 
+class RecordExpr
+  constructor: (@index) ->
+
 class MarkExpr
 
 class PointExpr extends MarkExpr
@@ -2839,6 +2842,9 @@ plot_shape = dispatch(
 plot_table = ->
   new TableExpr()
 
+plot_record = (index=0) ->
+  new RecordExpr index
+
 plot_point = (ops...) ->
   position = findByType ops, PositionChannel
 
@@ -3050,7 +3056,7 @@ createViewport = (box) ->
     top: px 0
     display: 'none'
 
-  tooltip.className = 'vx-tooltip'
+  tooltip.className = 'lightning-tooltip'
 
   container.appendChild baseCanvas.element
   container.appendChild highlightCanvas.element
@@ -3605,13 +3611,44 @@ renderVisualization = (_frame, ops) ->
 
   if findByType ops, TableExpr
     renderTable frame, ops
+  else if findByType ops, RecordExpr
+    renderRecord frame, ops
   else
     renderPlot frame, ops
+
+renderRecord = (frame, ops) ->
+  recordExpr = findByType ops, RecordExpr
+  index = recordExpr.index
+
+  [ table, tbody, tr, th, td ] = createHtmlTemplates '=table.lightning-record', 'tbody', 'tr', '=th', '=td'
+
+  trs = for name, vector of frame.schema
+    value = vector.format index
+    escapedValue = switch vector.type
+      when TString
+        if value isnt undefined then escape value else '-'
+      when TNumber
+        if value isnt undefined then escape value else '-'
+      when TObject
+        if value isnt undefined then value else '-'
+      else
+        throw new Error "Cannot render table cell of type #{vector.type}"
+    tr [
+      th escape vector.label
+      td escapedValue
+    ]
+
+  element = renderHtml table tbody trs
+
+  subscribe = noop #TODO
+  unsubscribe = noop #TODO
+
+  new Plot element, subscribe, unsubscribe
 
 renderTable = (frame, ops) ->
   tableExpr = findByType ops, TableExpr
   
-  [ table, thead, tbody, tr, th, thr, td, tdr ] = createHtmlTemplates 'table.vx-table', '=thead', 'tbody', 'tr', '=th', '=th.vx-number', '=td', '=td.vx-number'
+  [ table, thead, tbody, tr, th, thr, td, tdr ] = createHtmlTemplates 'table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'
   
   ths = for name, vector of frame.schema
     switch vector.type
@@ -3749,22 +3786,29 @@ visualize = dispatch(
 
 initializeStylesheet = ->
   createStylesheet
-    '.vx-tooltip':
+    '.lightning-tooltip':
       background: '#2c2c2c'
       color: '#fff'
       'font-size': '12px'
-    '.vx-tooltip th, .vx-tooltip td':
+    '.lightning-tooltip th, .lightning-tooltip td':
       padding: '0px 4px'
       'vertical-align': 'middle'
-    '.vx-tooltip th':
+    '.lightning-tooltip th':
       'text-align': 'left'
-    '.vx-table th, .vx-table td':
+    '.lightning-table th, .lightning-table td':
       padding: '0px 8px'
       'vertical-align': 'middle'
-    '.vx-table tbody > tr:nth-child(odd)':
+    '.lightning-table tbody > tr:nth-child(odd)':
       'background-color': '#f3f3f3'
-    '.vx-table .vx-number':
+    '.lightning-table .lightning-number':
       'text-align': 'right'
+    '.lightning-record th, .lightning-record td':
+      padding: '0px 8px'
+      'vertical-align': 'middle'
+    '.lightning-record th':
+      'text-align': 'right'
+    '.lightning-record tbody > tr:nth-child(odd)':
+      'background-color': '#f3f3f3'
 
 __scratchCanvas = null
 __emWidth = 18
@@ -3836,6 +3880,7 @@ plot.rect = plot_rect
 plot.path = plot_path
 plot.schema = plot_schema
 plot.table = plot_table
+plot.record = plot_record
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createList = createList
