@@ -193,7 +193,7 @@ build = (argv) ->
   write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ vortex_coffee, tests_coffee ].join(EOL)
 
   cp 'build/js/vortex.js', 'dist/vortex.js'
-  cp 'dist/vortex.js', '../h2o-flow/vendor/h2oai/vortex.min.js'
+  #cp 'dist/vortex.js', '../h2o-flow/vendor/h2oai/vortex.min.js'
 
   if argv.m
     uglification = Uglify.minify [ 'dist/vortex.js' ], warnings: yes
