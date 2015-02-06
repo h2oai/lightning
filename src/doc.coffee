@@ -784,6 +784,20 @@ plot(
   groupBy factor('cyl'), factor('vs')
 )
 
+###
+plot single-stacked-bar
+single stacked bar
+Description goes here.
+###
+
+plot(
+  rect(
+    position stack(count('cyl'), 0), 'All'
+    fillColor 'factor(cyl)'
+  )
+  from csv 'mtcars'
+  groupBy factor(value 'All'), factor('cyl')
+)
 
 ###
 plot stacked-bars-temp
@@ -797,3 +811,14 @@ plot(
   groupBy factor('cyl'), factor('vs')
 )
 
+###
+plot all-factor
+Grouping by 'All'
+Description goes here.
+###
+
+plot(
+  table 'All', 'factor(cyl)', count('cyl')
+  from csv 'mtcars'
+  groupBy factor(value 'All'), factor('cyl')
+)

@@ -923,6 +923,16 @@ createFactor = (label, type, data, domain) ->
   factoring = factorize at, count, domain or []
   new Factor label, label, type, factoring.at, factoring.valueAt, count, factoring.domain, factoring.format
 
+createAllFactor = (label, length) ->
+  categoryValue = 'All'
+  category = new Category 0, categoryValue
+  valueAt = (i) -> categoryValue
+  at = -> category
+  count = -> length
+  format = -> categoryValue
+  
+  new Factor label, label, TString, at, valueAt, count, [ category ], format
+
 #
 # Frame
 # ==============================
@@ -998,7 +1008,7 @@ createFactorField = (field) ->
   new MappedField (frame) ->
     vector = head frame.evaluate field
     if vector instanceof Factor
-      field        
+      field
     else
       length = vector.count()
       at = vector.at
@@ -1010,9 +1020,15 @@ createFactorField = (field) ->
       frame.attach computedVector = createFactor "factor(#{vector.label})", TString, data
       [ new Field computedVector.name ]
 
+createAllField = (name) ->
+  new MappedField (frame) ->
+    frame.attach createAllFactor name, frame.indices.length
+    [ new Field name ]
+
 plot_factor = dispatch(
   [ String, (name) -> plot_factor new Field name ]
   [ Field, (field) -> createFactorField field ]
+  [ StringValue, ({value}) -> createAllField value ]
 )
 
 createStackedField = (stackedField, depth) ->
@@ -3597,7 +3613,7 @@ createSpace1D = (vectors) ->
 createAxisLabel = (vectors) ->
   labels = for vector in vectors
     vector.label
-  join labels, ', '
+  join (unique labels), ', '
 
 computeApproxAxisSize = (type, domain) ->
   rect = new Rect 0, 0, 400, 400
@@ -3656,7 +3672,7 @@ createAxis = (type, label, domain, range, rect) ->
 renderVisualization = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
-  debug frame
+  #debug frame
 
   if findByType ops, TableExpr
     renderTable frame, ops
