@@ -1410,7 +1410,7 @@
             return data[i];
         };
         format = _format ? function (i) {
-            return _format(data[i]);
+            return _format(data[i], i);
         } : at;
         return new List(label, label, at, count, data, format);
     };
@@ -1427,7 +1427,7 @@
             return data[i];
         };
         format = _format ? function (i) {
-            return _format(data[i]);
+            return _format(data[i], i);
         } : at;
         return new Vector(name, label, type, at, count, domain, format);
     };
@@ -1592,7 +1592,7 @@
     ]);
     createStackedField = function (stackedField, factorFields) {
         return new MappedField(function (frame) {
-            var at, factor, factorField, factorNames, factors, hi, highName, highs, i, length, lo, lowName, lows, value, vector, _i, _j, _len, _len1, _ref;
+            var at, factor, factorField, factorNames, factors, format, hi, highName, highs, i, length, lo, lowName, lows, value, vector, _i, _j, _len, _len1, _ref;
             vector = _.head(frame.evaluate(stackedField));
             factors = function () {
                 var _i, _len, _results;
@@ -1640,8 +1640,11 @@
                     highs[i] = hi = hi + value;
                 }
             }
-            frame.attach(_createVector(lowName, vector.name, vector.type, lows, vector.format));
-            frame.attach(_createVector(highName, vector.name, vector.type, lows, vector.format));
+            format = function (value, i) {
+                return vector.format(i);
+            };
+            frame.attach(_createVector(lowName, vector.name, vector.type, lows, format));
+            frame.attach(_createVector(highName, vector.name, vector.type, highs, format));
             return [
                 new Field(lowName),
                 new Field(highName)

@@ -874,7 +874,7 @@ includeOrigin0 = includeOrigin_ 0
 createList = (label, data, _format) ->
   count = -> data.length
   at = (i) -> data[i]
-  format = if _format then (i) -> _format data[i] else at
+  format = if _format then (i) -> _format data[i], i else at
   new List label, label, at, count, data, format
 
 # string, type, [a], (int -> string) -> Vector
@@ -886,7 +886,7 @@ _createVector = (name, label, type, data, _format) ->
   domain = computeExtent data
   count = -> data.length
   at = (i) -> data[i]
-  format = if _format then (i) -> _format data[i] else at
+  format = if _format then (i) -> _format data[i], i else at
   new Vector name, label, type, at, count, domain, format
 
 #
@@ -1046,8 +1046,10 @@ createStackedField = (stackedField, factorFields) ->
         lows[i] = hi
         highs[i] = hi = hi + value
 
-    frame.attach _createVector lowName, vector.name, vector.type, lows, vector.format
-    frame.attach _createVector highName, vector.name, vector.type, lows, vector.format
+    format = (value, i) -> vector.format i
+
+    frame.attach _createVector lowName, vector.name, vector.type, lows, format
+    frame.attach _createVector highName, vector.name, vector.type, highs, format
 
     [
       new Field lowName

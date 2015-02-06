@@ -30,7 +30,7 @@ plot(
 )
 ###
 plot point2
-point, grouped
+point, stacked
 Description goes here.
 ---
 tags:
@@ -49,7 +49,7 @@ plot(
 
 ###
 plot point3
-point, grouped, having
+point, stacked, having
 Description goes here.
 ---
 tags:
@@ -740,8 +740,8 @@ plot(
 )
 
 ###
-plot grouped-bars
-grouped bars
+plot stacked-bars
+stacked bars
 Description goes here.
 ###
 
@@ -756,13 +756,13 @@ plot(
 
 
 ###
-plot grouped-bars-temp
-grouped bars
+plot stacked-bars-temp
+stacked bar data table (temp)
 Description goes here.
 ###
 
 plot(
-  table 'factor(cyl)', 'factor(vs)', stack(count('cyl'), 'factor(vs)')
+  table 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 'factor(vs)')
   from csv 'mtcars'
   groupBy factor('cyl'), factor('vs')
 )
