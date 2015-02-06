@@ -4697,7 +4697,6 @@
         var frame, query;
         query = createQuery(ops);
         frame = queryFrame(_frame, query);
-        console.debug(frame);
         if (findByType(ops, TableExpr)) {
             return renderTable(frame, ops);
         } else if (findByType(ops, RecordExpr)) {
