@@ -934,19 +934,24 @@ createFrame = (label, vectors, indices, cube, metadata) ->
 
   frame = new Frame label, vectors, schema, indices, cube, null, null, null, metadata or {}
 
-  frame.evaluate = (field) ->
-    if field instanceof MappedField
-      frame.evaluate field.evaluate frame
-    else if field instanceof ReducedField
-      if cube
-        frame.evaluate field.evaluate frame, cube
+  frame.evaluate = (arg) ->
+    fields = if isArray arg then arg else [ arg ]
+    vecs = for field in fields
+      if field instanceof MappedField
+        frame.evaluate field.evaluate frame
+      else if field instanceof ReducedField
+        if cube
+          frame.evaluate field.evaluate frame, cube
+        else
+          throw new Error "Cannot compute aggregate [#{field.name}] on an unaggregated frame."
+      else if field instanceof Field
+        if vector = schema[field.name]
+          vector
+        else
+          throw new Error "Vector [#{field.name}] does not exist in frame [#{label}]."
       else
-        throw new Error "Cannot compute aggregate [#{field.name}] on an unaggregated frame."
-    else
-      if vector = schema[field.name]
-        vector
-      else
-        throw new Error "Vector [#{field.name}] does not exist in frame [#{label}]."
+        throw new Error "Cannot evaluate [#{arg}] on frame [#{label}]."
+    flatten vecs
 
   frame.attach = (vector) ->
     if schema[ vector.name ]
@@ -991,7 +996,7 @@ createFields = (names) ->
 
 createFactorField = (field) ->
   new MappedField (frame) ->
-    vector = frame.evaluate field
+    vector = head frame.evaluate field
     if vector instanceof Factor
       field        
     else
@@ -1003,7 +1008,7 @@ createFactorField = (field) ->
           data[i] = '' + value
 
       frame.attach computedVector = createFactor "factor(#{vector.label})", TString, data
-      new Field computedVector.name
+      [ new Field computedVector.name ]
 
 plot_factor = dispatch(
   [ String, (name) -> plot_factor new Field name ]
@@ -1012,9 +1017,9 @@ plot_factor = dispatch(
 
 createStackedField = (stackedField, factorFields) ->
   new MappedField (frame) ->
-    vector = frame.evaluate stackedField
+    vector = head frame.evaluate stackedField
     factors = for factorField in factorFields
-      frame.evaluate factorField
+      head frame.evaluate factorField
 
     throw new Error "Cannot stack factor [#{vector.label}]: expecting vector." if vector instanceof Factor
 
@@ -1144,7 +1149,7 @@ createAggregateField = (field, symbol, type, format, f) ->
     if frame.exists name
       new Field name
     else
-      vector = cube.frame.evaluate field
+      vector = head cube.frame.evaluate field
       at = vector.at
       data = new Array cube.cells.length
       for cell, j in cube.cells
@@ -1153,7 +1158,7 @@ createAggregateField = (field, symbol, type, format, f) ->
           values.push value if (value = at i) isnt undefined
         data[j] = f values
       frame.attach computedVector = createVector name, type, data, format
-      new Field computedVector.name
+      [ new Field computedVector.name ]
 
 plot_aggregate = (title, type, format, func) ->
   dispatch(
@@ -1261,7 +1266,7 @@ queryFrame = (frame, query) ->
   if query.group.length
     fields = flatMap query.group, (op) -> op.fields
     factors = for field in fields
-      vector = filteredFrame.evaluate field
+      vector = head filteredFrame.evaluate field
       if vector instanceof Factor
         vector
       else
@@ -1289,7 +1294,7 @@ filterFrame = (frame, ops) ->
   for op in ops
     indices = []
     vectors = for field in op.fields
-      frame.evaluate field
+      head frame.evaluate field
     ats = map vectors, (vector) ->
       if vector instanceof Factor then vector.valueAt else vector.at
 
@@ -1675,7 +1680,7 @@ encodeConstantPosition = (axis, value) ->
 
 encodeColor = (frame, channel) ->
   if channel instanceof VariableFillColorChannel or channel instanceof VariableStrokeColorChannel
-    vector = frame.evaluate channel.field
+    vector = head frame.evaluate channel.field
     if vector instanceof Factor
       unless channel.range
         channel.range = new CategoricalRange pickCategoricalColorPalette vector.domain.length
@@ -1738,7 +1743,7 @@ encodeColor = (frame, channel) ->
 #TODO use encode_size()
 encodeOpacity = (frame, channel) ->
   if channel instanceof VariableFillOpacityChannel or channel instanceof VariableStrokeOpacityChannel
-    vector = frame.evaluate channel.field
+    vector = head frame.evaluate channel.field
     if vector instanceof Factor
       throw new Error "Could not encode opacity. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1770,7 +1775,7 @@ encodeStyle = (colorEncoder, opacityEncoder) ->
 encode_size = (channelClass, encoderClass) ->
   (frame, channel, limit) ->
     if channel instanceof channelClass
-      vector = frame.evaluate channel.field
+      vector = head frame.evaluate channel.field
       if vector instanceof Factor
         throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
       domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1797,7 +1802,7 @@ encodeHeight = encode_size VariableHeightChannel, SizeEncoder
 # Apply clampNorm() to all inputs.
 encodeArea = (frame, channel) ->
   if channel instanceof VariableSizeChannel
-    vector = frame.evaluate channel.field
+    vector = head frame.evaluate channel.field
     if vector instanceof Factor
       throw new Error "Could not encode size. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1814,7 +1819,7 @@ encodeArea = (frame, channel) ->
 
 encodeLineWidth = (frame, channel) ->
   if channel instanceof VariableLineWidthChannel
-    vector = frame.evaluate channel.field
+    vector = head frame.evaluate channel.field
     if vector instanceof Factor
       throw new Error "Could not encode lineWidth. Vector [#{vector.label}] is a Factor."
     domain = new SequentialRange vector.domain.min, vector.domain.max
@@ -1831,7 +1836,7 @@ encodeLineWidth = (frame, channel) ->
 
 encodeShape = (frame, channel) ->
   if channel instanceof VariableShapeChannel
-    vector = frame.evaluate channel.field
+    vector = head frame.evaluate channel.field
     unless vector instanceof Factor
       throw new Error "Could not encode shape. Vector [#{vector.label}] is not a Factor." 
     unless channel.range
@@ -3710,7 +3715,7 @@ renderTable = (frame, ops) ->
   else
     frame.vectors
 
-  vectors = flatten vectorGroups, yes
+  vectors = flatten vectorGroups
   
   [ table, thead, tbody, tr, th, thr, td, tdr ] = createHtmlTemplates 'table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'
   
@@ -3750,7 +3755,7 @@ renderPlot = (frame, ops) ->
     positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
     #XXX Flatten positionVectors: stack() will produce 2 vectors
-    createMark expr, positionVectors
+    createMark expr, flatten positionVectors
 
   spaces = map marks, (mark) -> mark.space
   vectorsX = flatMap spaces, (space) -> space.x

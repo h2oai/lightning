@@ -1482,23 +1482,35 @@
             return vector.name;
         });
         frame = new Frame(label, vectors, schema, indices, cube, null, null, null, metadata || {});
-        frame.evaluate = function (field) {
-            var vector;
-            if (field instanceof MappedField) {
-                return frame.evaluate(field.evaluate(frame));
-            } else if (field instanceof ReducedField) {
-                if (cube) {
-                    return frame.evaluate(field.evaluate(frame, cube));
-                } else {
-                    throw new Error('Cannot compute aggregate [' + field.name + '] on an unaggregated frame.');
+        frame.evaluate = function (arg) {
+            var field, fields, vecs, vector;
+            fields = _.isArray(arg) ? arg : [arg];
+            vecs = function () {
+                var _i, _len, _results;
+                _results = [];
+                for (_i = 0, _len = fields.length; _i < _len; _i++) {
+                    field = fields[_i];
+                    if (field instanceof MappedField) {
+                        _results.push(frame.evaluate(field.evaluate(frame)));
+                    } else if (field instanceof ReducedField) {
+                        if (cube) {
+                            _results.push(frame.evaluate(field.evaluate(frame, cube)));
+                        } else {
+                            throw new Error('Cannot compute aggregate [' + field.name + '] on an unaggregated frame.');
+                        }
+                    } else if (field instanceof Field) {
+                        if (vector = schema[field.name]) {
+                            _results.push(vector);
+                        } else {
+                            throw new Error('Vector [' + field.name + '] does not exist in frame [' + label + '].');
+                        }
+                    } else {
+                        throw new Error('Cannot evaluate [' + arg + '] on frame [' + label + '].');
+                    }
                 }
-            } else {
-                if (vector = schema[field.name]) {
-                    return vector;
-                } else {
-                    throw new Error('Vector [' + field.name + '] does not exist in frame [' + label + '].');
-                }
-            }
+                return _results;
+            }();
+            return _.flatten(vecs);
         };
         frame.attach = function (vector) {
             if (schema[vector.name]) {
@@ -1550,7 +1562,7 @@
     createFactorField = function (field) {
         return new MappedField(function (frame) {
             var at, computedVector, data, i, length, value, vector, _i;
-            vector = frame.evaluate(field);
+            vector = _.head(frame.evaluate(field));
             if (vector instanceof Factor) {
                 return field;
             } else {
@@ -1563,7 +1575,7 @@
                     }
                 }
                 frame.attach(computedVector = createFactor('factor(' + vector.label + ')', TString, data));
-                return new Field(computedVector.name);
+                return [new Field(computedVector.name)];
             }
         });
     };
@@ -1581,13 +1593,13 @@
     createStackedField = function (stackedField, factorFields) {
         return new MappedField(function (frame) {
             var at, factor, factorField, factorNames, factors, hi, highName, highs, i, length, lo, lowName, lows, value, vector, _i, _j, _len, _len1, _ref;
-            vector = frame.evaluate(stackedField);
+            vector = _.head(frame.evaluate(stackedField));
             factors = function () {
                 var _i, _len, _results;
                 _results = [];
                 for (_i = 0, _len = factorFields.length; _i < _len; _i++) {
                     factorField = factorFields[_i];
-                    _results.push(frame.evaluate(factorField));
+                    _results.push(_.head(frame.evaluate(factorField)));
                 }
                 return _results;
             }();
@@ -1763,7 +1775,7 @@
             if (frame.exists(name)) {
                 return new Field(name);
             } else {
-                vector = cube.frame.evaluate(field);
+                vector = _.head(cube.frame.evaluate(field));
                 at = vector.at;
                 data = new Array(cube.cells.length);
                 _ref = cube.cells;
@@ -1780,7 +1792,7 @@
                     data[j] = f(values);
                 }
                 frame.attach(computedVector = createVector(name, type, data, format));
-                return new Field(computedVector.name);
+                return [new Field(computedVector.name)];
             }
         });
     };
@@ -1943,7 +1955,7 @@
                 _results = [];
                 for (_i = 0, _len = fields.length; _i < _len; _i++) {
                     field = fields[_i];
-                    vector = filteredFrame.evaluate(field);
+                    vector = _.head(filteredFrame.evaluate(field));
                     if (vector instanceof Factor) {
                         _results.push(vector);
                     } else {
@@ -1979,7 +1991,7 @@
                 _results = [];
                 for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
                     field = _ref[_j];
-                    _results.push(frame.evaluate(field));
+                    _results.push(_.head(frame.evaluate(field)));
                 }
                 return _results;
             }();
@@ -2496,7 +2508,7 @@
     encodeColor = function (frame, channel) {
         var at, domain, encode, range, scale, skew, vector;
         if (channel instanceof VariableFillColorChannel || channel instanceof VariableStrokeColorChannel) {
-            vector = frame.evaluate(channel.field);
+            vector = _.head(frame.evaluate(channel.field));
             if (vector instanceof Factor) {
                 if (!channel.range) {
                     channel.range = new CategoricalRange(pickCategoricalColorPalette(vector.domain.length));
@@ -2534,7 +2546,7 @@
     encodeOpacity = function (frame, channel) {
         var at, domain, encode, range, scale, vector;
         if (channel instanceof VariableFillOpacityChannel || channel instanceof VariableStrokeOpacityChannel) {
-            vector = frame.evaluate(channel.field);
+            vector = _.head(frame.evaluate(channel.field));
             if (vector instanceof Factor) {
                 throw new Error('Could not encode opacity. Vector [' + vector.label + '] is a Factor.');
             }
@@ -2573,7 +2585,7 @@
         return function (frame, channel, limit) {
             var at, domain, encode, range, scale, vector;
             if (channel instanceof channelClass) {
-                vector = frame.evaluate(channel.field);
+                vector = _.head(frame.evaluate(channel.field));
                 if (vector instanceof Factor) {
                     throw new Error('Could not encode size. Vector [' + vector.label + '] is a Factor.');
                 }
@@ -2596,7 +2608,7 @@
     encodeArea = function (frame, channel) {
         var at, domain, encode, range, scale, vector;
         if (channel instanceof VariableSizeChannel) {
-            vector = frame.evaluate(channel.field);
+            vector = _.head(frame.evaluate(channel.field));
             if (vector instanceof Factor) {
                 throw new Error('Could not encode size. Vector [' + vector.label + '] is a Factor.');
             }
@@ -2615,7 +2627,7 @@
     encodeLineWidth = function (frame, channel) {
         var at, domain, encode, range, scale, vector;
         if (channel instanceof VariableLineWidthChannel) {
-            vector = frame.evaluate(channel.field);
+            vector = _.head(frame.evaluate(channel.field));
             if (vector instanceof Factor) {
                 throw new Error('Could not encode lineWidth. Vector [' + vector.label + '] is a Factor.');
             }
@@ -2634,7 +2646,7 @@
     encodeShape = function (frame, channel) {
         var at, encode, scale, vector;
         if (channel instanceof VariableShapeChannel) {
-            vector = frame.evaluate(channel.field);
+            vector = _.head(frame.evaluate(channel.field));
             if (!(vector instanceof Factor)) {
                 throw new Error('Could not encode shape. Vector [' + vector.label + '] is not a Factor.');
             }
@@ -4746,7 +4758,7 @@
                 return frame.vectors;
             }
         }();
-        vectors = _.flatten(vectorGroups, true);
+        vectors = _.flatten(vectorGroups);
         _ref = createHtmlTemplates('table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'), table = _ref[0], thead = _ref[1], tbody = _ref[2], tr = _ref[3], th = _ref[4], thr = _ref[5], td = _ref[6], tdr = _ref[7];
         ths = function () {
             var _i, _len, _results;
@@ -4817,7 +4829,7 @@
                 }
                 return _results;
             }();
-            return createMark(expr, positionVectors);
+            return createMark(expr, _.flatten(positionVectors));
         });
         spaces = _.map(marks, function (mark) {
             return mark.space;
