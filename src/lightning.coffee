@@ -225,6 +225,7 @@ class Stroke
   ) ->
 
 class TableExpr
+  constructor: (@fields) ->
 
 class RecordExpr
   constructor: (@index) ->
@@ -406,6 +407,7 @@ class SchemaXEncoding extends Encoding
     @strokeOpacity
     @lineWidth
   ) -> 
+
 class SchemaYEncoding extends Encoding
   constructor: (
     @positionX
@@ -460,7 +462,6 @@ class PathEncoding extends Encoding
     @strokeOpacity
     @lineWidth
   ) ->
-
 
 class Space2D
   constructor: (@x, @y) ->
@@ -521,13 +522,21 @@ class PositionChannel extends Channel
   constructor: (@coordinates) ->
 
 class FillColorChannel extends Channel
+
 class FillOpacityChannel extends Channel
+
 class StrokeColorChannel extends Channel
+
 class StrokeOpacityChannel extends Channel
+
 class SizeChannel extends Channel
+
 class WidthChannel extends Channel
+
 class HeightChannel extends Channel
+
 class LineWidthChannel extends Channel
+
 class ShapeChannel extends Channel
 
 class ConstantFillColorChannel extends FillColorChannel
@@ -870,11 +879,15 @@ createList = (label, data, _format) ->
 
 # string, type, [a], (int -> string) -> Vector
 createVector = (label, type, data, _format) ->
+  _createVector label, label, type, data, _format
+
+#TODO HACK - refactor callers to specify name
+_createVector = (name, label, type, data, _format) ->
   domain = computeExtent data
   count = -> data.length
   at = (i) -> data[i]
   format = if _format then (i) -> _format data[i] else at
-  new Vector label, label, type, at, count, domain, format
+  new Vector name, label, type, at, count, domain, format
 
 #
 # Factor
@@ -985,7 +998,7 @@ createFactorField = (field) ->
       length = vector.count()
       at = vector.at
       data = new Array length
-      for i in [ 0 ... length ]
+      for i in [ 0 ... length ] #TODO for i in frame.indices?
         if undefined isnt value = at i
           data[i] = '' + value
 
@@ -993,9 +1006,65 @@ createFactorField = (field) ->
       new Field computedVector.name
 
 plot_factor = dispatch(
-  [ String, (name) -> createFactorField new Field name ]
+  [ String, (name) -> plot_factor new Field name ]
   [ Field, (field) -> createFactorField field ]
 )
+
+createStackedField = (stackedField, factorFields) ->
+  new MappedField (frame) ->
+    vector = frame.evaluate stackedField
+    factors = for factorField in factorFields
+      frame.evaluate factorField
+
+    throw new Error "Cannot stack factor [#{vector.label}]: expecting vector." if vector instanceof Factor
+
+    for factor in factors
+      throw new Error "Cannot stack vector [#{vector.label}] by [#{factor.label}]: not a factor." unless factor instanceof Factor
+
+    length = vector.count()
+    at = vector.at
+    lows = new Array length
+    highs = new Array length
+
+    factorNames = join (factor.name for factor in factors), ', '
+    lowName = "low(#{vector.name}, #{factorNames})"
+    highName = "high(#{vector.name}, #{factorNames})"
+
+    lo = hi = 0
+    #XXX fix logic to respect factors
+    for i in frame.indices
+      value = at i
+      if value < 0
+        lows[i] = lo
+        highs[i] = lo = lo + value
+      else
+        lows[i] = hi
+        highs[i] = hi = hi + value
+
+    frame.attach _createVector lowName, vector.name, vector.type, lows, vector.format
+    frame.attach _createVector highName, vector.name, vector.type, lows, vector.format
+
+    [
+      new Field lowName
+      new Field highName
+    ]
+
+plot_stack = dispatch(
+  [ String, (name) -> plot_stack new Field name ] 
+  [ Field, (field) -> createStackedField field ]
+)
+
+plot_stack = (args...) ->
+  [ stackedField, factorFields... ] = collectFields args
+
+  if factorFields.length
+    createStackedField stackedField, factorFields
+  else
+    throw new Error "Expecting at least one field to stack [#{stackedField.name}] by."
+
+
+
+  
 
 # Schema computations
 # ------------------------------
@@ -1092,9 +1161,9 @@ plot_aggregate = (title, type, format, func) ->
     [ Field, (field) -> createAggregateField field, title, type, format, func ]
   )
 
-plot_avg = plot_aggregate 'avg', TNumber, identity, aggregate_avg
-
 plot_count = plot_aggregate 'count', TNumber, identity, aggregate_count
+
+plot_avg = plot_aggregate 'avg', TNumber, identity, aggregate_avg
 
 plot_max = plot_aggregate 'max', TNumber, identity, aggregate_max
 
@@ -2743,21 +2812,17 @@ plot_range = dispatch(
   [ String, String, String, (a, b, c) -> new DivergingColorRange a, b, c ]
 )
 
-#TODO use dispatching?
-collectCoordinates = (args) ->
+collectFields = (args) ->
   for arg in args
     if arg instanceof Field
-      new CoordChannel arg
+      arg
+    else if TString is (type = typeOf arg)
+      new Field arg
     else
-      switch type = typeOf arg
-        when TString
-          new CoordChannel new Field arg
-        else
-          throw new Error "Cannot create position coordinates from [#{arg}] of type [#{type}]."
-
+      throw new Error "Cannot create vector reference from [#{arg}] of type [#{type}]."
 
 plot_position = (args...) ->
-  new PositionChannel collectCoordinates args
+  new PositionChannel (new CoordChannel field for field in collectFields args)
 
 #TODO dispatching is a clone of strokeColor
 plot_fillColor = dispatch(
@@ -2839,8 +2904,8 @@ plot_shape = dispatch(
   [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
-plot_table = ->
-  new TableExpr()
+plot_table = (args...) ->
+  new TableExpr collectFields args
 
 plot_record = (index=0) ->
   new RecordExpr index
@@ -3500,10 +3565,6 @@ renderHtml = (htmlString) ->
 # ==============================
 #
 
-evaluateVectors = (frame, channels) ->
-  for channel in channels
-    frame.evaluate channel.field
-
 createSpace1D = (vectors) ->
   type = null
   domain = null
@@ -3539,12 +3600,6 @@ createSpace1D = (vectors) ->
           throw new Error 'ni'
     
   new Space1D type, vectors, domain
-
-createSpace2D = (frame, coordsX, coordsY) ->
-  new Space2D(
-    evaluateVectors frame, coordsX
-    evaluateVectors frame, coordsY
-  )
 
 createAxisLabel = (vectors) ->
   labels = for vector in vectors
@@ -3608,6 +3663,7 @@ createAxis = (type, label, domain, range, rect) ->
 renderVisualization = (_frame, ops) ->
   query = createQuery ops
   frame = queryFrame _frame, query
+  debug frame
 
   if findByType ops, TableExpr
     renderTable frame, ops
@@ -3647,10 +3703,18 @@ renderRecord = (frame, ops) ->
 
 renderTable = (frame, ops) ->
   tableExpr = findByType ops, TableExpr
+
+  vectorGroups = if tableExpr.fields.length
+    for field in tableExpr.fields
+      frame.evaluate field
+  else
+    frame.vectors
+
+  vectors = flatten vectorGroups, yes
   
   [ table, thead, tbody, tr, th, thr, td, tdr ] = createHtmlTemplates 'table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'
   
-  ths = for name, vector of frame.schema
+  ths = for vector in vectors
     switch vector.type
       when TNumber
         thr escape vector.label
@@ -3658,7 +3722,7 @@ renderTable = (frame, ops) ->
         th escape vector.label
 
   trs = for i in frame.indices
-    tds = for name, vector of frame.schema
+    tds = for vector in vectors
       value = vector.format i
       switch vector.type
         when TString
@@ -3682,13 +3746,10 @@ renderTable = (frame, ops) ->
   new Plot element, subscribe, unsubscribe
 
 renderPlot = (frame, ops) ->
-  #query = createQuery ops
-  #frame = queryFrame _frame, query
-  # debug dumpFrame frame
-
   marks = map (filterByType ops, MarkExpr), (expr) ->
     positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
+    #XXX Flatten positionVectors: stack() will produce 2 vectors
     createMark expr, positionVectors
 
   spaces = map marks, (mark) -> mark.space
@@ -3854,6 +3915,7 @@ plot.height = plot_height
 plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
 plot.factor = plot_factor
+plot.stack = plot_stack
 plot.groupBy = plot_groupBy
 plot.select = plot_select
 plot.where = plot_where

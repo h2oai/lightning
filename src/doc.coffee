@@ -706,7 +706,7 @@ plot(
 
 ###
 plot table-where
-table + where
+table + select + where
 Description goes here.
 ---
 tags:
@@ -715,7 +715,7 @@ tags:
 ###
 
 plot(
-  table() 
+  table 'model', 'mpg', 'cyl', 'disp', 'hp'
   from csv 'mtcars'
   where 'model', like /Merc/
 )
@@ -739,4 +739,31 @@ plot(
   # where 'model', like /Merc/
 )
 
+###
+plot grouped-bars
+grouped bars
+Description goes here.
+###
+
+plot(
+  rect(
+    position 'factor(cyl)', stack(count('cyl'), 'factor(vs)')
+    fillColor 'factor(vs)'
+  )
+  from csv 'mtcars'
+  groupBy factor('cyl'), factor('vs')
+)
+
+
+###
+plot grouped-bars-temp
+grouped bars
+Description goes here.
+###
+
+plot(
+  table 'factor(cyl)', 'factor(vs)', stack(count('cyl'), 'factor(vs)')
+  from csv 'mtcars'
+  groupBy factor('cyl'), factor('vs')
+)
 

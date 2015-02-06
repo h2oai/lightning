@@ -1,5 +1,5 @@
 (function () {
-    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectCoordinates, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createSpace2D, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, evaluateVectors, extractFactor, factorize, filterByType, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_record, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
+    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_record, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -354,7 +354,8 @@
         return Stroke;
     }();
     TableExpr = function () {
-        function TableExpr() {
+        function TableExpr(_at_fields) {
+            this.fields = _at_fields;
         }
         return TableExpr;
     }();
@@ -1414,6 +1415,9 @@
         return new List(label, label, at, count, data, format);
     };
     createVector = function (label, type, data, _format) {
+        return _createVector(label, label, type, data, _format);
+    };
+    _createVector = function (name, label, type, data, _format) {
         var at, count, domain, format;
         domain = computeExtent(data);
         count = function () {
@@ -1425,7 +1429,7 @@
         format = _format ? function (i) {
             return _format(data[i]);
         } : at;
-        return new Vector(label, label, type, at, count, domain, format);
+        return new Vector(name, label, type, at, count, domain, format);
     };
     factorize = function (_read, count, values) {
         var at, category, data, domain, element, format, i, length, value, valueAt, _dictionary, _i, _id;
@@ -1566,7 +1570,7 @@
     plot_factor = dispatch([
         String,
         function (name) {
-            return createFactorField(new Field(name));
+            return plot_factor(new Field(name));
         }
     ], [
         Field,
@@ -1574,6 +1578,85 @@
             return createFactorField(field);
         }
     ]);
+    createStackedField = function (stackedField, factorFields) {
+        return new MappedField(function (frame) {
+            var at, factor, factorField, factorNames, factors, hi, highName, highs, i, length, lo, lowName, lows, value, vector, _i, _j, _len, _len1, _ref;
+            vector = frame.evaluate(stackedField);
+            factors = function () {
+                var _i, _len, _results;
+                _results = [];
+                for (_i = 0, _len = factorFields.length; _i < _len; _i++) {
+                    factorField = factorFields[_i];
+                    _results.push(frame.evaluate(factorField));
+                }
+                return _results;
+            }();
+            if (vector instanceof Factor) {
+                throw new Error('Cannot stack factor [' + vector.label + ']: expecting vector.');
+            }
+            for (_i = 0, _len = factors.length; _i < _len; _i++) {
+                factor = factors[_i];
+                if (!(factor instanceof Factor)) {
+                    throw new Error('Cannot stack vector [' + vector.label + '] by [' + factor.label + ']: not a factor.');
+                }
+            }
+            length = vector.count();
+            at = vector.at;
+            lows = new Array(length);
+            highs = new Array(length);
+            factorNames = function () {
+                var _j, _len1, _results;
+                _results = [];
+                for (_j = 0, _len1 = factors.length; _j < _len1; _j++) {
+                    factor = factors[_j];
+                    _results.push(factor.name);
+                }
+                return _results;
+            }().join(', ');
+            lowName = 'low(' + vector.name + ', ' + factorNames + ')';
+            highName = 'high(' + vector.name + ', ' + factorNames + ')';
+            lo = hi = 0;
+            _ref = frame.indices;
+            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+                i = _ref[_j];
+                value = at(i);
+                if (value < 0) {
+                    lows[i] = lo;
+                    highs[i] = lo = lo + value;
+                } else {
+                    lows[i] = hi;
+                    highs[i] = hi = hi + value;
+                }
+            }
+            frame.attach(_createVector(lowName, vector.name, vector.type, lows, vector.format));
+            frame.attach(_createVector(highName, vector.name, vector.type, lows, vector.format));
+            return [
+                new Field(lowName),
+                new Field(highName)
+            ];
+        });
+    };
+    plot_stack = dispatch([
+        String,
+        function (name) {
+            return plot_stack(new Field(name));
+        }
+    ], [
+        Field,
+        function (field) {
+            return createStackedField(field);
+        }
+    ]);
+    plot_stack = function () {
+        var args, factorFields, stackedField, _ref;
+        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        _ref = collectFields(args), stackedField = _ref[0], factorFields = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
+        if (factorFields.length) {
+            return createStackedField(stackedField, factorFields);
+        } else {
+            throw new Error('Expecting at least one field to stack [' + stackedField.name + '] by.');
+        }
+    };
     quantile_ = function (values) {
         var clampIndex;
         clampIndex = clamp_(0, values.length - 1);
@@ -1714,8 +1797,8 @@
             }
         ]);
     };
-    plot_avg = plot_aggregate('avg', TNumber, _.identity, aggregate_avg);
     plot_count = plot_aggregate('count', TNumber, _.identity, aggregate_count);
+    plot_avg = plot_aggregate('avg', TNumber, _.identity, aggregate_avg);
     plot_max = plot_aggregate('max', TNumber, _.identity, aggregate_max);
     plot_min = plot_aggregate('min', TNumber, _.identity, aggregate_min);
     plot_sum = plot_aggregate('sum', TNumber, _.identity, aggregate_sum);
@@ -3529,29 +3612,34 @@
             return new DivergingColorRange(a, b, c);
         }
     ]);
-    collectCoordinates = function (args) {
+    collectFields = function (args) {
         var arg, type, _i, _len, _results;
         _results = [];
         for (_i = 0, _len = args.length; _i < _len; _i++) {
             arg = args[_i];
             if (arg instanceof Field) {
-                _results.push(new CoordChannel(arg));
+                _results.push(arg);
+            } else if (TString === (type = typeOf(arg))) {
+                _results.push(new Field(arg));
             } else {
-                switch (type = typeOf(arg)) {
-                case TString:
-                    _results.push(new CoordChannel(new Field(arg)));
-                    break;
-                default:
-                    throw new Error('Cannot create position coordinates from [' + arg + '] of type [' + type + '].');
-                }
+                throw new Error('Cannot create vector reference from [' + arg + '] of type [' + type + '].');
             }
         }
         return _results;
     };
     plot_position = function () {
-        var args;
+        var args, field;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return new PositionChannel(collectCoordinates(args));
+        return new PositionChannel(function () {
+            var _i, _len, _ref, _results;
+            _ref = collectFields(args);
+            _results = [];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                field = _ref[_i];
+                _results.push(new CoordChannel(field));
+            }
+            return _results;
+        }());
     };
     plot_fillColor = dispatch([
         StringValue,
@@ -3779,7 +3867,9 @@
         }
     ]);
     plot_table = function () {
-        return new TableExpr();
+        var args;
+        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        return new TableExpr(collectFields(args));
     };
     plot_record = function (index) {
         if (index == null) {
@@ -4462,15 +4552,6 @@
         el.innerHTML = htmlString;
         return el.childNodes[0];
     };
-    evaluateVectors = function (frame, channels) {
-        var channel, _i, _len, _results;
-        _results = [];
-        for (_i = 0, _len = channels.length; _i < _len; _i++) {
-            channel = channels[_i];
-            _results.push(frame.evaluate(channel.field));
-        }
-        return _results;
-    };
     createSpace1D = function (vectors) {
         var domain, type, vector, _i, _len, _vector;
         type = null;
@@ -4510,9 +4591,6 @@
             }
         }
         return new Space1D(type, vectors, domain);
-    };
-    createSpace2D = function (frame, coordsX, coordsY) {
-        return new Space2D(evaluateVectors(frame, coordsX), evaluateVectors(frame, coordsY));
     };
     createAxisLabel = function (vectors) {
         var labels, vector;
@@ -4591,6 +4669,7 @@
         var frame, query;
         query = createQuery(ops);
         frame = queryFrame(_frame, query);
+        console.debug(frame);
         if (findByType(ops, TableExpr)) {
             return renderTable(frame, ops);
         } else if (findByType(ops, RecordExpr)) {
@@ -4651,15 +4730,29 @@
         return new Plot(element, subscribe, unsubscribe);
     };
     renderTable = function (frame, ops) {
-        var element, i, name, subscribe, table, tableExpr, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, _ref;
+        var element, field, i, subscribe, table, tableExpr, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, vectorGroups, vectors, _ref;
         tableExpr = findByType(ops, TableExpr);
+        vectorGroups = function () {
+            var _i, _len, _ref, _results;
+            if (tableExpr.fields.length) {
+                _ref = tableExpr.fields;
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    field = _ref[_i];
+                    _results.push(frame.evaluate(field));
+                }
+                return _results;
+            } else {
+                return frame.vectors;
+            }
+        }();
+        vectors = _.flatten(vectorGroups, true);
         _ref = createHtmlTemplates('table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'), table = _ref[0], thead = _ref[1], tbody = _ref[2], tr = _ref[3], th = _ref[4], thr = _ref[5], td = _ref[6], tdr = _ref[7];
         ths = function () {
-            var _ref1, _results;
-            _ref1 = frame.schema;
+            var _i, _len, _results;
             _results = [];
-            for (name in _ref1) {
-                vector = _ref1[name];
+            for (_i = 0, _len = vectors.length; _i < _len; _i++) {
+                vector = vectors[_i];
                 switch (vector.type) {
                 case TNumber:
                     _results.push(thr(_.escape(vector.label)));
@@ -4677,11 +4770,10 @@
             for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
                 i = _ref1[_i];
                 tds = function () {
-                    var _ref2, _results1;
-                    _ref2 = frame.schema;
+                    var _j, _len1, _results1;
                     _results1 = [];
-                    for (name in _ref2) {
-                        vector = _ref2[name];
+                    for (_j = 0, _len1 = vectors.length; _j < _len1; _j++) {
+                        vector = vectors[_j];
                         value = vector.format(i);
                         switch (vector.type) {
                         case TString:
@@ -4870,6 +4962,7 @@
     plot.lineWidth = plot_lineWidth;
     plot.shape = plot_shape;
     plot.factor = plot_factor;
+    plot.stack = plot_stack;
     plot.groupBy = plot_groupBy;
     plot.select = plot_select;
     plot.where = plot_where;
