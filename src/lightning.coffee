@@ -1015,29 +1015,36 @@ plot_factor = dispatch(
   [ Field, (field) -> createFactorField field ]
 )
 
-createStackedField = (stackedField, factorFields) ->
+createStackedField = (stackedField, depth) ->
   new MappedField (frame) ->
     vector = head frame.evaluate stackedField
-    factors = for factorField in factorFields
-      head frame.evaluate factorField
 
     throw new Error "Cannot stack factor [#{vector.label}]: expecting vector." if vector instanceof Factor
 
-    for factor in factors
-      throw new Error "Cannot stack vector [#{vector.label}] by [#{factor.label}]: not a factor." unless factor instanceof Factor
-
     length = vector.count()
-    at = vector.at
     lows = new Array length
     highs = new Array length
+    lowName = "low(#{vector.name}, #{depth})"
+    highName = "high(#{vector.name}, #{depth})"
 
-    factorNames = join (factor.name for factor in factors), ', '
-    lowName = "low(#{vector.name}, #{factorNames})"
-    highName = "high(#{vector.name}, #{factorNames})"
+    at = vector.at
+
+    cube = frame.cube
+    depth = Math.min depth, cube.dimension
+    cells = cube.cells
 
     lo = hi = 0
-    #XXX fix logic to respect factors
+    _categories = new Array depth
     for i in frame.indices
+      levels = cells[i].levels
+      for j in [0 ... depth]
+        if _categories[j] isnt levels[j].category
+          # Reset
+          lo = hi = 0
+          for k in [0 ... depth]
+            _categories[k] = levels[k].category
+          break
+
       value = at i
       if value < 0
         lows[i] = lo
@@ -1057,18 +1064,9 @@ createStackedField = (stackedField, factorFields) ->
     ]
 
 plot_stack = dispatch(
-  [ String, (name) -> plot_stack new Field name ] 
-  [ Field, (field) -> createStackedField field ]
+  [ String, Number, (name, depth) -> plot_stack (new Field name), depth ] 
+  [ Field, Number, (field, depth) -> createStackedField field, depth ]
 )
-
-plot_stack = (args...) ->
-  [ stackedField, factorFields... ] = collectFields args
-
-  if factorFields.length
-    createStackedField stackedField, factorFields
-  else
-    throw new Error "Expecting at least one field to stack [#{stackedField.name}] by."
-
 
 
   
@@ -1138,12 +1136,10 @@ aggregate_sum = (array) ->
     total += value
   total
 
-###
-aggregate_stddev = (array) -> #TODO
-aggregate_stddevP = (array) -> #TODO
-aggregate_variance = (array) -> #TODO
-aggregate_varianceP = (array) -> #TODO
-###
+# aggregate_stddev = (array) -> #TODO
+# aggregate_stddevP = (array) -> #TODO
+# aggregate_variance = (array) -> #TODO
+# aggregate_varianceP = (array) -> #TODO
 
 createAggregateField = (field, symbol, type, format, f) ->
   new ReducedField (frame, cube) ->
@@ -2871,16 +2867,6 @@ plot_strokeOpacity = dispatch(
   [ Field, SequentialRange, (field, range) -> new VariableStrokeOpacityChannel field, range ]
 )
 
-###
-plot_size = dispatch(
-  [ NumberValue, (value) -> new ConstantSizeChannel value.value ]
-  [ String, (name) -> new VariableSizeChannel new Field name ]
-  [ Field, (field) -> new VariableSizeChannel field ]
-  [ String, SequentialRange, (name, range) -> new VariableSizeChannel (new Field name), range ]
-  [ Field, SequentialRange, (field, range) -> new VariableSizeChannel field, range ]
-)
-###
-
 dispatch_numeric = (constChannelClass, variableChannelClass) ->
   dispatch(
     [ NumberValue, (value) -> new constChannelClass value.value ]
@@ -3329,7 +3315,7 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
         for layer in _layers
           for aes, encoding of layer.encodings when encoding
             if vector = encoding.vector
-              tooltipData[vector.name] = vector.format i
+              tooltipData[vector.label] = vector.format i
         
         displayTooltip x, y, tooltipData
     else

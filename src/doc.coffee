@@ -740,14 +740,44 @@ plot(
 )
 
 ###
-plot stacked-bars
-stacked bars
-Description goes here.
+plot stacked-bars-0
+stacked bars, 0 depth
+Stacking with depth = 0 stacks everything.
 ###
 
 plot(
   rect(
-    position 'factor(cyl)', stack(count('cyl'), 'factor(vs)')
+    position 'factor(cyl)', stack(count('cyl'), 0)
+    fillColor 'factor(vs)'
+  )
+  from csv 'mtcars'
+  groupBy factor('cyl'), factor('vs')
+)
+
+###
+plot stacked-bars-1
+stacked bars, depth 1
+Stacking with depth = number of "detail" factors is the common use case.
+###
+
+plot(
+  rect(
+    position 'factor(cyl)', stack(count('cyl'), 1)
+    fillColor 'factor(vs)'
+  )
+  from csv 'mtcars'
+  groupBy factor('cyl'), factor('vs')
+)
+
+###
+plot stacked-bars-2
+stacked bars, depth 2
+Stacking with depth = cube-dimension leads to occlusion (equivalent to not stacking).
+###
+
+plot(
+  rect(
+    position 'factor(cyl)', stack(count('cyl'), 2)
     fillColor 'factor(vs)'
   )
   from csv 'mtcars'
@@ -762,7 +792,7 @@ Description goes here.
 ###
 
 plot(
-  table 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 'factor(vs)')
+  table 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 1)
   from csv 'mtcars'
   groupBy factor('cyl'), factor('vs')
 )

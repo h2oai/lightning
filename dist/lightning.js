@@ -1590,47 +1590,37 @@
             return createFactorField(field);
         }
     ]);
-    createStackedField = function (stackedField, factorFields) {
+    createStackedField = function (stackedField, depth) {
         return new MappedField(function (frame) {
-            var at, factor, factorField, factorNames, factors, format, hi, highName, highs, i, length, lo, lowName, lows, value, vector, _i, _j, _len, _len1, _ref;
+            var at, cells, cube, format, hi, highName, highs, i, j, k, length, levels, lo, lowName, lows, value, vector, _categories, _i, _j, _k, _len, _ref;
             vector = _.head(frame.evaluate(stackedField));
-            factors = function () {
-                var _i, _len, _results;
-                _results = [];
-                for (_i = 0, _len = factorFields.length; _i < _len; _i++) {
-                    factorField = factorFields[_i];
-                    _results.push(_.head(frame.evaluate(factorField)));
-                }
-                return _results;
-            }();
             if (vector instanceof Factor) {
                 throw new Error('Cannot stack factor [' + vector.label + ']: expecting vector.');
             }
-            for (_i = 0, _len = factors.length; _i < _len; _i++) {
-                factor = factors[_i];
-                if (!(factor instanceof Factor)) {
-                    throw new Error('Cannot stack vector [' + vector.label + '] by [' + factor.label + ']: not a factor.');
-                }
-            }
             length = vector.count();
-            at = vector.at;
             lows = new Array(length);
             highs = new Array(length);
-            factorNames = function () {
-                var _j, _len1, _results;
-                _results = [];
-                for (_j = 0, _len1 = factors.length; _j < _len1; _j++) {
-                    factor = factors[_j];
-                    _results.push(factor.name);
-                }
-                return _results;
-            }().join(', ');
-            lowName = 'low(' + vector.name + ', ' + factorNames + ')';
-            highName = 'high(' + vector.name + ', ' + factorNames + ')';
+            lowName = 'low(' + vector.name + ', ' + depth + ')';
+            highName = 'high(' + vector.name + ', ' + depth + ')';
+            at = vector.at;
+            cube = frame.cube;
+            depth = Math.min(depth, cube.dimension);
+            cells = cube.cells;
             lo = hi = 0;
+            _categories = new Array(depth);
             _ref = frame.indices;
-            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
-                i = _ref[_j];
+            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                i = _ref[_i];
+                levels = cells[i].levels;
+                for (j = _j = 0; 0 <= depth ? _j < depth : _j > depth; j = 0 <= depth ? ++_j : --_j) {
+                    if (_categories[j] !== levels[j].category) {
+                        lo = hi = 0;
+                        for (k = _k = 0; 0 <= depth ? _k < depth : _k > depth; k = 0 <= depth ? ++_k : --_k) {
+                            _categories[k] = levels[k].category;
+                        }
+                        break;
+                    }
+                }
                 value = at(i);
                 if (value < 0) {
                     lows[i] = lo;
@@ -1653,25 +1643,17 @@
     };
     plot_stack = dispatch([
         String,
-        function (name) {
-            return plot_stack(new Field(name));
+        Number,
+        function (name, depth) {
+            return plot_stack(new Field(name), depth);
         }
     ], [
         Field,
-        function (field) {
-            return createStackedField(field);
+        Number,
+        function (field, depth) {
+            return createStackedField(field, depth);
         }
     ]);
-    plot_stack = function () {
-        var args, factorFields, stackedField, _ref;
-        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        _ref = collectFields(args), stackedField = _ref[0], factorFields = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
-        if (factorFields.length) {
-            return createStackedField(stackedField, factorFields);
-        } else {
-            throw new Error('Expecting at least one field to stack [' + stackedField.name + '] by.');
-        }
-    };
     quantile_ = function (values) {
         var clampIndex;
         clampIndex = clamp_(0, values.length - 1);
@@ -4327,7 +4309,7 @@
                             encoding = _ref[aes];
                             if (encoding) {
                                 if (vector = encoding.vector) {
-                                    tooltipData[vector.name] = vector.format(i);
+                                    tooltipData[vector.label] = vector.format(i);
                                 }
                             }
                         }
