@@ -690,7 +690,7 @@ class Box
     )
 
 class Query
-  constructor: (@select, @where, @group, @having) ->
+  constructor: (@select, @where, @limit, @group, @having) ->
 
 class Category
   constructor: (@key, @value) ->
@@ -747,6 +747,9 @@ class SelectOp
 
 class WhereOp
   constructor: (@fields, @predicate) ->
+
+class LimitOp
+  constructor: (@offset, @length) ->
 
 class HavingOp
   constructor: (@fields, @predicate) ->
@@ -994,6 +997,7 @@ createQuery = (ops) ->
   new Query(
     filterByType ops, SelectOp
     filterByType ops, WhereOp
+    filterByType ops, LimitOp
     filterByType ops, GroupOp
     filterByType ops, HavingOp
   )
@@ -1228,6 +1232,11 @@ plot__where = dispatch(
 
 plot_where = (names..., func) -> plot__where names, func
 
+plot_limit = dispatch(
+  [ Number, Number, (offset, length) -> new LimitOp offset, length ]
+  [ Number, (length) -> new LimitOp 0, length ]
+)
+
 # HAVING clause
 # ------------------------------
 
@@ -1277,7 +1286,7 @@ queryFrame = (frame, query) ->
   else
     frame
   
-  if query.group.length
+  resultFrame = if query.group.length
     fields = flatMap query.group, (op) -> op.fields
     factors = for field in fields
       vector = head filteredFrame.evaluate field
@@ -1302,6 +1311,13 @@ queryFrame = (frame, query) ->
       aggregatedFrame
   else
     filteredFrame
+
+  if query.limit.length
+    # Last clause overrides
+    limit = query.limit[ query.limit.length - 1 ]
+    createFrame resultFrame.label, resultFrame.vectors, slice resultFrame.indices, limit.offset, limit.offset + limit.length
+  else
+    resultFrame
 
 filterFrame = (frame, ops) ->
   _indices = frame.indices # transient!
@@ -3928,6 +3944,7 @@ plot.stack = plot_stack
 plot.groupBy = plot_groupBy
 plot.select = plot_select
 plot.where = plot_where
+plot.limit = plot_limit
 plot.having = plot_having
 plot.eq = plot_eq
 plot.ne = plot_ne

@@ -706,7 +706,7 @@ plot(
 
 ###
 plot table-where
-table + select + where
+table + where
 Description goes here.
 ---
 tags:
@@ -718,6 +718,38 @@ plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
   from csv 'mtcars'
   where 'model', like /Merc/
+)
+
+###
+plot table-limit
+table + limit
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  table 'model', 'mpg', 'cyl', 'disp', 'hp'
+  from csv 'mtcars'
+  limit 5
+)
+
+###
+plot table-limit-offset
+table + limit + offset
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  table 'model', 'mpg', 'cyl', 'disp', 'hp'
+  from csv 'mtcars'
+  limit 10, 5
 )
 
 ###
