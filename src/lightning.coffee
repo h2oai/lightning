@@ -3590,7 +3590,17 @@ renderHtml = (htmlString) ->
 # ==============================
 #
 
-createSpace1D = (vectors) ->
+filterFactorDomain = (factor, indices) ->
+  dict = {}
+  domain = []
+  for index in indices
+    { key } = category = factor.at index
+    unless dict[key]
+      dict[key] = yes
+      domain.push category
+  domain
+
+createSpace1D = (vectors, indices) ->
   type = null
   domain = null
   _vector = null
@@ -3601,7 +3611,7 @@ createSpace1D = (vectors) ->
       switch type
         when TString
           _vector = vector
-          domain = vector.domain
+          domain = filterFactorDomain vector, indices
 
         when TNumber
           domain = vector.domain
@@ -3790,8 +3800,8 @@ renderPlot = (frame, ops) ->
   vectorsX = flatMap spaces, (space) -> space.x
   vectorsY = flatMap spaces, (space) -> space.y
 
-  spaceX = createSpace1D vectorsX
-  spaceY = createSpace1D vectorsY
+  spaceX = createSpace1D vectorsX, frame.indices
+  spaceY = createSpace1D vectorsY, frame.indices
 
   domainX = computeAxisDomain spaceX, spaceY
   domainY = computeAxisDomain spaceY, spaceX

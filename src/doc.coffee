@@ -753,6 +753,24 @@ plot(
 )
 
 ###
+plot rect-limit-offset
+rect + limit + offset
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'mpg', 'model'
+  )
+  from csv 'mtcars'
+  limit 10, 5
+)
+
+###
 plot histogram
 rect + width
 Description goes here.
