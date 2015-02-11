@@ -3770,6 +3770,15 @@ renderTable = (frame, ops) ->
 
   new Plot element, subscribe, unsubscribe
 
+computeAxisDomain = (self, other) ->
+  if self.type is TNumber
+    if other.type is TString
+      includeOrigin0 self.domain
+    else # other.type is TNumber
+      self.domain
+  else
+    self.domain
+
 renderPlot = (frame, ops) ->
   marks = map (filterByType ops, MarkExpr), (expr) ->
     positionVectors = for coord in expr.position.coordinates
@@ -3784,21 +3793,8 @@ renderPlot = (frame, ops) ->
   spaceX = createSpace1D vectorsX
   spaceY = createSpace1D vectorsY
 
-  domainX = if spaceX.type is TNumber
-    if spaceY.type is TString
-      includeOrigin0 spaceX.domain
-    else
-      spaceX.domain
-  else
-    spaceX.domain
-
-  domainY = if spaceY.type is TNumber
-    if spaceX.type is TString
-      includeOrigin0 spaceY.domain
-    else
-      spaceY.domain
-  else
-    spaceY.domain
+  domainX = computeAxisDomain spaceX, spaceY
+  domainY = computeAxisDomain spaceY, spaceX
 
   axisBoundsX = computeApproxAxisSize spaceX.type, domainX
   axisBoundsY = computeApproxAxisSize spaceY.type, domainY
