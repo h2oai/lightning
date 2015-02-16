@@ -872,3 +872,20 @@ plot(
   from csv 'mtcars'
   groupBy factor(value 'All'), factor('cyl')
 )
+
+###
+plot path-missings
+path with missing values
+Description goes here.
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  path(
+    position 'name', 'brainwt'
+  )
+  from csv 'msleep'
+)
