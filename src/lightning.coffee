@@ -768,6 +768,24 @@ class DeselectEventArg
 # ==============================
 #
 
+# string -> real
+# NaN -> undefined
+asReal = (datum) ->
+  value = parseFloat datum
+  if isNaN value then undefined else value
+
+# string -> int
+# NaN -> undefined
+asInt = (datum) ->
+  value = parseInt datum, 10
+  if isNaN value then undefined else value
+
+# string -> string
+# null -> undefined
+# undefined -> undefined
+asString = (datum) ->
+  if datum? then datum else undefined
+
 # real -> real
 sq = (x) -> x * x
 
@@ -868,6 +886,14 @@ includeOrigin_ = (origin) -> (extent) ->
     extent
 
 includeOrigin0 = includeOrigin_ 0
+
+# Requires jQuery
+download = (type, url, go) ->
+  $.ajax
+    dataType: type
+    url: url
+    success: (data, status, xhr) -> go null, data
+    error: (xhr, status, error) -> go error
 
 #
 # Vector
@@ -2935,6 +2961,89 @@ plot_table = (args...) ->
 plot_record = (index=0) ->
   new RecordExpr index
 
+configureSchema = (schema) ->
+  for label, obj of schema
+    if _.isString obj
+      switch obj
+        when 'string'
+          label: label
+          type: 'String'
+          domain: []
+          parse: asString
+
+        when 'int'
+          label: label
+          type: 'Number'
+          parse: asInt
+
+        when 'real'
+          label: label
+          type: 'Number'
+          parse: asReal
+
+        #
+        #TODO dates
+        #
+        else
+          throw new Error "Invalid type #{obj} for schema field #{label}"
+
+    else if _.isArray obj
+      label: label
+      type: 'String'
+      domain: obj
+      parse: asString
+
+    else
+      throw new Error "Invalid type #{obj} for schema field #{label}"
+
+readCsvAsFrame = (label, columns, data) ->
+  rows = CSV.parse data,
+    header: no
+    cast: no
+
+  vectors = for column, offset in columns
+    data = new Array rows.length
+    for row, index in rows
+      if undefined isnt value = column.parse row[offset]
+        data[index] = value
+
+    switch column.type
+      when 'String'
+        plot.createFactor(
+          column.label   
+          column.type
+          data
+          column.domain
+        )
+      when 'Number'
+        plot.createVector(
+          column.label
+          column.type
+          data
+          _.identity #TODO
+        )
+      #TODO Date
+
+  createFrame label, vectors, _.range rows.length
+
+plot_remote = (url) -> (go) ->
+  download 'json', "#{url}.json", (error, descriptor) ->
+    if error
+      go error
+    else
+      switch descriptor.format
+        when 'csv'
+          download 'text', descriptor.location, (error, data) ->
+            if error
+              go error
+            else
+              try
+                go null, readCsvAsFrame descriptor.name, (configureSchema descriptor.schema), data
+              catch error
+                go error
+        else
+          go new Error "Unsupported format [#{descriptor.format}]"
+
 plot_point = (ops...) ->
   position = findByType ops, PositionChannel
 
@@ -3975,6 +4084,7 @@ plot.path = plot_path
 plot.schema = plot_schema
 plot.table = plot_table
 plot.record = plot_record
+plot.remote = plot_remote
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createList = createList

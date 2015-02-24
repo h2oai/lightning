@@ -11,7 +11,7 @@ plot(
   schema(
     position 'min', 'q1', 'q2', 'q3', 'max', factor('cyl')
   )
-  from csv 'mtcars_schema'
+  from remote 'data/mtcars_schema'
 )
 ###
 plot schema-y
@@ -26,7 +26,7 @@ plot(
   schema(
     position factor('cyl'), 'min', 'q1', 'q2', 'q3', 'max'
   )
-  from csv 'mtcars_schema'
+  from remote 'data/mtcars_schema'
 )
 ###
 plot point2
@@ -42,7 +42,7 @@ plot(
   point(
     position avg('wt'), avg('mpg')
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   where 'model', like /Merc/
   groupBy factor('cyl'), factor('carb')
 )
@@ -61,7 +61,7 @@ plot(
   point(
     position avg('wt'), avg('mpg')
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   where 'model', like /Merc/
   groupBy factor('cyl'), factor('carb')
   having avg('mpg'), gt 17
@@ -81,7 +81,7 @@ plot(
   point(
     position 'wt', 'mpg'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -99,7 +99,7 @@ plot(
     position 'wt', 'mpg'
     shape value 'triangleUp'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -117,7 +117,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor value 'red'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -136,7 +136,7 @@ plot(
     strokeColor value 'red'
     strokeOpacity value 0.5
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-sc-so-lw
@@ -155,7 +155,7 @@ plot(
     strokeOpacity value 0.5
     lineWidth value 5
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-fc
@@ -172,7 +172,7 @@ plot(
     position 'wt', 'mpg'
     fillColor value 'red'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-fc-fo
@@ -190,7 +190,7 @@ plot(
     fillColor value 'red'
     fillOpacity value 0.5
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-fc-fo-sz
@@ -209,7 +209,7 @@ plot(
     fillOpacity value 0.5
     size value 16
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-fc-fo-sc-so-sz-sh
@@ -232,7 +232,7 @@ plot(
     lineWidth value 5
     shape value 'triangleUp'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 
@@ -250,7 +250,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -267,7 +267,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec', range 'blue', 'red'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -284,7 +284,7 @@ plot(
     position 'wt', 'mpg'
     fillColor 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -301,7 +301,7 @@ plot(
     position 'wt', 'mpg'
     fillColor 'qsec', range 'blue', 'red'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-factor-vfc
@@ -317,7 +317,7 @@ plot(
     position 'wt', 'mpg'
     fillColor factor 'cyl'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -334,7 +334,7 @@ plot(
     position 'wt', 'mpg'
     fillColor factor('cyl'), range ['red', 'green', 'blue']
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -351,7 +351,7 @@ plot(
     position 'wt', 'mpg'
     shape factor 'cyl'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -368,7 +368,7 @@ plot(
     position 'wt', 'mpg'
     shape factor('cyl'), range ['circle', 'triangleUp', 'square']
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -385,7 +385,7 @@ plot(
     position 'wt', 'mpg'
     size 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -402,7 +402,7 @@ plot(
     position 'wt', 'mpg'
     size 'qsec', range 4, 40
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -420,7 +420,7 @@ plot(
     fillColor value 'red'
     fillOpacity 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -438,7 +438,7 @@ plot(
     fillColor value 'red'
     fillOpacity 'qsec', range 0.25, 1
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot point-vlw
@@ -454,7 +454,7 @@ plot(
     position 'wt', 'mpg'
     lineWidth 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -473,7 +473,7 @@ plot(
     size value 20
     strokeOpacity value 0.4
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 
@@ -492,7 +492,7 @@ plot(
     position 'carat', 'price'
     fillOpacity value 1/10
   )
-  from csv 'diamonds'
+  from remote 'data/diamonds'
 )
 
 
@@ -511,7 +511,7 @@ plot(
     position 'carat', 'price'
     fillOpacity value 1/20
   )
-  from csv 'diamonds'
+  from remote 'data/diamonds'
 )
 
 
@@ -530,7 +530,7 @@ plot(
     position 'carat', 'price'
     fillOpacity value 1/100
   )
-  from csv 'diamonds'
+  from remote 'data/diamonds'
 )
 
 ###
@@ -553,7 +553,7 @@ plot(
     fillColor value 'white'
     shape factor 'cyl'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -570,7 +570,7 @@ plot(
   path(
     position 'wt', 'mpg'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -587,7 +587,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot path-vscr
@@ -603,7 +603,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec', range 'blue', 'red'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot path-vlw
@@ -619,7 +619,7 @@ plot(
     position 'wt', 'mpg'
     lineWidth 'qsec'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 ###
 plot cat-path
@@ -635,7 +635,7 @@ plot(
   path(
     position 'model', 'mpg'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   # where 'model', like /Merc/
 )
 
@@ -653,7 +653,7 @@ plot(
   rect(
     position 'model', 'mpg'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   # where 'model', like /Merc/
 )
 
@@ -671,7 +671,7 @@ plot(
   rect(
     position 'mpg', 'model'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   # where 'model', like /Merc/
 )
 ###
@@ -686,7 +686,7 @@ tags:
 
 plot(
   record 5
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -701,7 +701,7 @@ tags:
 
 plot(
   table() 
-  from csv 'mtcars'
+  from remote 'data/mtcars'
 )
 
 ###
@@ -716,7 +716,7 @@ tags:
 
 plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   where 'model', like /Merc/
 )
 
@@ -732,7 +732,7 @@ tags:
 
 plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   limit 5
 )
 
@@ -748,7 +748,7 @@ tags:
 
 plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   limit 10, 5
 )
 
@@ -766,7 +766,7 @@ plot(
   rect(
     position 'mpg', 'model'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   limit 10, 5
 )
 
@@ -785,7 +785,7 @@ plot(
     position 'model', 'mpg'
     width value 1
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   # where 'model', like /Merc/
 )
 
@@ -800,7 +800,7 @@ plot(
     position 'factor(cyl)', stack(count('cyl'), 0)
     fillColor 'factor(vs)'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -815,7 +815,7 @@ plot(
     position 'factor(cyl)', stack(count('cyl'), 1)
     fillColor 'factor(vs)'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -830,7 +830,7 @@ plot(
     position 'factor(cyl)', stack(count('cyl'), 2)
     fillColor 'factor(vs)'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -845,7 +845,7 @@ plot(
     position stack(count('cyl'), 0), 'All'
     fillColor 'factor(cyl)'
   )
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   groupBy factor(value 'All'), factor('cyl')
 )
 
@@ -857,7 +857,7 @@ Description goes here.
 
 plot(
   table 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 1)
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -869,7 +869,7 @@ Description goes here.
 
 plot(
   table 'All', 'factor(cyl)', count('cyl')
-  from csv 'mtcars'
+  from remote 'data/mtcars'
   groupBy factor(value 'All'), factor('cyl')
 )
 
@@ -887,5 +887,5 @@ plot(
   path(
     position 'name', 'brainwt'
   )
-  from csv 'msleep'
+  from remote 'data/msleep'
 )
