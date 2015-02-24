@@ -146,8 +146,6 @@ buildDoc = ->
   cpn 'lib/chroma-js/chroma.js', 'build/js/chroma.js'
   cpn 'lib/comma-separated-values/csv.js', 'build/js/csv.js'
 
-  write 'build/js/demo.js', coffee.compile read 'src/demo.coffee'
-
   cpn 'node_modules/highlight.js/styles/tomorrow.css', 'build/css/syntax.css'
   cpn 'lib/HTML5-Reset/assets/css/reset.css', 'build/css/reset.css'
 
