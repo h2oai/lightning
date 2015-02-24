@@ -1,11 +1,15 @@
-name: string
-genus: string
-vore: string
-order: string
-conservation: string
-sleep_total: real
-sleep_rem: real
-sleep_cycle : real
-awake: real
-brainwt: real
-bodywt: real
+name: mtcars
+format: csv
+location: data/mtcars.csv
+schema:
+  name: string
+  genus: string
+  vore: string
+  order: string
+  conservation: string
+  sleep_total: real
+  sleep_rem: real
+  sleep_cycle : real
+  awake: real
+  brainwt: real
+  bodywt: real

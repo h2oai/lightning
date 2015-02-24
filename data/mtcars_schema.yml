@@ -1,7 +1,11 @@
-cyl: int
-min: real
-q1: real
-q2: real
-q3: real
-max: real
+name: mtcars_schema
+format: csv
+location: data/mtcars_schema.csv
+schema:
+  cyl: int
+  min: real
+  q1: real
+  q2: real
+  q3: real
+  max: real
 
