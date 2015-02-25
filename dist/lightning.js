@@ -1,5 +1,5 @@
 (function () {
-    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LimitOp, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeAxisDomain, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAllFactor, createAllField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFactorDomain, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_limit, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_record, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_value, plot_where, plot_width, px, quantile_, queryFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
+    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LimitOp, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, TooltipChannel, TooltipEncoder, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableTooltipChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, asInt, asReal, asString, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, colorToStyleA, combineExtents, compileHtmlTemplate, computeApproxAxisSize, computeAxisDomain, computeExtent, computeSchema, computeSkew0, computeSkew_, configureSchema, copy, createAggregateField, createAllFactor, createAllField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createHtmlTemplates, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, download, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeTooltip, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFactorDomain, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_count, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_limit, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_record, plot_rect, plot_remote, plot_schema, plot_select, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_tooltip, plot_value, plot_where, plot_width, px, quantile_, queryFrame, readCsvAsFrame, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, _htmlTemplateCache, __slice = [].slice, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -372,7 +372,7 @@
     }();
     PointExpr = function (_super) {
         __extends(PointExpr, _super);
-        function PointExpr(_at_position, _at_shape, _at_size, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function PointExpr(_at_position, _at_shape, _at_size, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.position = _at_position;
             this.shape = _at_shape;
             this.size = _at_size;
@@ -381,32 +381,35 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return PointExpr;
     }(MarkExpr);
     PathExpr = function (_super) {
         __extends(PathExpr, _super);
-        function PathExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function PathExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.position = _at_position;
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return PathExpr;
     }(MarkExpr);
     SchemaExpr = function (_super) {
         __extends(SchemaExpr, _super);
-        function SchemaExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function SchemaExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.position = _at_position;
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return SchemaExpr;
     }(MarkExpr);
     RectExpr = function (_super) {
         __extends(RectExpr, _super);
-        function RectExpr(_at_position, _at_width, _at_height, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function RectExpr(_at_position, _at_width, _at_height, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.position = _at_position;
             this.width = _at_width;
             this.height = _at_height;
@@ -415,6 +418,7 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return RectExpr;
     }(MarkExpr);
@@ -425,7 +429,7 @@
     }();
     PointMark = function (_super) {
         __extends(PointMark, _super);
-        function PointMark(_at_space, _at_positionX, _at_positionY, _at_shape, _at_size, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function PointMark(_at_space, _at_positionX, _at_positionY, _at_shape, _at_size, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.space = _at_space;
             this.positionX = _at_positionX;
             this.positionY = _at_positionY;
@@ -436,13 +440,14 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
             this.geometry = PointGeometry;
         }
         return PointMark;
     }(Mark);
     SchemaXMark = function (_super) {
         __extends(SchemaXMark, _super);
-        function SchemaXMark(_at_space, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_positionY, _at_height, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function SchemaXMark(_at_space, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_positionY, _at_height, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.space = _at_space;
             this.q0 = _at_q0;
             this.q1 = _at_q1;
@@ -454,13 +459,14 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
             this.geometry = SchemaXGeometry;
         }
         return SchemaXMark;
     }(Mark);
     SchemaYMark = function (_super) {
         __extends(SchemaYMark, _super);
-        function SchemaYMark(_at_space, _at_positionX, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_width, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function SchemaYMark(_at_space, _at_positionX, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_width, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.space = _at_space;
             this.positionX = _at_positionX;
             this.q0 = _at_q0;
@@ -472,13 +478,14 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
             this.geometry = SchemaYGeometry;
         }
         return SchemaYMark;
     }(Mark);
     ColMark = function (_super) {
         __extends(ColMark, _super);
-        function ColMark(_at_space, _at_positionX, _at_positionY1, _at_positionY2, _at_width, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function ColMark(_at_space, _at_positionX, _at_positionY1, _at_positionY2, _at_width, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.space = _at_space;
             this.positionX = _at_positionX;
             this.positionY1 = _at_positionY1;
@@ -489,13 +496,14 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
             this.geometry = ColGeometry;
         }
         return ColMark;
     }(Mark);
     BarMark = function (_super) {
         __extends(BarMark, _super);
-        function BarMark(_at_space, _at_positionX1, _at_positionX2, _at_positionY, _at_height, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function BarMark(_at_space, _at_positionX1, _at_positionX2, _at_positionY, _at_height, _at_fillColor, _at_fillOpacity, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.space = _at_space;
             this.positionX1 = _at_positionX1;
             this.positionX2 = _at_positionX2;
@@ -506,26 +514,28 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
             this.geometry = BarGeometry;
         }
         return BarMark;
     }(Mark);
     PathMark = function (_super) {
         __extends(PathMark, _super);
-        function PathMark(_at_space, _at_positionX, _at_positionY, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function PathMark(_at_space, _at_positionX, _at_positionY, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.space = _at_space;
             this.positionX = _at_positionX;
             this.positionY = _at_positionY;
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
             this.geometry = PathGeometry;
         }
         return PathMark;
     }(Mark);
     TextMark = function (_super) {
         __extends(TextMark, _super);
-        function TextMark(_at_space, _at_positionX, _at_positionY, _at_text, _at_size, _at_fillColor, _at_fillOpacity) {
+        function TextMark(_at_space, _at_positionX, _at_positionY, _at_text, _at_size, _at_fillColor, _at_fillOpacity, _at_tooltip) {
             this.space = _at_space;
             this.positionX = _at_positionX;
             this.positionY = _at_positionY;
@@ -533,6 +543,7 @@
             this.size = _at_size;
             this.fillColor = _at_fillColor;
             this.fillOpacity = _at_fillOpacity;
+            this.tooltip = _at_tooltip;
             this.geometry = TextGeometry;
         }
         return TextMark;
@@ -544,7 +555,7 @@
     }();
     PointEncoding = function (_super) {
         __extends(PointEncoding, _super);
-        function PointEncoding(_at_positionX, _at_positionY, _at_shape, _at_size, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function PointEncoding(_at_positionX, _at_positionY, _at_shape, _at_size, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.positionX = _at_positionX;
             this.positionY = _at_positionY;
             this.shape = _at_shape;
@@ -556,12 +567,13 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return PointEncoding;
     }(Encoding);
     SchemaXEncoding = function (_super) {
         __extends(SchemaXEncoding, _super);
-        function SchemaXEncoding(_at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_positionY, _at_height, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function SchemaXEncoding(_at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_positionY, _at_height, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.q0 = _at_q0;
             this.q1 = _at_q1;
             this.q2 = _at_q2;
@@ -573,12 +585,13 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return SchemaXEncoding;
     }(Encoding);
     SchemaYEncoding = function (_super) {
         __extends(SchemaYEncoding, _super);
-        function SchemaYEncoding(_at_positionX, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_width, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function SchemaYEncoding(_at_positionX, _at_q0, _at_q1, _at_q2, _at_q3, _at_qn, _at_width, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.positionX = _at_positionX;
             this.q0 = _at_q0;
             this.q1 = _at_q1;
@@ -590,12 +603,13 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return SchemaYEncoding;
     }(Encoding);
     ColEncoding = function (_super) {
         __extends(ColEncoding, _super);
-        function ColEncoding(_at_positionX, _at_positionY1, _at_positionY2, _at_width, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function ColEncoding(_at_positionX, _at_positionY1, _at_positionY2, _at_width, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.positionX = _at_positionX;
             this.positionY1 = _at_positionY1;
             this.positionY2 = _at_positionY2;
@@ -607,12 +621,13 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return ColEncoding;
     }(Encoding);
     BarEncoding = function (_super) {
         __extends(BarEncoding, _super);
-        function BarEncoding(_at_positionX1, _at_positionX2, _at_positionY, _at_height, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function BarEncoding(_at_positionX1, _at_positionX2, _at_positionY, _at_height, _at_fill, _at_fillColor, _at_fillOpacity, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.positionX1 = _at_positionX1;
             this.positionX2 = _at_positionX2;
             this.positionY = _at_positionY;
@@ -624,18 +639,20 @@
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return BarEncoding;
     }(Encoding);
     PathEncoding = function (_super) {
         __extends(PathEncoding, _super);
-        function PathEncoding(_at_positionX, _at_positionY, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+        function PathEncoding(_at_positionX, _at_positionY, _at_stroke, _at_strokeColor, _at_strokeOpacity, _at_lineWidth, _at_tooltip) {
             this.positionX = _at_positionX;
             this.positionY = _at_positionY;
             this.stroke = _at_stroke;
             this.strokeColor = _at_strokeColor;
             this.strokeOpacity = _at_strokeOpacity;
             this.lineWidth = _at_lineWidth;
+            this.tooltip = _at_tooltip;
         }
         return PathEncoding;
     }(Encoding);
@@ -714,6 +731,14 @@
             VariableEncoder.__super__.constructor.call(this, label, encode);
         }
         return VariableEncoder;
+    }(Encoder);
+    TooltipEncoder = function (_super) {
+        __extends(TooltipEncoder, _super);
+        function TooltipEncoder(_at_vectors) {
+            this.vectors = _at_vectors;
+            TooltipEncoder.__super__.constructor.call(this, 'tooltips');
+        }
+        return TooltipEncoder;
     }(Encoder);
     PositionEncoder = function (_super) {
         __extends(PositionEncoder, _super);
@@ -854,6 +879,13 @@
         }
         return ShapeChannel;
     }(Channel);
+    TooltipChannel = function (_super) {
+        __extends(TooltipChannel, _super);
+        function TooltipChannel() {
+            return TooltipChannel.__super__.constructor.apply(this, arguments);
+        }
+        return TooltipChannel;
+    }(Channel);
     ConstantFillColorChannel = function (_super) {
         __extends(ConstantFillColorChannel, _super);
         function ConstantFillColorChannel(_at_value) {
@@ -989,6 +1021,13 @@
         }
         return VariableShapeChannel;
     }(ShapeChannel);
+    VariableTooltipChannel = function (_super) {
+        __extends(VariableTooltipChannel, _super);
+        function VariableTooltipChannel(_at_fields) {
+            this.fields = _at_fields;
+        }
+        return VariableTooltipChannel;
+    }(TooltipChannel);
     Extent = function () {
         function Extent(_at_min, _at_max) {
             this.min = _at_min;
@@ -1272,6 +1311,31 @@
         }
         return DeselectEventArg;
     }();
+    asReal = function (datum) {
+        var value;
+        value = parseFloat(datum);
+        if (_.isNaN(value)) {
+            return void 0;
+        } else {
+            return value;
+        }
+    };
+    asInt = function (datum) {
+        var value;
+        value = parseInt(datum, 10);
+        if (_.isNaN(value)) {
+            return void 0;
+        } else {
+            return value;
+        }
+    };
+    asString = function (datum) {
+        if (datum != null) {
+            return datum;
+        } else {
+            return void 0;
+        }
+    };
     sq = function (x) {
         return x * x;
     };
@@ -1409,6 +1473,18 @@
         };
     };
     includeOrigin0 = includeOrigin_(0);
+    download = function (type, url, go) {
+        return $.ajax({
+            dataType: type,
+            url: url,
+            success: function (data, status, xhr) {
+                return go(null, data);
+            },
+            error: function (xhr, status, error) {
+                return go(error);
+            }
+        });
+    };
     createList = function (label, data, _format) {
         var at, count, format;
         count = function () {
@@ -2689,6 +2765,24 @@
             return new ConstantEncoder(Shapes[channel.value] || Shapes.circle);
         }
     };
+    encodeTooltip = function (frame, channel) {
+        var field, vectors;
+        if (channel) {
+            vectors = function () {
+                var _i, _len, _ref, _results;
+                _ref = channel.fields;
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    field = _ref[_i];
+                    _results.push(_.head(frame.evaluate(field)));
+                }
+                return _results;
+            }();
+            return new TooltipEncoder(vectors);
+        } else {
+            return void 0;
+        }
+    };
     initFill = function (fillColor, fillOpacity) {
         return [
             fillColor != null ? fillColor : new ConstantFillColorChannel(chroma(_.head(ColorPalettes.c10))),
@@ -2830,17 +2924,18 @@
         shape = (_ref = expr.shape) != null ? _ref : new ConstantShapeChannel('circle');
         size = (_ref1 = expr.size) != null ? _ref1 : new ConstantSizeChannel(defaultSize);
         _ref2 = initFillAndStroke(expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, false, true), fillColor = _ref2[0], fillOpacity = _ref2[1], strokeColor = _ref2[2], strokeOpacity = _ref2[3], lineWidth = _ref2[4];
-        return new PointMark(space, positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+        return new PointMark(space, positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
     };
     encodePointMark = function (frame, mark, axisX, axisY) {
-        var fill, fillColor, fillOpacity, lineWidth, positionX, positionY, shape, size, stroke, strokeColor, strokeOpacity, _ref, _ref1;
+        var fill, fillColor, fillOpacity, lineWidth, positionX, positionY, shape, size, stroke, strokeColor, strokeOpacity, tooltip, _ref, _ref1;
         positionX = encodePosition(axisX, mark.positionX);
         positionY = encodePosition(axisY, mark.positionY);
         shape = encodeShape(frame, mark.shape);
         size = encodeArea(frame, mark.size);
         _ref = encodeFill(frame, mark), fillColor = _ref[0], fillOpacity = _ref[1], fill = _ref[2];
         _ref1 = encodeStroke(frame, mark), strokeColor = _ref1[0], strokeOpacity = _ref1[1], stroke = _ref1[2], lineWidth = _ref1[3];
-        return new PointEncoding(positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth);
+        tooltip = encodeTooltip(frame, mark.tooltip);
+        return new PointEncoding(positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     highlightPointMarks = function (indices, encoders, g) {
         var fill, i, lineWidth, positionX, positionY, shape, size, stroke, x, y, _i, _j, _len, _len1;
@@ -2950,7 +3045,7 @@
             space = new Space2D([positionX], [positionY2]);
             width = (_ref = expr.width) != null ? _ref : new ConstantWidthChannel(0.8);
             _ref1 = initFillAndStroke(expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, true, false), fillColor = _ref1[0], fillOpacity = _ref1[1], strokeColor = _ref1[2], strokeOpacity = _ref1[3], lineWidth = _ref1[4];
-            return new ColMark(space, positionX, void 0, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+            return new ColMark(space, positionX, void 0, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
         case 'String, Number, Number':
             positionX = vectors[0], positionY1 = vectors[1], positionY2 = vectors[2];
             space = new Space2D([positionX], [
@@ -2959,13 +3054,13 @@
             ]);
             width = (_ref2 = expr.width) != null ? _ref2 : new ConstantWidthChannel(0.8);
             _ref3 = initFillAndStroke(expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, true, false), fillColor = _ref3[0], fillOpacity = _ref3[1], strokeColor = _ref3[2], strokeOpacity = _ref3[3], lineWidth = _ref3[4];
-            return new ColMark(space, positionX, positionY1, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+            return new ColMark(space, positionX, positionY1, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
         case 'Number, String':
             positionX2 = vectors[0], positionY = vectors[1];
             space = new Space2D([positionX2], [positionY]);
             height = (_ref4 = expr.height) != null ? _ref4 : new ConstantHeightChannel(0.8);
             _ref5 = initFillAndStroke(expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, true, false), fillColor = _ref5[0], fillOpacity = _ref5[1], strokeColor = _ref5[2], strokeOpacity = _ref5[3], lineWidth = _ref5[4];
-            return new BarMark(space, void 0, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+            return new BarMark(space, void 0, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
         case 'Number, Number, String':
             positionX1 = vectors[0], positionX2 = vectors[1], positionY = vectors[2];
             space = new Space2D([
@@ -2974,23 +3069,24 @@
             ], [positionY]);
             height = (_ref6 = expr.height) != null ? _ref6 : new ConstantHeightChannel(0.8);
             _ref7 = initFillAndStroke(expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, true, false), fillColor = _ref7[0], fillOpacity = _ref7[1], strokeColor = _ref7[2], strokeOpacity = _ref7[3], lineWidth = _ref7[4];
-            return new BarMark(space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+            return new BarMark(space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
         default:
             throw new Error('Cannot create rect marks with vectors of type [' + structure + ']');
         }
     };
     encodeColMark = function (frame, mark, axisX, axisY) {
-        var fill, fillColor, fillOpacity, lineWidth, positionX, positionY1, positionY2, stroke, strokeColor, strokeOpacity, width, _ref, _ref1;
+        var fill, fillColor, fillOpacity, lineWidth, positionX, positionY1, positionY2, stroke, strokeColor, strokeOpacity, tooltip, width, _ref, _ref1;
         positionX = encodePosition(axisX, mark.positionX);
         positionY1 = mark.positionY1 ? encodePosition(axisY, mark.positionY1) : encodeConstantPosition(axisY, 0);
         positionY2 = encodePosition(axisY, mark.positionY2);
         width = encodeSize(frame, mark.width, axisX.rect.width / axisX.domain.length);
         _ref = encodeFill(frame, mark), fillColor = _ref[0], fillOpacity = _ref[1], fill = _ref[2];
         _ref1 = encodeStroke(frame, mark), strokeColor = _ref1[0], strokeOpacity = _ref1[1], stroke = _ref1[2], lineWidth = _ref1[3];
-        return new ColEncoding(positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth);
+        tooltip = encodeTooltip(frame, mark.tooltip);
+        return new ColEncoding(positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     encodeBarMark = function (frame, mark, axisX, axisY) {
-        var fill, fillColor, fillOpacity, height, lineWidth, positionX1, positionX2, positionY, stroke, strokeColor, strokeOpacity, x1, x2, y, _ref, _ref1, _ref2;
+        var fill, fillColor, fillOpacity, height, lineWidth, positionX1, positionX2, positionY, stroke, strokeColor, strokeOpacity, tooltip, x1, x2, y, _ref, _ref1, _ref2;
         switch (mark.space.x.length) {
         case 1:
             x2 = mark.space.x[0];
@@ -3007,7 +3103,8 @@
         height = encodeSize(frame, mark.height, axisY.rect.height / axisY.domain.length);
         _ref1 = encodeFill(frame, mark), fillColor = _ref1[0], fillOpacity = _ref1[1], fill = _ref1[2];
         _ref2 = encodeStroke(frame, mark), strokeColor = _ref2[0], strokeOpacity = _ref2[1], stroke = _ref2[2], lineWidth = _ref2[3];
-        return new BarEncoding(positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth);
+        tooltip = encodeTooltip(frame, mark.tooltip);
+        return new BarEncoding(positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     highlightColMarks = function (indices, encoders, g) {
         var fill, i, lineWidth, positionX, positionY1, positionY2, stroke, w, width, x, y1, y2, _i, _j, _len, _len1;
@@ -3238,7 +3335,7 @@
             ]);
             width = (_ref = expr.width) != null ? _ref : new ConstantWidthChannel(0.8);
             _ref1 = initStroke(expr.strokeColor, expr.strokeOpacity, expr.lineWidth), strokeColor = _ref1[0], strokeOpacity = _ref1[1], lineWidth = _ref1[2];
-            return new SchemaYMark(space, x, q0, q1, q2, q3, qn, width, strokeColor, strokeOpacity, lineWidth);
+            return new SchemaYMark(space, x, q0, q1, q2, q3, qn, width, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
         case 'Number, Number, Number, Number, Number, String':
             q0 = vectors[0], q1 = vectors[1], q2 = vectors[2], q3 = vectors[3], qn = vectors[4], y = vectors[5];
             space = new Space2D([
@@ -3250,11 +3347,11 @@
             ], [y]);
             height = (_ref2 = expr.height) != null ? _ref2 : new ConstantWidthChannel(0.8);
             _ref3 = initStroke(expr.strokeColor, expr.strokeOpacity, expr.lineWidth), strokeColor = _ref3[0], strokeOpacity = _ref3[1], lineWidth = _ref3[2];
-            return new SchemaXMark(space, q0, q1, q2, q3, qn, y, height, strokeColor, strokeOpacity, lineWidth);
+            return new SchemaXMark(space, q0, q1, q2, q3, qn, y, height, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
         }
     };
     encodeSchemaXMark = function (frame, mark, axisX, axisY) {
-        var height, lineWidth, q0, q1, q2, q3, qn, stroke, strokeColor, strokeOpacity, y, _ref;
+        var height, lineWidth, q0, q1, q2, q3, qn, stroke, strokeColor, strokeOpacity, tooltip, y, _ref;
         q0 = encodePosition(axisX, mark.q0);
         q1 = encodePosition(axisX, mark.q1);
         q2 = encodePosition(axisX, mark.q2);
@@ -3263,7 +3360,8 @@
         y = encodePosition(axisY, mark.positionY);
         height = encodeSize(frame, mark.height, axisY.rect.height / axisY.domain.length);
         _ref = encodeStroke(frame, mark), strokeColor = _ref[0], strokeOpacity = _ref[1], stroke = _ref[2], lineWidth = _ref[3];
-        return new SchemaXEncoding(q0, q1, q2, q3, qn, y, height, stroke, strokeColor, strokeOpacity, lineWidth);
+        tooltip = encodeTooltip(frame, mark.tooltip);
+        return new SchemaXEncoding(q0, q1, q2, q3, qn, y, height, stroke, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     highlightSchemaXMarks = function (indices, encoders, g) {
         var height, i, lineWidth, positionY, q0, q1, q2, q3, qn, stroke, _i, _j, _len, _len1;
@@ -3338,7 +3436,7 @@
         return selectedIndices;
     };
     encodeSchemaYMark = function (frame, mark, axisX, axisY) {
-        var lineWidth, q0, q1, q2, q3, qn, stroke, strokeColor, strokeOpacity, width, x, _ref;
+        var lineWidth, q0, q1, q2, q3, qn, stroke, strokeColor, strokeOpacity, tooltip, width, x, _ref;
         x = encodePosition(axisX, mark.positionX);
         q0 = encodePosition(axisY, mark.q0);
         q1 = encodePosition(axisY, mark.q1);
@@ -3347,7 +3445,8 @@
         qn = encodePosition(axisY, mark.qn);
         width = encodeSize(frame, mark.width, axisX.rect.width / axisX.domain.length);
         _ref = encodeStroke(frame, mark), strokeColor = _ref[0], strokeOpacity = _ref[1], stroke = _ref[2], lineWidth = _ref[3];
-        return new SchemaYEncoding(x, q0, q1, q2, q3, qn, width, stroke, strokeColor, strokeOpacity, lineWidth);
+        tooltip = encodeTooltip(frame, mark.tooltip);
+        return new SchemaYEncoding(x, q0, q1, q2, q3, qn, width, stroke, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     highlightSchemaYMarks = function (indices, encoders, g) {
         var i, lineWidth, positionX, q0, q1, q2, q3, qn, stroke, width, _i, _j, _len, _len1;
@@ -3426,14 +3525,15 @@
         positionX = vectors[0], positionY = vectors[1];
         space = new Space2D([positionX], [positionY]);
         _ref = initStroke(expr.strokeColor, expr.strokeOpacity, expr.lineWidth), strokeColor = _ref[0], strokeOpacity = _ref[1], lineWidth = _ref[2];
-        return new PathMark(space, positionX, positionY, strokeColor, strokeOpacity, lineWidth);
+        return new PathMark(space, positionX, positionY, strokeColor, strokeOpacity, lineWidth, expr.tooltip);
     };
     encodePathMark = function (frame, mark, axisX, axisY) {
-        var lineWidth, positionX, positionY, stroke, strokeColor, strokeOpacity, _ref;
+        var lineWidth, positionX, positionY, stroke, strokeColor, strokeOpacity, tooltip, _ref;
         positionX = encodePosition(axisX, mark.positionX);
         positionY = encodePosition(axisY, mark.positionY);
         _ref = encodeStroke(frame, mark), strokeColor = _ref[0], strokeOpacity = _ref[1], stroke = _ref[2], lineWidth = _ref[3];
-        return new PathEncoding(positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth);
+        tooltip = encodeTooltip(frame, mark.tooltip);
+        return new PathEncoding(positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     highlightPathMarks = function (indices, encoders, g) {
         var i, positionX, positionY, x, y, _i, _len;
@@ -3904,6 +4004,11 @@
             return new VariableShapeChannel(field, range);
         }
     ]);
+    plot_tooltip = function () {
+        var args;
+        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+        return new VariableTooltipChannel(collectFields(args));
+    };
     plot_table = function () {
         var args;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
@@ -3915,8 +4020,113 @@
         }
         return new RecordExpr(index);
     };
+    configureSchema = function (schema) {
+        var label, obj, _results;
+        _results = [];
+        for (label in schema) {
+            obj = schema[label];
+            if (_.isString(obj)) {
+                switch (obj) {
+                case 'string':
+                    _results.push({
+                        label: label,
+                        type: 'String',
+                        domain: [],
+                        parse: asString
+                    });
+                    break;
+                case 'int':
+                    _results.push({
+                        label: label,
+                        type: 'Number',
+                        parse: asInt
+                    });
+                    break;
+                case 'real':
+                    _results.push({
+                        label: label,
+                        type: 'Number',
+                        parse: asReal
+                    });
+                    break;
+                default:
+                    throw new Error('Invalid type ' + obj + ' for schema field ' + label);
+                }
+            } else if (_.isArray(obj)) {
+                _results.push({
+                    label: label,
+                    type: 'String',
+                    domain: obj,
+                    parse: asString
+                });
+            } else {
+                throw new Error('Invalid type ' + obj + ' for schema field ' + label);
+            }
+        }
+        return _results;
+    };
+    readCsvAsFrame = function (label, columns, data) {
+        var column, index, offset, row, rows, value, vectors;
+        rows = CSV.parse(data, {
+            header: false,
+            cast: false
+        });
+        vectors = function () {
+            var _i, _j, _len, _len1, _results;
+            _results = [];
+            for (offset = _i = 0, _len = columns.length; _i < _len; offset = ++_i) {
+                column = columns[offset];
+                data = new Array(rows.length);
+                for (index = _j = 0, _len1 = rows.length; _j < _len1; index = ++_j) {
+                    row = rows[index];
+                    if (void 0 !== (value = column.parse(row[offset]))) {
+                        data[index] = value;
+                    }
+                }
+                switch (column.type) {
+                case 'String':
+                    _results.push(plot.createFactor(column.label, column.type, data, column.domain));
+                    break;
+                case 'Number':
+                    _results.push(plot.createVector(column.label, column.type, data, _.identity));
+                    break;
+                default:
+                    _results.push(void 0);
+                }
+            }
+            return _results;
+        }();
+        return createFrame(label, vectors, _.range(rows.length));
+    };
+    plot_remote = function (url) {
+        return function (go) {
+            return download('json', url + '.json', function (error, descriptor) {
+                if (error) {
+                    return go(error);
+                } else {
+                    switch (descriptor.format) {
+                    case 'csv':
+                        return download('text', descriptor.location, function (error, data) {
+                            if (error) {
+                                return go(error);
+                            } else {
+                                try {
+                                    return go(null, readCsvAsFrame(descriptor.name, configureSchema(descriptor.schema), data));
+                                } catch (_error) {
+                                    error = _error;
+                                    return go(error);
+                                }
+                            }
+                        });
+                    default:
+                        return go(new Error('Unsupported format [' + descriptor.format + ']'));
+                    }
+                }
+            });
+        };
+    };
     plot_point = function () {
-        var fillColor, fillOpacity, lineWidth, ops, position, shape, size, strokeColor, strokeOpacity;
+        var fillColor, fillOpacity, lineWidth, ops, position, shape, size, strokeColor, strokeOpacity, tooltip;
         ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         position = findByType(ops, PositionChannel);
         shape = findByType(ops, ShapeChannel);
@@ -3926,10 +4136,11 @@
         strokeColor = findByType(ops, StrokeColorChannel);
         strokeOpacity = findByType(ops, StrokeOpacityChannel);
         lineWidth = findByType(ops, LineWidthChannel);
-        return new PointExpr(position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+        tooltip = findByType(ops, TooltipChannel);
+        return new PointExpr(position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     plot_rect = function () {
-        var fillColor, fillOpacity, height, lineWidth, ops, position, strokeColor, strokeOpacity, width;
+        var fillColor, fillOpacity, height, lineWidth, ops, position, strokeColor, strokeOpacity, tooltip, width;
         ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         position = findByType(ops, PositionChannel);
         width = findByType(ops, WidthChannel);
@@ -3939,19 +4150,21 @@
         strokeColor = findByType(ops, StrokeColorChannel);
         strokeOpacity = findByType(ops, StrokeOpacityChannel);
         lineWidth = findByType(ops, LineWidthChannel);
-        return new RectExpr(position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth);
+        tooltip = findByType(ops, TooltipChannel);
+        return new RectExpr(position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     plot_path = function () {
-        var lineWidth, ops, position, strokeColor, strokeOpacity;
+        var lineWidth, ops, position, strokeColor, strokeOpacity, tooltip;
         ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         position = findByType(ops, PositionChannel);
         strokeColor = findByType(ops, StrokeColorChannel);
         strokeOpacity = findByType(ops, StrokeOpacityChannel);
         lineWidth = findByType(ops, LineWidthChannel);
-        return new PathExpr(position, strokeColor, strokeOpacity, lineWidth);
+        tooltip = findByType(ops, TooltipChannel);
+        return new PathExpr(position, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     plot_schema = function () {
-        var height, lineWidth, ops, position, strokeColor, strokeOpacity, width;
+        var height, lineWidth, ops, position, strokeColor, strokeOpacity, tooltip, width;
         ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         position = findByType(ops, PositionChannel);
         width = findByType(ops, WidthChannel);
@@ -3959,7 +4172,8 @@
         strokeColor = findByType(ops, StrokeColorChannel);
         strokeOpacity = findByType(ops, StrokeOpacityChannel);
         lineWidth = findByType(ops, LineWidthChannel);
-        return new SchemaExpr(position, width, height, strokeColor, strokeOpacity, lineWidth);
+        tooltip = findByType(ops, TooltipChannel);
+        return new SchemaExpr(position, width, height, strokeColor, strokeOpacity, lineWidth, tooltip);
     };
     plot_parse = function (esprima, escodegen) {
         var traverse;
@@ -4152,6 +4366,7 @@
             position: 'absolute',
             left: px(0),
             top: px(0),
+            'max-width': px(0.9 * box.width),
             display: 'none'
         });
         tooltip.className = 'lightning-tooltip';
@@ -4309,6 +4524,9 @@
         _tooltipOffset = 7;
         moveTooltip = function (x, y) {
             var p, q, tooltipHeight, tooltipWidth;
+            if (tooltip.style.display === 'none') {
+                return;
+            }
             tooltipWidth = tooltip.clientWidth;
             tooltipHeight = tooltip.clientHeight;
             p = x + _tooltipOffset;
@@ -4319,6 +4537,12 @@
             if (q < 0) {
                 q = y + _tooltipOffset;
             }
+            if (p < 0) {
+                p = 0;
+            }
+            if (q < 0) {
+                q = 0;
+            }
             tooltip.style.left = px(p);
             return tooltip.style.top = px(q);
         };
@@ -4326,7 +4550,7 @@
             return tooltip.style.display = 'none';
         };
         hover = function (x, y) {
-            var aes, encoding, hoverContext, i, layer, tooltipData, vector, _i, _j, _len, _len1, _ref;
+            var aes, encoding, hoverContext, i, layer, tooltipData, vector, _i, _j, _k, _len, _len1, _len2, _ref, _ref1;
             i = test(x, y);
             if (i !== _index) {
                 _index = i;
@@ -4349,8 +4573,16 @@
                         for (aes in _ref) {
                             encoding = _ref[aes];
                             if (encoding) {
-                                if (vector = encoding.vector) {
-                                    tooltipData[vector.label] = vector.format(i);
+                                if (encoding instanceof VariableEncoder) {
+                                    if (vector = encoding.vector) {
+                                        tooltipData[vector.label] = vector.format(i);
+                                    }
+                                } else if (encoding instanceof TooltipEncoder) {
+                                    _ref1 = encoding.vectors;
+                                    for (_k = 0, _len2 = _ref1.length; _k < _len2; _k++) {
+                                        vector = _ref1[_k];
+                                        tooltipData[vector.label] = vector.format(i);
+                                    }
                                 }
                             }
                         }
@@ -5023,6 +5255,7 @@
     plot.height = plot_height;
     plot.lineWidth = plot_lineWidth;
     plot.shape = plot_shape;
+    plot.tooltip = plot_tooltip;
     plot.factor = plot_factor;
     plot.stack = plot_stack;
     plot.groupBy = plot_groupBy;
@@ -5049,6 +5282,7 @@
     plot.schema = plot_schema;
     plot.table = plot_table;
     plot.record = plot_record;
+    plot.remote = plot_remote;
     plot.createFrame = createFrame;
     plot.createVector = createVector;
     plot.createList = createList;
