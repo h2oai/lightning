@@ -889,3 +889,21 @@ plot(
   )
   from remote 'data/msleep'
 )
+
+###
+plot extra-tooltip-data
+Extra tooltip data
+Displaying additional attributes in tooltips
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  point(
+    position 'Training Speed', 'Test Set Error'
+    tooltip 'Parameters'
+  )
+  from remote 'data/performance'
+)
