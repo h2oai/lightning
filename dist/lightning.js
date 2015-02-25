@@ -4065,12 +4065,14 @@
         }
         return _results;
     };
-    readCsvAsFrame = function (label, columns, data) {
-        var column, index, offset, row, rows, value, vectors;
-        rows = CSV.parse(data, {
-            header: false,
-            cast: false
-        });
+    readCsvAsFrame = function (label, columns, data, hasHeader) {
+        var column, index, offset, result, row, rows, value, vectors;
+        result = Papa.parse(data, { skipEmptyLines: true });
+        rows = result.data;
+        console.debug(rows);
+        if (hasHeader) {
+            rows.shift();
+        }
         vectors = function () {
             var _i, _j, _len, _len1, _results;
             _results = [];
@@ -4111,7 +4113,7 @@
                                 return go(error);
                             } else {
                                 try {
-                                    return go(null, readCsvAsFrame(descriptor.name, configureSchema(descriptor.schema), data));
+                                    return go(null, readCsvAsFrame(descriptor.name, configureSchema(descriptor.schema), data, descriptor.header ? true : false));
                                 } catch (_error) {
                                     error = _error;
                                     return go(error);
