@@ -3310,6 +3310,7 @@ createViewport = (box) ->
     position: 'absolute'
     left: px 0
     top: px 0
+    'max-width': px 0.9 * box.width # set width to 90% of container width so that long tooltips wrap properly 
     display: 'none'
 
   tooltip.className = 'lightning-tooltip'
@@ -3468,6 +3469,8 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
 
   _tooltipOffset = 7 # sq distance from cursor to nearest tooltip corner.
   moveTooltip = (x, y) ->
+    return if tooltip.style.display is 'none'
+
     tooltipWidth = tooltip.clientWidth
     tooltipHeight = tooltip.clientHeight
 
@@ -3479,6 +3482,10 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
 
     # Flip vertical if over the top edge
     q = y + _tooltipOffset if q < 0
+
+    # Clamp left, top if negative
+    p = 0 if p < 0
+    q = 0 if q < 0
 
     tooltip.style.left = px p
     tooltip.style.top = px q
