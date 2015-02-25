@@ -1,6 +1,7 @@
 name: performance
 format: csv
 location: data/performance.csv
+header: true
 schema:
   Parameters: string
   "Training Samples": int

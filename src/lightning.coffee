@@ -3042,10 +3042,12 @@ configureSchema = (schema) ->
     else
       throw new Error "Invalid type #{obj} for schema field #{label}"
 
-readCsvAsFrame = (label, columns, data) ->
-  rows = CSV.parse data,
-    header: no
-    cast: no
+readCsvAsFrame = (label, columns, data, hasHeader) ->
+  result = Papa.parse data,
+    skipEmptyLines: yes
+  rows = result.data
+  debug rows
+  shift rows if hasHeader
 
   vectors = for column, offset in columns
     data = new Array rows.length
@@ -3084,7 +3086,7 @@ plot_remote = (url) -> (go) ->
               go error
             else
               try
-                go null, readCsvAsFrame descriptor.name, (configureSchema descriptor.schema), data
+                go null, readCsvAsFrame descriptor.name, (configureSchema descriptor.schema), data, if descriptor.header then yes else no
               catch error
                 go error
         else
