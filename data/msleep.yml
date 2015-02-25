@@ -1,6 +1,6 @@
-name: mtcars
+name: msleep
 format: csv
-location: data/mtcars.csv
+location: data/msleep.csv
 schema:
   name: string
   genus: string

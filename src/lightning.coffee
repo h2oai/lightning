@@ -242,6 +242,7 @@ class PointExpr extends MarkExpr
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
 
 class PathExpr extends MarkExpr
@@ -250,6 +251,7 @@ class PathExpr extends MarkExpr
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
 
 class SchemaExpr extends MarkExpr
@@ -258,6 +260,7 @@ class SchemaExpr extends MarkExpr
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
 
 class RectExpr extends MarkExpr
@@ -270,6 +273,7 @@ class RectExpr extends MarkExpr
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
 
 class Mark
@@ -286,6 +290,7 @@ class PointMark extends Mark
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
     @geometry = PointGeometry
 
@@ -302,6 +307,7 @@ class SchemaXMark extends Mark
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
     @geometry = SchemaXGeometry
 
@@ -318,10 +324,9 @@ class SchemaYMark extends Mark
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
     @geometry = SchemaYGeometry
-
-
 
 class ColMark extends Mark
   constructor: (
@@ -335,6 +340,7 @@ class ColMark extends Mark
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
     @geometry = ColGeometry
 
@@ -350,6 +356,7 @@ class BarMark extends Mark
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
     @geometry = BarGeometry
 
@@ -361,6 +368,7 @@ class PathMark extends Mark
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
     @geometry = PathGeometry
 
@@ -373,6 +381,7 @@ class TextMark extends Mark
     @size
     @fillColor
     @fillOpacity
+    @tooltip
   ) ->
     @geometry = TextGeometry
 
@@ -391,6 +400,7 @@ class PointEncoding extends Encoding
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
 
 class SchemaXEncoding extends Encoding
@@ -406,6 +416,7 @@ class SchemaXEncoding extends Encoding
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) -> 
 
 class SchemaYEncoding extends Encoding
@@ -421,6 +432,7 @@ class SchemaYEncoding extends Encoding
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) -> 
 
 class ColEncoding extends Encoding
@@ -436,6 +448,7 @@ class ColEncoding extends Encoding
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) -> 
 
 class BarEncoding extends Encoding
@@ -451,6 +464,7 @@ class BarEncoding extends Encoding
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) -> 
 
 class PathEncoding extends Encoding
@@ -461,6 +475,7 @@ class PathEncoding extends Encoding
     @strokeColor
     @strokeOpacity
     @lineWidth
+    @tooltip
   ) ->
 
 class Space2D
@@ -490,6 +505,10 @@ class ConstantEncoder extends Encoder
 class VariableEncoder extends Encoder
   constructor: (label, encode, @vector) ->
     super label, encode
+
+class TooltipEncoder extends Encoder
+  constructor: (@vectors) ->
+    super 'tooltips'
 
 class PositionEncoder extends VariableEncoder
   constructor: (label, encode, vector, @domain, @range, @guide) ->
@@ -538,6 +557,8 @@ class HeightChannel extends Channel
 class LineWidthChannel extends Channel
 
 class ShapeChannel extends Channel
+
+class TooltipChannel extends Channel
 
 class ConstantFillColorChannel extends FillColorChannel
   constructor: (@value) ->
@@ -592,6 +613,9 @@ class ConstantShapeChannel extends ShapeChannel
 
 class VariableShapeChannel extends ShapeChannel
   constructor: (@field, @range) ->
+
+class VariableTooltipChannel extends TooltipChannel
+  constructor: (@fields) ->
 
 class Extent
   constructor: (@min, @max) ->
@@ -1905,6 +1929,13 @@ encodeShape = (frame, channel) ->
     #REVIEW: throw error or switch to circle?
     new ConstantEncoder Shapes[channel.value] or Shapes.circle
 
+encodeTooltip = (frame, channel) ->
+  if channel
+    vectors = for field in channel.fields
+      head frame.evaluate field
+    new TooltipEncoder vectors
+  else
+    undefined
 
 #
 # Rendering Functions
@@ -2054,7 +2085,7 @@ createPointMark = (expr, vectors) ->
   shape = expr.shape ? new ConstantShapeChannel 'circle'
   size = expr.size ? new ConstantSizeChannel defaultSize
   [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, no, yes
-  new PointMark space, positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  new PointMark space, positionX, positionY, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
 encodePointMark = (frame, mark, axisX, axisY) ->
   positionX = encodePosition axisX, mark.positionX
@@ -2066,7 +2097,9 @@ encodePointMark = (frame, mark, axisX, axisY) ->
   [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new PointEncoding positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+  tooltip = encodeTooltip frame, mark.tooltip
+
+  new PointEncoding positionX, positionY, shape, size, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth, tooltip
 
 
 highlightPointMarks = (indices, encoders, g) ->
@@ -2169,28 +2202,28 @@ createRectMark = (expr, vectors) ->
       space = new Space2D [ positionX ], [ positionY2 ]
       width = expr.width ? new ConstantWidthChannel 0.8
       [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
-      new ColMark space, positionX, undefined, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+      new ColMark space, positionX, undefined, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
     when 'String, Number, Number'
       [ positionX, positionY1, positionY2 ] = vectors
       space = new Space2D [ positionX ], [ positionY1, positionY2 ]
       width = expr.width ? new ConstantWidthChannel 0.8
       [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
-      new ColMark space, positionX, positionY1, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+      new ColMark space, positionX, positionY1, positionY2, width, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
     when 'Number, String'
       [ positionX2, positionY ] = vectors
       space = new Space2D [ positionX2 ], [ positionY ]
       height = expr.height ? new ConstantHeightChannel 0.8
       [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
-      new BarMark space, undefined, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+      new BarMark space, undefined, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
     when 'Number, Number, String'
       [ positionX1, positionX2, positionY ] = vectors
       space = new Space2D [ positionX1, positionX2 ], [ positionY ]
       height = expr.height ? new ConstantHeightChannel 0.8
       [ fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth ] = initFillAndStroke expr.fillColor, expr.fillOpacity, expr.strokeColor, expr.strokeOpacity, expr.lineWidth, yes, no
-      new BarMark space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+      new BarMark space, positionX1, positionX2, positionY, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
     else
       throw new Error "Cannot create rect marks with vectors of type [#{structure}]"
@@ -2206,7 +2239,9 @@ encodeColMark = (frame, mark, axisX, axisY) ->
   [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new ColEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+  tooltip = encodeTooltip frame, mark.tooltip
+
+  new ColEncoding positionX, positionY1, positionY2, width, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth, tooltip
 
 encodeBarMark = (frame, mark, axisX, axisY) ->
   switch mark.space.x.length
@@ -2227,7 +2262,9 @@ encodeBarMark = (frame, mark, axisX, axisY) ->
   [ fillColor, fillOpacity, fill ] = encodeFill frame, mark
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new BarEncoding positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth
+  tooltip = encodeTooltip frame, mark.tooltip
+
+  new BarEncoding positionX1, positionX2, positionY, height, fill, fillColor, fillOpacity, stroke, strokeColor, strokeOpacity, lineWidth, tooltip
 
 highlightColMarks = (indices, encoders, g) ->
   { positionX, positionY1, positionY2, width, fill, stroke, lineWidth } = encoders
@@ -2425,14 +2462,14 @@ createSchemaMark = (expr, vectors) ->
       space = new Space2D [ x ], [ q0, q1, q2, q3, qn ]
       width = expr.width ? new ConstantWidthChannel 0.8
       [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
-      new SchemaYMark space, x, q0, q1, q2, q3, qn, width, strokeColor, strokeOpacity, lineWidth
+      new SchemaYMark space, x, q0, q1, q2, q3, qn, width, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
     when 'Number, Number, Number, Number, Number, String'
       [ q0, q1, q2, q3, qn, y ] = vectors
       space = new Space2D [ q0, q1, q2, q3, qn ], [ y ]
       height = expr.height ? new ConstantWidthChannel 0.8
       [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
-      new SchemaXMark space, q0, q1, q2, q3, qn, y, height, strokeColor, strokeOpacity, lineWidth
+      new SchemaXMark space, q0, q1, q2, q3, qn, y, height, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
 encodeSchemaXMark = (frame, mark, axisX, axisY) ->
   q0 = encodePosition axisX, mark.q0
@@ -2446,7 +2483,9 @@ encodeSchemaXMark = (frame, mark, axisX, axisY) ->
 
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new SchemaXEncoding q0, q1, q2, q3, qn, y, height, stroke, strokeColor, strokeOpacity, lineWidth
+  tooltip = encodeTooltip frame, mark.tooltip
+
+  new SchemaXEncoding q0, q1, q2, q3, qn, y, height, stroke, strokeColor, strokeOpacity, lineWidth, tooltip
 
 highlightSchemaXMarks = (indices, encoders, g) ->
   { positionY, q0, q1, q2, q3, qn, height, stroke, lineWidth } = encoders
@@ -2558,7 +2597,9 @@ encodeSchemaYMark = (frame, mark, axisX, axisY) ->
 
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new SchemaYEncoding x, q0, q1, q2, q3, qn, width, stroke, strokeColor, strokeOpacity, lineWidth
+  tooltip = encodeTooltip frame, mark.tooltip
+
+  new SchemaYEncoding x, q0, q1, q2, q3, qn, width, stroke, strokeColor, strokeOpacity, lineWidth, tooltip
 
 highlightSchemaYMarks = (indices, encoders, g) ->
   { positionX, q0, q1, q2, q3, qn, width, stroke, lineWidth } = encoders
@@ -2666,7 +2707,7 @@ createPathMark = (expr, vectors) ->
   [ positionX, positionY ] = vectors
   space = new Space2D [ positionX ], [ positionY ]
   [ strokeColor, strokeOpacity, lineWidth ] = initStroke expr.strokeColor, expr.strokeOpacity, expr.lineWidth
-  new PathMark space, positionX, positionY, strokeColor, strokeOpacity, lineWidth
+  new PathMark space, positionX, positionY, strokeColor, strokeOpacity, lineWidth, expr.tooltip
 
 encodePathMark = (frame, mark, axisX, axisY) ->
   positionX = encodePosition axisX, mark.positionX
@@ -2674,7 +2715,9 @@ encodePathMark = (frame, mark, axisX, axisY) ->
 
   [ strokeColor, strokeOpacity, stroke, lineWidth ] = encodeStroke frame, mark
 
-  new PathEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth
+  tooltip = encodeTooltip frame, mark.tooltip
+
+  new PathEncoding positionX, positionY, stroke, strokeColor, strokeOpacity, lineWidth, tooltip
 
 highlightPathMarks = (indices, encoders, g) ->
   { positionX, positionY } = encoders
@@ -2955,6 +2998,9 @@ plot_shape = dispatch(
   [ Field, CategoricalRange, (field, range) -> new VariableShapeChannel field, range ]
 )
 
+plot_tooltip = (args...) ->
+  new VariableTooltipChannel collectFields args
+
 plot_table = (args...) ->
   new TableExpr collectFields args
 
@@ -3044,6 +3090,9 @@ plot_remote = (url) -> (go) ->
         else
           go new Error "Unsupported format [#{descriptor.format}]"
 
+# Geom expressions
+# ==============================
+
 plot_point = (ops...) ->
   position = findByType ops, PositionChannel
 
@@ -3057,7 +3106,9 @@ plot_point = (ops...) ->
   strokeOpacity = findByType ops, StrokeOpacityChannel
   lineWidth = findByType ops, LineWidthChannel
 
-  new PointExpr position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  tooltip = findByType ops, TooltipChannel
+
+  new PointExpr position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip
 
 plot_rect = (ops...) ->
   position = findByType ops, PositionChannel
@@ -3072,7 +3123,9 @@ plot_rect = (ops...) ->
   strokeOpacity = findByType ops, StrokeOpacityChannel
   lineWidth = findByType ops, LineWidthChannel
 
-  new RectExpr position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth
+  tooltip = findByType ops, TooltipChannel
+
+  new RectExpr position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip
 
 plot_path = (ops...) ->
   position = findByType ops, PositionChannel
@@ -3081,7 +3134,9 @@ plot_path = (ops...) ->
   strokeOpacity = findByType ops, StrokeOpacityChannel
   lineWidth = findByType ops, LineWidthChannel
 
-  new PathExpr position, strokeColor, strokeOpacity, lineWidth
+  tooltip = findByType ops, TooltipChannel
+
+  new PathExpr position, strokeColor, strokeOpacity, lineWidth, tooltip
 
 plot_schema = (ops...) ->
   position = findByType ops, PositionChannel
@@ -3094,7 +3149,9 @@ plot_schema = (ops...) ->
   strokeOpacity = findByType ops, StrokeOpacityChannel
   lineWidth = findByType ops, LineWidthChannel
 
-  new SchemaExpr position, width, height, strokeColor, strokeOpacity, lineWidth
+  tooltip = findByType ops, TooltipChannel
+
+  new SchemaExpr position, width, height, strokeColor, strokeOpacity, lineWidth, tooltip
 
 # Expression parsing
 # ==============================
@@ -3446,17 +3503,20 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
           layer.highlight [ i ], layer.encoders, hoverContext
         hoverContext.restore()
 
-        # tt1 = {}
-        # for vector in _frame.vectors
-        #  tt1[vector.name] = vector.format i
-
         _dispatch 'hover', new HoverEventArg _frame.vectors, i
 
         tooltipData = {}
         for layer in _layers
           for aes, encoding of layer.encodings when encoding
-            if vector = encoding.vector
-              tooltipData[vector.label] = vector.format i
+            if encoding instanceof VariableEncoder
+              # Style encodings have an encode(), but no vector, so check before use.
+              if vector = encoding.vector
+                tooltipData[vector.label] = vector.format i
+
+            # Check for explicit TooltipEncoder
+            else if encoding instanceof TooltipEncoder
+              for vector in encoding.vectors
+                tooltipData[vector.label] = vector.format i
         
         displayTooltip x, y, tooltipData
     else
@@ -4054,6 +4114,7 @@ plot.width = plot_width
 plot.height = plot_height
 plot.lineWidth = plot_lineWidth
 plot.shape = plot_shape
+plot.tooltip = plot_tooltip
 plot.factor = plot_factor
 plot.stack = plot_stack
 plot.groupBy = plot_groupBy
