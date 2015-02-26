@@ -893,7 +893,7 @@ plot(
 ###
 plot extra-tooltip-data
 Extra tooltip data
-Displaying additional attributes in tooltips
+Displaying additional attributes in tooltips, with custom bounds
 ---
 tags:
  - point
@@ -906,4 +906,23 @@ plot(
     tooltip 'Parameters'
   )
   from remote 'data/performance'
+  bounds 500, 500
+)
+
+###
+plot custom-height
+Custom Height
+Displaying additional attributes in tooltips, with custom height
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  rect(
+    position 'Test Set Error', 'Parameters'
+  )
+  from remote 'data/performance'
+  bounds null, 600
 )

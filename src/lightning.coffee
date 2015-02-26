@@ -674,7 +674,6 @@ class Visualization
 
 class Plot
   constructor: (@element, @subscribe, @unsubscribe) ->
-    
 
 class Bounds
   constructor: (@width, @height) ->
@@ -2874,6 +2873,12 @@ SchemaYGeometry = new Geometry(
 # Visualization operators
 # ==============================
 
+plot_bounds = dispatch(
+  [ Number, null, (width, height) -> new Bounds width, undefined ]
+  [ null, Number, (width, height) -> new Bounds undefined, height ]
+  [ Number, Number, (width, height) -> new Bounds width, height ]
+)
+
 plot_from = dispatch(
   [ Frame, identity ]
   [ Function, (read) -> new Datasource read ]
@@ -3987,14 +3992,13 @@ renderPlot = (frame, ops) ->
   axisBoundsX = computeApproxAxisSize spaceX.type, domainX
   axisBoundsY = computeApproxAxisSize spaceY.type, domainY
 
-  bounds = (findByType ops, Bounds) ? new Bounds(
-    mmin plot_defaults.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height
-    mmin plot_defaults.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height
-  )
+  bounds = (findByType ops, Bounds) ? new Bounds undefined, undefined
+  boundsWidth = bounds.width ? mmin plot_defaults.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height
+  boundsHeight = bounds.height ? mmin plot_defaults.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height
 
   box = new Box(
-    bounds.width
-    bounds.height
+    boundsWidth
+    boundsHeight
     new Margin(
       mmin 0.3 * plot_defaults.maxCanvasSize.width, axisBoundsY.width
       0
@@ -4109,6 +4113,7 @@ plot = (ops...) ->
 # 
 
 plot.VERSION = '999.999.999'
+plot.bounds = plot_bounds
 plot.from = plot_from
 plot.value = plot_value
 plot.domain = plot_domain
