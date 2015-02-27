@@ -2877,6 +2877,7 @@ plot_bounds = dispatch(
   [ Number, null, (width, height) -> new Bounds width, undefined ]
   [ null, Number, (width, height) -> new Bounds undefined, height ]
   [ Number, Number, (width, height) -> new Bounds width, height ]
+  [ null, null, -> new Bounds undefined, undefined ]
 )
 
 plot_from = dispatch(
