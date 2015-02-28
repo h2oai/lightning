@@ -147,6 +147,7 @@ buildDoc = ->
     'lib/d3/d3.js'
     'lib/chroma-js/chroma.js'
     'lib/papaparse/papaparse.js'
+    'lib/diecut/diecut.js'
   ]
 
   write 'build/js/lightning-lib.js', (read lib for lib in jsLibs).join EOL

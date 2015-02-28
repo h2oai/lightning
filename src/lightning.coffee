@@ -3715,54 +3715,6 @@ renderAxisY = (g, axis, rect) ->
   renderAxis g, axis, rect.width, rect.height, -1
   g.restore()
 
-#
-# HTML Templating
-# ===============
-#
-
-compileHtmlTemplate = (template, type) ->
-  if 0 <= index = template.indexOf ' '
-    tmpl = template.substr 0, index
-    attrs = template.substr index
-  else
-    tmpl = template
-
-  [ name, classes... ] = tmpl.split /\.+/g
-  if 0 is name.indexOf '#'
-    id = name.substr 1
-    name = 'div'
-
-  if name is ''
-    name = 'div'
-
-  beginTag = "<#{name}"
-  beginTag += " id='#{id}'" if id
-  beginTag += " class='#{classes.join ' '}'" if classes.length
-  beginTag += attrs if attrs
-  beginTag += ">"
-  closeTag = "</#{name}>"
-
-  if type is '='
-    (content) -> beginTag + (if content isnt null and content isnt undefined then content else '') + closeTag
-  else if type is '+'
-    (content, arg0) -> #TODO add more args as necessary
-      tag = replace beginTag, '{0}', arg0
-      tag + content + closeTag
-  else
-    (contents) -> beginTag + (contents.join '') + closeTag
-
-_htmlTemplateCache = {}
-createHtmlTemplates = (templates...) ->
-  for template in templates
-    if cached = _htmlTemplateCache[template]
-      cached
-    else
-      type = charAt template, 0
-      if type is '=' or type is '+'
-        _htmlTemplateCache[template] = compileHtmlTemplate (template.substr 1), type
-      else
-        _htmlTemplateCache[template] = compileHtmlTemplate template
-
 # String -> HTMLElement
 renderHtml = (htmlString) ->
   el = document.createElement 'div'
@@ -3895,7 +3847,7 @@ renderRecord = (frame, ops) ->
   recordExpr = findByType ops, RecordExpr
   index = recordExpr.index
 
-  [ table, tbody, tr, th, td ] = createHtmlTemplates '=table.lightning-record', 'tbody', 'tr', '=th', '=td'
+  [ table, tbody, tr, th, td ] = diecut 'table.lightning-record', 'tbody', 'tr', 'th', 'td'
 
   trs = for name, vector of frame.schema
     value = vector.format index
@@ -3931,7 +3883,7 @@ renderTable = (frame, ops) ->
 
   vectors = flatten vectorGroups
   
-  [ table, thead, tbody, tr, th, thr, td, tdr ] = createHtmlTemplates 'table.lightning-table', '=thead', 'tbody', 'tr', '=th', '=th.lightning-number', '=td', '=td.lightning-number'
+  [ table, thead, tbody, tr, th, thr, td, tdr ] = diecut 'table.lightning-table', 'thead', 'tbody', 'tr', 'th', 'th.lightning-number', 'td', 'td.lightning-number'
   
   ths = for vector in vectors
     switch vector.type
