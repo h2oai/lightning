@@ -127,7 +127,9 @@ parseArticles = (compileScript, lines) ->
       article.javascript = javascript = coffee.compile coffeescript, bare: yes
       article.javascriptListing = (highlight.highlightAuto javascript, [ 'javascript' ]).value
 
-      article.script = compileScript 'var render = ' + javascript + EOL + "render(function(error, vis){if(error){document.getElementById('error').innerHTML=error.message;}else{document.getElementById('plot').appendChild(vis.element);}});"
+      article.script = compileScript javascript.trim().substr(0, javascript.length - 2) + "('example');"
+
+      article.scriptListing = (highlight.highlightAuto article.script, [ 'javascript' ]).value
 
   articles
 

@@ -4048,7 +4048,22 @@ initializeLib = ->
 plot = (ops...) ->
   if datasource = findByType ops, Datasource, Frame
     do initializeLib
-    (go) -> visualize datasource, (without ops, datasource), go
+    (arg) -> 
+      go = if isString arg
+        if targetElement = document.getElementById arg
+          (error, vis) ->
+            if error
+              targetElement.innerHTML = error.message #TODO could be prettier
+            else
+              targetElement.appendChild vis.element
+        else
+          undefined
+      else if isFunction arg
+        arg
+      else
+        undefined
+
+      visualize datasource, (without ops, datasource), go if go
   else
     (more...) -> apply plot, null, concat ops, more
 

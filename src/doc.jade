@@ -35,14 +35,13 @@ html.no-js
         .article(id="article-#{article.symbol}")
         if article.description
           p!=article.description
-        #plot
-        #error
+        #example
         h2 Coffeescript
         pre!=article.coffeescriptListing
         h2 Javascript
         pre!=article.javascriptListing
         h2 Compiled
-        pre!=article.script
+        pre!=article.scriptListing
     else if type == 'articles'
       .container
         h1 Contents
