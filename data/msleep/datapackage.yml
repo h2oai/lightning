@@ -1,0 +1,14 @@
+name: msleep
+location: msleep.csv
+schema:
+  name: string
+  genus: string
+  vore: string
+  order: string
+  conservation: string
+  sleep_total: number
+  sleep_rem: number
+  sleep_cycle : number
+  awake: number
+  brainwt: number
+  bodywt: number

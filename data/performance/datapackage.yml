@@ -1,0 +1,10 @@
+name: performance
+location: performance.csv
+schema:
+  Parameters: string
+  "Training Samples": integer
+  "Training Time": number
+  "Training Speed": number
+  "Test Set Error": number
+
+

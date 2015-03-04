@@ -1,0 +1,16 @@
+name: mtcars
+location: mtcars.csv
+schema:
+  model: string
+  mpg: number
+  cyl: integer
+  disp: number
+  hp: number
+  drat: number
+  wt: number
+  qsec: number
+  vs: integer
+  am: integer
+  gear: integer
+  carb: integer
+

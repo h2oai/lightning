@@ -3013,46 +3013,35 @@ plot_table = (args...) ->
 plot_record = (index=0) ->
   new RecordExpr index
 
-configureSchema = (schema) ->
-  for label, obj of schema
-    if _.isString obj
-      switch obj
-        when 'string'
-          label: label
-          type: 'String'
-          domain: []
-          parse: asString
+readDataPackageSchema = (schema) ->
+  for field in schema
+    switch field.type
+      when 'string'
+        label: field.name
+        type: 'String'
+        domain: field.lightningDomain ? []
+        parse: asString
 
-        when 'int'
-          label: label
-          type: 'Number'
-          parse: asInt
+      when 'integer'
+        label: field.name
+        type: 'Number'
+        parse: asInt
 
-        when 'real'
-          label: label
-          type: 'Number'
-          parse: asReal
+      when 'number'
+        label: field.name
+        type: 'Number'
+        parse: asReal
 
-        #
-        #TODO dates
-        #
-        else
-          throw new Error "Invalid type #{obj} for schema field #{label}"
-
-    else if _.isArray obj
-      label: label
-      type: 'String'
-      domain: obj
-      parse: asString
-
-    else
-      throw new Error "Invalid type #{obj} for schema field #{label}"
+      #
+      #TODO dates, booleans
+      #
+      else
+        throw new Error "Invalid type [#{field.type}] for schema field [#{field.name}]"
 
 readCsvAsFrame = (label, columns, data, hasHeader) ->
   result = Papa.parse data,
     skipEmptyLines: yes
   rows = result.data
-  debug rows
   shift rows if hasHeader
 
   vectors = for column, offset in columns
@@ -3080,23 +3069,26 @@ readCsvAsFrame = (label, columns, data, hasHeader) ->
 
   createFrame label, vectors, _.range rows.length
 
-plot_remote = (url) -> (go) ->
-  download 'json', "#{url}.json", (error, descriptor) ->
+plot_dataPackage = (url) -> (go) ->
+  download 'json', "#{url}/datapackage.json", (error, dataPackage) ->
     if error
       go error
     else
-      switch descriptor.format
-        when 'csv'
-          download 'text', descriptor.location, (error, data) ->
+      if resource = head dataPackage.resources
+        if resourcePath = resource.path
+
+          download 'text', "#{url}/#{resourcePath}", (error, data) ->
             if error
               go error
             else
               try
-                go null, readCsvAsFrame descriptor.name, (configureSchema descriptor.schema), data, if descriptor.header then yes else no
+                go null, readCsvAsFrame dataPackage.name, (readDataPackageSchema resource.schema), data, yes
               catch error
                 go error
         else
-          go new Error "Unsupported format [#{descriptor.format}]"
+          go new Error "Resource is missing attribute [path]."
+      else
+        go new Error "No resources found in data package."
 
 # Geom expressions
 # ==============================
@@ -4112,7 +4104,7 @@ plot.path = plot_path
 plot.schema = plot_schema
 plot.table = plot_table
 plot.record = plot_record
-plot.remote = plot_remote
+plot.dataPackage = plot_dataPackage
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createList = createList

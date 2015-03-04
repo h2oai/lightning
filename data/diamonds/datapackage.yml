@@ -1,0 +1,15 @@
+name: diamonds
+location: diamonds.csv
+schema:
+  id: integer
+  carat: number
+  cut: [Fair, Good, "Very Good", Premium, Ideal]
+  color: [J, I, H, G, F, E, D]
+  clarity: [I1, SI1, SI2, VS1, VS2, VVS1, VVS2, IF]
+  depth_percentage: number
+  table: integer
+  price: number
+  length: number
+  width: number
+  depth: number
+

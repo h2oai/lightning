@@ -127,18 +127,42 @@ parseArticles = (compileScript, lines) ->
       article.javascript = javascript = coffee.compile coffeescript, bare: yes
       article.javascriptListing = (highlight.highlightAuto javascript, [ 'javascript' ]).value
 
-      article.script = compileScript 'var f = ' + javascript + EOL + "f(function(error, vis){if(error){document.getElementById('error').innerHTML=error.message;}else{document.getElementById('plot').appendChild(vis.element);}});"
+      article.script = compileScript 'var render = ' + javascript + EOL + "render(function(error, vis){if(error){document.getElementById('error').innerHTML=error.message;}else{document.getElementById('plot').appendChild(vis.element);}});"
 
   articles
 
 buildDoc = ->
   console.log "Building docs..."
 
-  for csv in glob 'data/*.csv'
-    cpn csv, locate 'build/data', path.basename csv
+  for datapackage_yml in glob 'data/**/datapackage.yml'
+    rawSchema = yaml.safeLoad read datapackage_yml
 
-  for schema_yml in glob 'data/*.yml'
-    write "build/data/#{path.basename schema_yml, '.yml'}.json", JSON.stringify (yaml.safeLoad read schema_yml), null, 2
+    datapackageFields = for name, descriptor of rawSchema.schema
+
+      if _.isArray descriptor
+        type = 'string'
+        domain = descriptor
+      else
+        type = descriptor
+        domain = undefined
+
+      field =
+        name: name
+        type: type
+
+      field.lightningDomain = domain if domain
+
+      field
+
+    datapackage_json =
+      name: rawSchema.name
+      resources: [
+        path: rawSchema.location
+        schema: datapackageFields
+      ]
+
+    cpn "data/#{rawSchema.name}/#{rawSchema.name}.csv", "build/data/#{rawSchema.name}/#{rawSchema.name}.csv"
+    write "build/data/#{rawSchema.name}/datapackage.json", JSON.stringify datapackage_json, null, 2
 
   cpn 'lib/jquery/dist/jquery.js', 'build/js/jquery.js'
 

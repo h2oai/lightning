@@ -11,7 +11,7 @@ plot(
   schema(
     position 'min', 'q1', 'q2', 'q3', 'max', factor('cyl')
   )
-  from remote 'data/mtcars_schema'
+  from dataPackage 'data/mtcars_schema'
 )
 ###
 plot schema-y
@@ -26,7 +26,7 @@ plot(
   schema(
     position factor('cyl'), 'min', 'q1', 'q2', 'q3', 'max'
   )
-  from remote 'data/mtcars_schema'
+  from dataPackage 'data/mtcars_schema'
 )
 ###
 plot point2
@@ -42,7 +42,7 @@ plot(
   point(
     position avg('wt'), avg('mpg')
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   where 'model', like /Merc/
   groupBy factor('cyl'), factor('carb')
 )
@@ -61,7 +61,7 @@ plot(
   point(
     position avg('wt'), avg('mpg')
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   where 'model', like /Merc/
   groupBy factor('cyl'), factor('carb')
   having avg('mpg'), gt 17
@@ -81,7 +81,7 @@ plot(
   point(
     position 'wt', 'mpg'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -99,7 +99,7 @@ plot(
     position 'wt', 'mpg'
     shape value 'triangleUp'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -117,7 +117,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor value 'red'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -136,7 +136,7 @@ plot(
     strokeColor value 'red'
     strokeOpacity value 0.5
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-sc-so-lw
@@ -155,7 +155,7 @@ plot(
     strokeOpacity value 0.5
     lineWidth value 5
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-fc
@@ -172,7 +172,7 @@ plot(
     position 'wt', 'mpg'
     fillColor value 'red'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-fc-fo
@@ -190,7 +190,7 @@ plot(
     fillColor value 'red'
     fillOpacity value 0.5
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-fc-fo-sz
@@ -209,7 +209,7 @@ plot(
     fillOpacity value 0.5
     size value 16
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-fc-fo-sc-so-sz-sh
@@ -232,7 +232,7 @@ plot(
     lineWidth value 5
     shape value 'triangleUp'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 
@@ -250,7 +250,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -267,7 +267,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec', range 'blue', 'red'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -284,7 +284,7 @@ plot(
     position 'wt', 'mpg'
     fillColor 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -301,7 +301,7 @@ plot(
     position 'wt', 'mpg'
     fillColor 'qsec', range 'blue', 'red'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-factor-vfc
@@ -317,7 +317,7 @@ plot(
     position 'wt', 'mpg'
     fillColor factor 'cyl'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -334,7 +334,7 @@ plot(
     position 'wt', 'mpg'
     fillColor factor('cyl'), range ['red', 'green', 'blue']
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -351,7 +351,7 @@ plot(
     position 'wt', 'mpg'
     shape factor 'cyl'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -368,7 +368,7 @@ plot(
     position 'wt', 'mpg'
     shape factor('cyl'), range ['circle', 'triangleUp', 'square']
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -385,7 +385,7 @@ plot(
     position 'wt', 'mpg'
     size 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -402,7 +402,7 @@ plot(
     position 'wt', 'mpg'
     size 'qsec', range 4, 40
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -420,7 +420,7 @@ plot(
     fillColor value 'red'
     fillOpacity 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -438,7 +438,7 @@ plot(
     fillColor value 'red'
     fillOpacity 'qsec', range 0.25, 1
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot point-vlw
@@ -454,7 +454,7 @@ plot(
     position 'wt', 'mpg'
     lineWidth 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -473,7 +473,7 @@ plot(
     size value 20
     strokeOpacity value 0.4
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 
@@ -492,7 +492,7 @@ plot(
     position 'carat', 'price'
     fillOpacity value 1/10
   )
-  from remote 'data/diamonds'
+  from dataPackage 'data/diamonds'
 )
 
 
@@ -511,7 +511,7 @@ plot(
     position 'carat', 'price'
     fillOpacity value 1/20
   )
-  from remote 'data/diamonds'
+  from dataPackage 'data/diamonds'
 )
 
 
@@ -530,7 +530,7 @@ plot(
     position 'carat', 'price'
     fillOpacity value 1/100
   )
-  from remote 'data/diamonds'
+  from dataPackage 'data/diamonds'
 )
 
 ###
@@ -553,7 +553,7 @@ plot(
     fillColor value 'white'
     shape factor 'cyl'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -570,7 +570,7 @@ plot(
   path(
     position 'wt', 'mpg'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -587,7 +587,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot path-vscr
@@ -603,7 +603,7 @@ plot(
     position 'wt', 'mpg'
     strokeColor 'qsec', range 'blue', 'red'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot path-vlw
@@ -619,7 +619,7 @@ plot(
     position 'wt', 'mpg'
     lineWidth 'qsec'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 ###
 plot cat-path
@@ -635,7 +635,7 @@ plot(
   path(
     position 'model', 'mpg'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   # where 'model', like /Merc/
 )
 
@@ -653,7 +653,7 @@ plot(
   rect(
     position 'model', 'mpg'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   # where 'model', like /Merc/
 )
 
@@ -671,7 +671,7 @@ plot(
   rect(
     position 'mpg', 'model'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   # where 'model', like /Merc/
 )
 ###
@@ -686,7 +686,7 @@ tags:
 
 plot(
   record 5
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -701,7 +701,7 @@ tags:
 
 plot(
   table() 
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
 )
 
 ###
@@ -716,7 +716,7 @@ tags:
 
 plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   where 'model', like /Merc/
 )
 
@@ -732,7 +732,7 @@ tags:
 
 plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   limit 5
 )
 
@@ -748,7 +748,7 @@ tags:
 
 plot(
   table 'model', 'mpg', 'cyl', 'disp', 'hp'
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   limit 10, 5
 )
 
@@ -766,7 +766,7 @@ plot(
   rect(
     position 'mpg', 'model'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   limit 10, 5
 )
 
@@ -785,7 +785,7 @@ plot(
     position 'model', 'mpg'
     width value 1
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   # where 'model', like /Merc/
 )
 
@@ -800,7 +800,7 @@ plot(
     position 'factor(cyl)', stack(count('cyl'), 0)
     fillColor 'factor(vs)'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -815,7 +815,7 @@ plot(
     position 'factor(cyl)', stack(count('cyl'), 1)
     fillColor 'factor(vs)'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -830,7 +830,7 @@ plot(
     position 'factor(cyl)', stack(count('cyl'), 2)
     fillColor 'factor(vs)'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -845,7 +845,7 @@ plot(
     position stack(count('cyl'), 0), 'All'
     fillColor 'factor(cyl)'
   )
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   groupBy factor(value 'All'), factor('cyl')
 )
 
@@ -857,7 +857,7 @@ Description goes here.
 
 plot(
   table 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 1)
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
 
@@ -869,7 +869,7 @@ Description goes here.
 
 plot(
   table 'All', 'factor(cyl)', count('cyl')
-  from remote 'data/mtcars'
+  from dataPackage 'data/mtcars'
   groupBy factor(value 'All'), factor('cyl')
 )
 
@@ -887,7 +887,7 @@ plot(
   path(
     position 'name', 'brainwt'
   )
-  from remote 'data/msleep'
+  from dataPackage 'data/msleep'
 )
 
 ###
@@ -905,7 +905,7 @@ plot(
     position 'Training Speed', 'Test Set Error'
     tooltip 'Parameters'
   )
-  from remote 'data/performance'
+  from dataPackage 'data/performance'
   bounds 500, 500
 )
 
@@ -923,6 +923,6 @@ plot(
   rect(
     position 'Test Set Error', 'Parameters'
   )
-  from remote 'data/performance'
+  from dataPackage 'data/performance'
   bounds null, 600
 )

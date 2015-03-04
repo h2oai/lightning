@@ -1,0 +1,29 @@
+name: movies
+location: movies.csv
+schema:
+  id: integer
+  title: string
+  year: integer
+  length: integer
+  budget: number
+  rating: number
+  votes: integer
+  r1: number
+  r2: number
+  r3: number
+  r4: number
+  r5: number
+  r6: number
+  r7: number
+  r8: number
+  r9: number
+  r10: number
+  mpaa: string
+  Action: integer
+  Animation: integer
+  Comedy: integer
+  Drama: integer
+  Documentary: integer
+  Romance: integer
+  Short: integer
+

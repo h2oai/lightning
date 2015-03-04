@@ -1,0 +1,10 @@
+name: mtcars_schema
+location: mtcars_schema.csv
+schema:
+  cyl: integer
+  min: number
+  q1: number
+  q2: number
+  q3: number
+  max: number
+
