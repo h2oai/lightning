@@ -940,3 +940,43 @@ plot(
     sin: (x) -> Math.sin x
     cos: (x) -> Math.cos x
 )
+
+
+###
+plot annotation-line-horizontal
+Horizontal annotation line
+###
+plot(
+  point position 'wt', 'mpg'
+  line(
+  # position 0, y-intercept
+    position (value 0), value 10
+  )
+  from dataPackage 'data/mtcars'
+)
+
+###
+plot annotation-line-vertical
+Vertical annotation line
+###
+plot(
+  point position 'wt', 'mpg'
+  line(
+  # position x-intercept
+    position value 10
+  )
+  from dataPackage 'data/mtcars'
+)
+
+###
+plot annotation-line-slope-intercept
+Annotation lines using slope, intercept
+###
+plot(
+  point position 'wt', 'mpg'
+  line(
+  # position slope, y-intercept
+    position value(10), value(10)
+  )
+  from dataPackage 'data/mtcars'
+)

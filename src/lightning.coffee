@@ -155,6 +155,12 @@ dispatch = do ->
       throw new Error "Pattern match failure for args [ #{join (map args, (arg) -> '' + arg + ':' + typeOf arg), ', '} ]" #TODO improve message
 
 #
+# apply() for constructors
+#
+applyc = (ctor, args) ->
+  new (ctor.bind.apply ctor, concat [ null ], args)()
+
+#
 # Types
 # ==============================
 #
@@ -274,6 +280,16 @@ class RectExpr extends MarkExpr
     @strokeOpacity
     @lineWidth
     @tooltip
+  ) ->
+
+class AnnotationExpr
+
+class LineExpr extends AnnotationExpr
+  constructor: (
+    @position
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
   ) ->
 
 class Mark
@@ -535,7 +551,6 @@ class Channel
 class ColorChannel extends Channel
 
 class CoordChannel extends Channel
-  constructor: (@field) ->
 
 class PositionChannel extends Channel
   constructor: (@coordinates) ->
@@ -559,6 +574,12 @@ class LineWidthChannel extends Channel
 class ShapeChannel extends Channel
 
 class TooltipChannel extends Channel
+
+class ConstantCoordChannel extends CoordChannel
+  constructor: (@value) ->
+
+class VariableCoordChannel extends CoordChannel
+  constructor: (@field) ->
 
 class ConstantFillColorChannel extends FillColorChannel
   constructor: (@value) ->
@@ -860,6 +881,10 @@ findByType = (args, types...) ->
   for arg in args
     return arg for type in types when arg instanceof type
   return
+
+findByTypes = (args, types) ->
+  for type in types
+    findByType args, type
 
 # real, real -> Extent
 createExtent = (a, b) ->
@@ -2935,7 +2960,11 @@ collectFields = (args) ->
       throw new Error "Cannot create vector reference from [#{arg}] of type [#{type}]."
 
 plot_position = (args...) ->
-  new PositionChannel (new CoordChannel field for field in collectFields args)
+  #TODO fail on mixed-mode
+  if (every args, (arg) -> arg instanceof Value)
+    new PositionChannel (new ConstantCoordChannel arg.value for arg in args)
+  else
+    new PositionChannel (new VariableCoordChannel field for field in collectFields args)
 
 #TODO dispatching is a clone of strokeColor
 plot_fillColor = dispatch(
@@ -3112,65 +3141,68 @@ plot_dataPackage = (url) -> (go) ->
 # Geom expressions
 # ==============================
 
-plot_point = (ops...) ->
-  position = findByType ops, PositionChannel
+createExpr_ = (expr, types...) ->
+  (ops...) ->
+    applyc expr, findByTypes ops, types
 
-  shape = findByType ops, ShapeChannel
-  size = findByType ops, SizeChannel
+plot_point = createExpr_(
+  PointExpr
+  PositionChannel
+  ShapeChannel
+  SizeChannel
+  FillColorChannel
+  FillOpacityChannel
+  StrokeColorChannel
+  StrokeOpacityChannel
+  LineWidthChannel
+  TooltipChannel
+)
 
-  fillColor = findByType ops, FillColorChannel
-  fillOpacity = findByType ops, FillOpacityChannel
+plot_rect = createExpr_(
+  RectExpr
+  PositionChannel
+  WidthChannel #XXX ?
+  HeightChannel #XXX ?
+  FillColorChannel
+  FillOpacityChannel
+  StrokeColorChannel
+  StrokeOpacityChannel
+  LineWidthChannel
+  TooltipChannel
+)
 
-  strokeColor = findByType ops, StrokeColorChannel
-  strokeOpacity = findByType ops, StrokeOpacityChannel
-  lineWidth = findByType ops, LineWidthChannel
+plot_path = createExpr_(
+  PathExpr
+  PositionChannel
+  StrokeColorChannel
+  StrokeOpacityChannel
+  LineWidthChannel
+  TooltipChannel
+)
 
-  tooltip = findByType ops, TooltipChannel
-
-  new PointExpr position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip
-
-plot_rect = (ops...) ->
-  position = findByType ops, PositionChannel
-  
-  width = findByType ops, WidthChannel #XXX ?
-  height = findByType ops, HeightChannel #XXX ?
-
-  fillColor = findByType ops, FillColorChannel
-  fillOpacity = findByType ops, FillOpacityChannel
-
-  strokeColor = findByType ops, StrokeColorChannel
-  strokeOpacity = findByType ops, StrokeOpacityChannel
-  lineWidth = findByType ops, LineWidthChannel
-
-  tooltip = findByType ops, TooltipChannel
-
-  new RectExpr position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip
-
-plot_path = (ops...) ->
-  position = findByType ops, PositionChannel
-
-  strokeColor = findByType ops, StrokeColorChannel
-  strokeOpacity = findByType ops, StrokeOpacityChannel
-  lineWidth = findByType ops, LineWidthChannel
-
-  tooltip = findByType ops, TooltipChannel
-
-  new PathExpr position, strokeColor, strokeOpacity, lineWidth, tooltip
-
-plot_schema = (ops...) ->
-  position = findByType ops, PositionChannel
-
+plot_schema = createExpr_(
+  SchemaExpr
+  PositionChannel
   #XXX Can simplify using a single size parameter
-  width = findByType ops, WidthChannel #XXX ?
-  height = findByType ops, HeightChannel #XXX ?
+  WidthChannel #XXX ?
+  HeightChannel #XXX ?
+  StrokeColorChannel
+  StrokeOpacityChannel
+  LineWidthChannel
+  TooltipChannel
+)
 
-  strokeColor = findByType ops, StrokeColorChannel
-  strokeOpacity = findByType ops, StrokeOpacityChannel
-  lineWidth = findByType ops, LineWidthChannel
+# Annotation expressions
+# ==============================
 
-  tooltip = findByType ops, TooltipChannel
+plot_line = createExpr_(
+  LineExpr
+  PositionChannel
+  StrokeColorChannel
+  StrokeOpacityChannel
+  LineWidthChannel
+)
 
-  new SchemaExpr position, width, height, strokeColor, strokeOpacity, lineWidth, tooltip
 
 # Expression parsing
 # ==============================
@@ -3945,7 +3977,6 @@ renderPlot = (frame, ops) ->
   marks = map (filterByType ops, MarkExpr), (expr) ->
     positionVectors = for coord in expr.position.coordinates
       frame.evaluate coord.field
-    #XXX Flatten positionVectors: stack() will produce 2 vectors
     createMark expr, flatten positionVectors
 
   spaces = map marks, (mark) -> mark.space
@@ -4148,10 +4179,13 @@ plot.sum = plot_sum
 #plot.variance = plot_variance
 #plot.varianceP = plot_varianceP
 plot.parse = plot_parse
+# Geoms
 plot.point = plot_point
 plot.rect = plot_rect
 plot.path = plot_path
 plot.schema = plot_schema
+# Annotations
+plot.line = plot_line
 plot.select = plot_select
 plot.dataPackage = plot_dataPackage
 plot.computed = plot_computed

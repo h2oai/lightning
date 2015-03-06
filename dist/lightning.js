@@ -1,5 +1,5 @@
 (function () {
-    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LimitOp, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectOp, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, TableExpr, Tan30, TextMark, Tick, TooltipChannel, TooltipEncoder, Transparent, Value, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableTooltipChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, arrayElementsAreEqual, asInt, asReal, asString, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, colorToStyleA, combineExtents, computeApproxAxisSize, computeAxisDomain, computeExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAllFactor, createAllField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExtent, createFactor, createFactorField, createFields, createFrame, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, download, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeTooltip, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFactorDomain, filterFrame, findByType, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__select, plot__where, plot_aggregate, plot_avg, plot_bounds, plot_count, plot_dataPackage, plot_defaults, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_limit, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_record, plot_rect, plot_schema, plot_select, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_table, plot_tooltip, plot_value, plot_where, plot_width, px, quantile_, queryFrame, readCsvAsFrame, readDataPackageSchema, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, __slice = [].slice, __extends = function (child, parent) {
+    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantCoordChannel, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LimitOp, LineExpr, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectExpr, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, Tan30, TextMark, Tick, TooltipChannel, TooltipEncoder, Transparent, Value, VariableCoordChannel, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableTooltipChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, applyc, arrayElementsAreEqual, asInt, asReal, asString, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, colorToStyleA, combineExtents, computeApproxAxisSize, computeAxisDomain, computeExtent, computeFunctorExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAllFactor, createAllField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExpr_, createExtent, createFactor, createFactorField, createFields, createFrame, createFunctor, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, download, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeTooltip, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFactorDomain, filterFrame, findByType, findByTypes, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__where, plot_aggregate, plot_avg, plot_bounds, plot_computed, plot_count, plot_dataPackage, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_limit, plot_line, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_rect, plot_schema, plot_select, plot_settings, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_tooltip, plot_value, plot_where, plot_width, px, quantile_, queryFrame, readCsvAsFrame, readDataPackageSchema, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, __slice = [].slice, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -208,6 +208,9 @@
             };
         };
     }();
+    applyc = function (ctor, args) {
+        return new (ctor.bind.apply(ctor, [null].concat(args)))();
+    };
     Clip = function () {
         function Clip(_at_put, _at_test) {
             this.put = _at_put;
@@ -353,11 +356,11 @@
         }
         return Stroke;
     }();
-    TableExpr = function () {
-        function TableExpr(_at_fields) {
+    SelectExpr = function () {
+        function SelectExpr(_at_fields) {
             this.fields = _at_fields;
         }
-        return TableExpr;
+        return SelectExpr;
     }();
     RecordExpr = function () {
         function RecordExpr(_at_index) {
@@ -421,6 +424,16 @@
             this.tooltip = _at_tooltip;
         }
         return RectExpr;
+    }(MarkExpr);
+    LineExpr = function (_super) {
+        __extends(LineExpr, _super);
+        function LineExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.position = _at_position;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
+        }
+        return LineExpr;
     }(MarkExpr);
     Mark = function () {
         function Mark() {
@@ -804,8 +817,8 @@
     }(Channel);
     CoordChannel = function (_super) {
         __extends(CoordChannel, _super);
-        function CoordChannel(_at_field) {
-            this.field = _at_field;
+        function CoordChannel() {
+            return CoordChannel.__super__.constructor.apply(this, arguments);
         }
         return CoordChannel;
     }(Channel);
@@ -886,6 +899,20 @@
         }
         return TooltipChannel;
     }(Channel);
+    ConstantCoordChannel = function (_super) {
+        __extends(ConstantCoordChannel, _super);
+        function ConstantCoordChannel(_at_value) {
+            this.value = _at_value;
+        }
+        return ConstantCoordChannel;
+    }(CoordChannel);
+    VariableCoordChannel = function (_super) {
+        __extends(VariableCoordChannel, _super);
+        function VariableCoordChannel(_at_field) {
+            this.field = _at_field;
+        }
+        return VariableCoordChannel;
+    }(CoordChannel);
     ConstantFillColorChannel = function (_super) {
         __extends(ConstantFillColorChannel, _super);
         function ConstantFillColorChannel(_at_value) {
@@ -1205,8 +1232,7 @@
         return Box;
     }();
     Query = function () {
-        function Query(_at_select, _at_where, _at_limit, _at_group, _at_having) {
-            this.select = _at_select;
+        function Query(_at_where, _at_limit, _at_group, _at_having) {
             this.where = _at_where;
             this.limit = _at_limit;
             this.group = _at_group;
@@ -1261,14 +1287,6 @@
             this.fields = _at_fields;
         }
         return GroupOp;
-    }();
-    SelectOp = function () {
-        function SelectOp(_at_name, _at_fields, _at_func) {
-            this.name = _at_name;
-            this.fields = _at_fields;
-            this.func = _at_func;
-        }
-        return SelectOp;
     }();
     WhereOp = function () {
         function WhereOp(_at_fields, _at_predicate) {
@@ -1422,6 +1440,15 @@
             }
         }
     };
+    findByTypes = function (args, types) {
+        var type, _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = types.length; _i < _len; _i++) {
+            type = types[_i];
+            _results.push(findByType(args, type));
+        }
+        return _results;
+    };
     createExtent = function (a, b) {
         if (a < b) {
             return new Extent(a, b);
@@ -1436,6 +1463,22 @@
         for (_i = 0, _len = array.length; _i < _len; _i++) {
             value = array[_i];
             if (value !== void 0) {
+                if (value <= min) {
+                    min = value;
+                }
+                if (value >= max) {
+                    max = value;
+                }
+            }
+        }
+        return new Extent(min, max);
+    };
+    computeFunctorExtent = function (count, f) {
+        var i, max, min, value, _i;
+        min = Number.POSITIVE_INFINITY;
+        max = Number.NEGATIVE_INFINITY;
+        for (i = _i = 0; 0 <= count ? _i < count : _i > count; i = 0 <= count ? ++_i : --_i) {
+            if ((value = f(i)) !== void 0) {
                 if (value <= min) {
                     min = value;
                 }
@@ -1514,6 +1557,14 @@
             return _format(data[i], i);
         } : at;
         return new Vector(name, label, type, at, count, domain, format);
+    };
+    createFunctor = function (name, label, type, _count, _at, _format) {
+        var domain, format;
+        domain = computeFunctorExtent(_count, _at);
+        format = _format ? function (i) {
+            return _format(_at(i), i);
+        } : _at;
+        return new Vector(name, label, type, _at, _count, domain, format);
     };
     factorize = function (_read, count, values) {
         var at, category, data, domain, element, format, i, length, value, valueAt, _dictionary, _i, _id;
@@ -1654,7 +1705,7 @@
         return rows;
     };
     createQuery = function (ops) {
-        return new Query(filterByType(ops, SelectOp), filterByType(ops, WhereOp), filterByType(ops, LimitOp), filterByType(ops, GroupOp), filterByType(ops, HavingOp));
+        return new Query(filterByType(ops, WhereOp), filterByType(ops, LimitOp), filterByType(ops, GroupOp), filterByType(ops, HavingOp));
     };
     createFields = function (names) {
         return _.map(names, function (name) {
@@ -1934,19 +1985,6 @@
         }();
         return new GroupOp(fields);
     };
-    plot__select = dispatch([
-        String,
-        [String],
-        Function,
-        function (target, sources, func) {
-            return new SelectOp(target, createFields(sources), func);
-        }
-    ]);
-    plot_select = function () {
-        var func, sources, target, _i;
-        target = arguments[0], sources = 3 <= arguments.length ? __slice.call(arguments, 1, _i = arguments.length - 1) : (_i = 1, []), func = arguments[_i++];
-        return plot__select(target, sources.length ? sources : [target], func);
-    };
     plot__where = dispatch([
         [String],
         Function,
@@ -2027,9 +2065,7 @@
             return regex.test(actual);
         };
     };
-    plot_in = function () {
-        var expecteds;
-        expecteds = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    plot_in = function (expecteds) {
         return function (actual) {
             var expected, _i, _len;
             for (_i = 0, _len = expecteds.length; _i < _len; _i++) {
@@ -2041,9 +2077,7 @@
             return false;
         };
     };
-    plot_notIn = function () {
-        var expecteds;
-        expecteds = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+    plot_notIn = function (expecteds) {
         return function (actual) {
             var expected, _i, _len;
             for (_i = 0, _len = expecteds.length; _i < _len; _i++) {
@@ -3791,18 +3825,32 @@
         return _results;
     };
     plot_position = function () {
-        var args, field;
+        var arg, args, field;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return new PositionChannel(function () {
-            var _i, _len, _ref, _results;
-            _ref = collectFields(args);
-            _results = [];
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                field = _ref[_i];
-                _results.push(new CoordChannel(field));
-            }
-            return _results;
-        }());
+        if (_.every(args, function (arg) {
+                return arg instanceof Value;
+            })) {
+            return new PositionChannel(function () {
+                var _i, _len, _results;
+                _results = [];
+                for (_i = 0, _len = args.length; _i < _len; _i++) {
+                    arg = args[_i];
+                    _results.push(new ConstantCoordChannel(arg.value));
+                }
+                return _results;
+            }());
+        } else {
+            return new PositionChannel(function () {
+                var _i, _len, _ref, _results;
+                _ref = collectFields(args);
+                _results = [];
+                for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                    field = _ref[_i];
+                    _results.push(new VariableCoordChannel(field));
+                }
+                return _results;
+            }());
+        }
     };
     plot_fillColor = dispatch([
         StringValue,
@@ -4034,16 +4082,14 @@
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         return new VariableTooltipChannel(collectFields(args));
     };
-    plot_table = function () {
-        var args;
+    plot_select = function () {
+        var arg, args;
         args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return new TableExpr(collectFields(args));
-    };
-    plot_record = function (index) {
-        if (index == null) {
-            index = 0;
+        if (args.length === 1 && _.isNumber(arg = _.head(args))) {
+            return new RecordExpr(arg);
+        } else {
+            return new SelectExpr(collectFields(args));
         }
-        return new RecordExpr(index);
     };
     readDataPackageSchema = function (schema) {
         var field, _i, _len, _ref, _results;
@@ -4083,7 +4129,6 @@
         var column, index, offset, result, row, rows, value, vectors;
         result = Papa.parse(data, { skipEmptyLines: true });
         rows = result.data;
-        console.debug(rows);
         if (hasHeader) {
             rows.shift();
         }
@@ -4101,10 +4146,10 @@
                 }
                 switch (column.type) {
                 case 'String':
-                    _results.push(plot.createFactor(column.label, column.type, data, column.domain));
+                    _results.push(createFactor(column.label, column.type, data, column.domain));
                     break;
                 case 'Number':
-                    _results.push(plot.createVector(column.label, column.type, data, _.identity));
+                    _results.push(createVector(column.label, column.type, data, _.identity));
                     break;
                 default:
                     _results.push(void 0);
@@ -4113,6 +4158,33 @@
             return _results;
         }();
         return createFrame(label, vectors, _.range(rows.length));
+    };
+    plot_computed = function (label0, start, end, step, columns) {
+        return function (go) {
+            var at0, expr, functor_, label, rowCount, vectors;
+            rowCount = Math.floor((end - start) / step);
+            at0 = function (i) {
+                return start + i * step;
+            };
+            functor_ = function (label, expr) {
+                var at;
+                at = function (i) {
+                    return expr(at0(i));
+                };
+                return createFunctor(label, label, 'Number', rowCount, at, _.identity);
+            };
+            vectors = function () {
+                var _results;
+                _results = [];
+                for (label in columns) {
+                    expr = columns[label];
+                    _results.push(functor_(label, expr));
+                }
+                return _results;
+            }();
+            vectors.unshift(createFunctor(label0, label0, 'Number', rowCount, at0, _.identity));
+            return go(null, createFrame('computed', vectors, _.range(rowCount)));
+        };
     };
     plot_dataPackage = function (url) {
         return function (go) {
@@ -4145,56 +4217,20 @@
             });
         };
     };
-    plot_point = function () {
-        var fillColor, fillOpacity, lineWidth, ops, position, shape, size, strokeColor, strokeOpacity, tooltip;
-        ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        position = findByType(ops, PositionChannel);
-        shape = findByType(ops, ShapeChannel);
-        size = findByType(ops, SizeChannel);
-        fillColor = findByType(ops, FillColorChannel);
-        fillOpacity = findByType(ops, FillOpacityChannel);
-        strokeColor = findByType(ops, StrokeColorChannel);
-        strokeOpacity = findByType(ops, StrokeOpacityChannel);
-        lineWidth = findByType(ops, LineWidthChannel);
-        tooltip = findByType(ops, TooltipChannel);
-        return new PointExpr(position, shape, size, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip);
+    createExpr_ = function () {
+        var expr, types;
+        expr = arguments[0], types = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+        return function () {
+            var ops;
+            ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
+            return applyc(expr, findByTypes(ops, types));
+        };
     };
-    plot_rect = function () {
-        var fillColor, fillOpacity, height, lineWidth, ops, position, strokeColor, strokeOpacity, tooltip, width;
-        ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        position = findByType(ops, PositionChannel);
-        width = findByType(ops, WidthChannel);
-        height = findByType(ops, HeightChannel);
-        fillColor = findByType(ops, FillColorChannel);
-        fillOpacity = findByType(ops, FillOpacityChannel);
-        strokeColor = findByType(ops, StrokeColorChannel);
-        strokeOpacity = findByType(ops, StrokeOpacityChannel);
-        lineWidth = findByType(ops, LineWidthChannel);
-        tooltip = findByType(ops, TooltipChannel);
-        return new RectExpr(position, width, height, fillColor, fillOpacity, strokeColor, strokeOpacity, lineWidth, tooltip);
-    };
-    plot_path = function () {
-        var lineWidth, ops, position, strokeColor, strokeOpacity, tooltip;
-        ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        position = findByType(ops, PositionChannel);
-        strokeColor = findByType(ops, StrokeColorChannel);
-        strokeOpacity = findByType(ops, StrokeOpacityChannel);
-        lineWidth = findByType(ops, LineWidthChannel);
-        tooltip = findByType(ops, TooltipChannel);
-        return new PathExpr(position, strokeColor, strokeOpacity, lineWidth, tooltip);
-    };
-    plot_schema = function () {
-        var height, lineWidth, ops, position, strokeColor, strokeOpacity, tooltip, width;
-        ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        position = findByType(ops, PositionChannel);
-        width = findByType(ops, WidthChannel);
-        height = findByType(ops, HeightChannel);
-        strokeColor = findByType(ops, StrokeColorChannel);
-        strokeOpacity = findByType(ops, StrokeOpacityChannel);
-        lineWidth = findByType(ops, LineWidthChannel);
-        tooltip = findByType(ops, TooltipChannel);
-        return new SchemaExpr(position, width, height, strokeColor, strokeOpacity, lineWidth, tooltip);
-    };
+    plot_point = createExpr_(PointExpr, PositionChannel, ShapeChannel, SizeChannel, FillColorChannel, FillOpacityChannel, StrokeColorChannel, StrokeOpacityChannel, LineWidthChannel, TooltipChannel);
+    plot_rect = createExpr_(RectExpr, PositionChannel, WidthChannel, HeightChannel, FillColorChannel, FillOpacityChannel, StrokeColorChannel, StrokeOpacityChannel, LineWidthChannel, TooltipChannel);
+    plot_path = createExpr_(PathExpr, PositionChannel, StrokeColorChannel, StrokeOpacityChannel, LineWidthChannel, TooltipChannel);
+    plot_schema = createExpr_(SchemaExpr, PositionChannel, WidthChannel, HeightChannel, StrokeColorChannel, StrokeOpacityChannel, LineWidthChannel, TooltipChannel);
+    plot_line = createExpr_(LineExpr, PositionChannel, StrokeColorChannel, StrokeOpacityChannel, LineWidthChannel);
     plot_parse = function (esprima, escodegen) {
         var traverse;
         traverse = function (node, f) {
@@ -4267,14 +4303,15 @@
             return escodegen.generate(ast);
         };
     };
-    plot_defaults = {
+    plot_settings = {
         maxCanvasSize: new Size(795, 600),
         visualizationSize: new Size(300, 300),
         axisLabelFont: '10px monospace',
         axisTickColor: '#4d4d4d',
         axisTitleFont: 'bold 10px monospace',
         axisLabelColor: '#4d4d4d',
-        gridLineColor: '#eee'
+        gridLineColor: '#eee',
+        originLineColor: '#ccc'
     };
     px = function (pixels) {
         return Math.round(pixels) + 'px';
@@ -4296,28 +4333,10 @@
         }
     };
     createStylesheet = function (styles) {
-        var el, headEl, lines, property, selector, sheet, style, value;
-        sheet = function () {
-            var _results;
-            _results = [];
-            for (selector in styles) {
-                style = styles[selector];
-                lines = function () {
-                    var _results1;
-                    _results1 = [];
-                    for (property in style) {
-                        value = style[property];
-                        _results1.push(property + ':' + value);
-                    }
-                    return _results1;
-                }();
-                _results.push(selector + '{' + lines.join(';') + ';}');
-            }
-            return _results;
-        }();
+        var el, headEl;
         el = document.createElement('style');
         el.type = 'text/css';
-        el.innerHTML = sheet.join('\n');
+        el.innerHTML = styles;
         headEl = _.head(document.getElementsByTagName('head'));
         headEl.appendChild(el);
     };
@@ -4372,6 +4391,7 @@
             width: px(box.width),
             height: px(box.height)
         });
+        container.className = 'lz';
         marquee = createDOMElement('div', {
             position: 'absolute',
             left: px(0),
@@ -4389,7 +4409,7 @@
             'max-width': px(0.9 * box.width),
             display: 'none'
         });
-        tooltip.className = 'lightning-tooltip';
+        tooltip.className = 'lz-tooltip';
         container.appendChild(baseCanvas.element);
         container.appendChild(highlightCanvas.element);
         container.appendChild(marquee);
@@ -4684,9 +4704,9 @@
     };
     renderAxis = function (g, axis, width, height, orientation) {
         var category, label, labelAnchor, labelPosition, maxLabelSize, maxPosition, minPosition, position, tick, tickPosition, tickStart, titleHeight, _i, _j, _len, _len1, _ref, _ref1;
-        g.font = plot_defaults.axisLabelFont;
-        g.fillStyle = plot_defaults.axisLabelColor;
-        g.strokeStyle = plot_defaults.axisTickColor;
+        g.font = plot_settings.axisLabelFont;
+        g.fillStyle = plot_settings.axisLabelColor;
+        g.strokeStyle = plot_settings.axisTickColor;
         g.textBaseline = 'middle';
         titleHeight = __emWidth + 4;
         maxLabelSize = width - titleHeight;
@@ -4724,7 +4744,7 @@
             throw new Error('Invalid axis type.');
         }
         g.restore();
-        g.font = plot_defaults.axisTitleFont;
+        g.font = plot_settings.axisTitleFont;
         g.textAlign = 'center';
         g.translate(titleHeight / 2, height / 2);
         g.rotate(orientation * Halfπ);
@@ -4733,7 +4753,7 @@
     };
     renderGridlines = function (g, axis, width, height) {
         var tick, tickPosition, _i, _len, _ref;
-        g.strokeStyle = plot_defaults.gridLineColor;
+        g.strokeStyle = plot_settings.gridLineColor;
         if (axis instanceof CategoricalAxis) {
             doLine(g, 0, 0.5, width, 0.5);
             doLine(g, 0, height - 0.5, width, height - 0.5);
@@ -4742,6 +4762,11 @@
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 tick = _ref[_i];
                 tickPosition = Math.max(0.5, -0.5 + Math.round(axis.scale(tick.value)));
+                doLine(g, 0, tickPosition, width, tickPosition);
+            }
+            if (axis.domain.min <= 0 && 0 <= axis.domain.max) {
+                g.strokeStyle = plot_settings.originLineColor;
+                tickPosition = Math.max(0.5, -0.5 + Math.round(axis.scale(0)));
                 doLine(g, 0, tickPosition, width, tickPosition);
             }
         }
@@ -4870,7 +4895,7 @@
                     longest = length;
                 }
             }
-            return new Bounds(Math.ceil(longest * __emWidth + padding), plot_defaults.visualizationSize.height);
+            return new Bounds(Math.ceil(longest * __emWidth + padding), plot_settings.visualizationSize.height);
         } else {
             throw new Error('Invalid axis type.');
         }
@@ -4909,7 +4934,7 @@
         var frame, query;
         query = createQuery(ops);
         frame = queryFrame(_frame, query);
-        if (findByType(ops, TableExpr)) {
+        if (findByType(ops, SelectExpr)) {
             return renderTable(frame, ops);
         } else if (findByType(ops, RecordExpr)) {
             return renderRecord(frame, ops);
@@ -4921,7 +4946,7 @@
         var element, escapedValue, index, name, recordExpr, subscribe, table, tbody, td, th, tr, trs, unsubscribe, value, vector, _ref;
         recordExpr = findByType(ops, RecordExpr);
         index = recordExpr.index;
-        _ref = diecut('table.lightning-record', 'tbody', 'tr', 'th', 'td'), table = _ref[0], tbody = _ref[1], tr = _ref[2], th = _ref[3], td = _ref[4];
+        _ref = diecut('table.lz-record', 'tbody', 'tr', 'th', 'td'), table = _ref[0], tbody = _ref[1], tr = _ref[2], th = _ref[3], td = _ref[4];
         trs = function () {
             var _ref1, _results;
             _ref1 = frame.schema;
@@ -4969,12 +4994,12 @@
         return new Plot(element, subscribe, unsubscribe);
     };
     renderTable = function (frame, ops) {
-        var element, field, i, subscribe, table, tableExpr, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, vectorGroups, vectors, _ref;
-        tableExpr = findByType(ops, TableExpr);
+        var element, field, i, selectExpr, subscribe, table, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, vectorGroups, vectors, _ref;
+        selectExpr = findByType(ops, SelectExpr);
         vectorGroups = function () {
             var _i, _len, _ref, _results;
-            if (tableExpr.fields.length) {
-                _ref = tableExpr.fields;
+            if (selectExpr.fields.length) {
+                _ref = selectExpr.fields;
                 _results = [];
                 for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                     field = _ref[_i];
@@ -4986,7 +5011,7 @@
             }
         }();
         vectors = _.flatten(vectorGroups);
-        _ref = diecut('table.lightning-table', 'thead', 'tbody', 'tr', 'th', 'th.lightning-number', 'td', 'td.lightning-number'), table = _ref[0], thead = _ref[1], tbody = _ref[2], tr = _ref[3], th = _ref[4], thr = _ref[5], td = _ref[6], tdr = _ref[7];
+        _ref = diecut('table.lz-table', 'thead', 'tbody', 'tr', 'th', 'th.lz-number', 'td', 'td.lz-number'), table = _ref[0], thead = _ref[1], tbody = _ref[2], tr = _ref[3], th = _ref[4], thr = _ref[5], td = _ref[6], tdr = _ref[7];
         ths = function () {
             var _i, _len, _results;
             _results = [];
@@ -5085,9 +5110,9 @@
         axisBoundsX = computeApproxAxisSize(spaceX.type, domainX);
         axisBoundsY = computeApproxAxisSize(spaceY.type, domainY);
         bounds = (_ref = findByType(ops, Bounds)) != null ? _ref : new Bounds(void 0, void 0);
-        boundsWidth = (_ref1 = bounds.width) != null ? _ref1 : Math.min(plot_defaults.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height);
-        boundsHeight = (_ref2 = bounds.height) != null ? _ref2 : Math.min(plot_defaults.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height);
-        box = new Box(boundsWidth, boundsHeight, new Margin(Math.min(0.3 * plot_defaults.maxCanvasSize.width, axisBoundsY.width), 0, 0, Math.min(0.3 * plot_defaults.maxCanvasSize.height, axisBoundsX.width)));
+        boundsWidth = (_ref1 = bounds.width) != null ? _ref1 : Math.min(plot_settings.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height);
+        boundsHeight = (_ref2 = bounds.height) != null ? _ref2 : Math.min(plot_settings.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height);
+        box = new Box(boundsWidth, boundsHeight, new Margin(Math.min(0.3 * plot_settings.maxCanvasSize.width, axisBoundsY.width), 0, 0, Math.min(0.3 * plot_settings.maxCanvasSize.height, axisBoundsX.width)));
         axisRectX = box.regions.bottom;
         axisRectY = box.regions.left;
         rangeX = new SequentialRange(0, axisRectX.width);
@@ -5140,30 +5165,7 @@
         }
     ]);
     initializeStylesheet = function () {
-        return createStylesheet({
-            '.lightning-tooltip': {
-                background: '#2c2c2c',
-                color: '#fff',
-                'font-size': '12px'
-            },
-            '.lightning-tooltip th, .lightning-tooltip td': {
-                padding: '0px 4px',
-                'vertical-align': 'middle'
-            },
-            '.lightning-tooltip th': { 'text-align': 'left' },
-            '.lightning-table th, .lightning-table td': {
-                padding: '0px 8px',
-                'vertical-align': 'middle'
-            },
-            '.lightning-table tbody > tr:nth-child(odd)': { 'background-color': '#f3f3f3' },
-            '.lightning-table .lightning-number': { 'text-align': 'right' },
-            '.lightning-record th, .lightning-record td': {
-                padding: '0px 8px',
-                'vertical-align': 'middle'
-            },
-            '.lightning-record th': { 'text-align': 'right' },
-            '.lightning-record tbody > tr:nth-child(odd)': { 'background-color': '#f3f3f3' }
-        });
+        return createStylesheet('.lz-tooltip {\n  background: #2c2c2c;\n  color: #fff;\n  font-size: 12px;\n}\n.lz-tooltip th, .lz-tooltip td {\n  padding: 0px 4px;\n  vertical-align: middle;\n}\n.lz-tooltip th {\n  text-align: left;\n}\n.lz-table tbody tr:hover {\n  outline: 1px solid black;\n  cursor: pointer;\n}\n.lz-table th, .lz-table td {\n  padding: 0px 8px;\n  vertical-align: middle;\n}\n.lz-table tbody > tr:nth-child(odd) {\n  background-color: #f3f3f3;\n}\n.lz-table .lz-number {\n  text-align: right;\n}\n.lz-record th, .lz-record td {\n  padding: 0px 8px;\n  vertical-align: middle;\n}\n.lz-record th {\n  text-align: right;\n}\n.lz-record tbody > tr:nth-child(odd) {\n  background-color: #f3f3f3;\n}');
     };
     __scratchCanvas = null;
     __emWidth = 18;
@@ -5171,7 +5173,7 @@
         var canvas, g;
         __scratchCanvas = canvas = createCanvas(new Bounds(100, 100));
         g = canvas.context;
-        g.font = plot_defaults.axisLabelFont;
+        g.font = plot_settings.axisLabelFont;
         return __emWidth = g.measureText('M').width;
     };
     __isLibInitialized = false;
@@ -5187,8 +5189,18 @@
         ops = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
         if (datasource = findByType(ops, Datasource, Frame)) {
             initializeLib();
-            return function (go) {
-                return visualize(datasource, _.without(ops, datasource), go);
+            return function (arg) {
+                var go;
+                go = _.isElement(arg) ? function (error, vis) {
+                    if (error) {
+                        return arg.innerHTML = error.message;
+                    } else {
+                        return arg.appendChild(vis.element);
+                    }
+                } : _.isFunction(arg) ? arg : void 0;
+                if (go) {
+                    return visualize(datasource, _.without(ops, datasource), go);
+                }
             };
         } else {
             return function () {
@@ -5199,6 +5211,7 @@
         }
     };
     plot.VERSION = '999.999.999';
+    plot.settings = plot_settings;
     plot.bounds = plot_bounds;
     plot.from = plot_from;
     plot.value = plot_value;
@@ -5218,7 +5231,6 @@
     plot.factor = plot_factor;
     plot.stack = plot_stack;
     plot.groupBy = plot_groupBy;
-    plot.select = plot_select;
     plot.where = plot_where;
     plot.limit = plot_limit;
     plot.having = plot_having;
@@ -5239,9 +5251,10 @@
     plot.rect = plot_rect;
     plot.path = plot_path;
     plot.schema = plot_schema;
-    plot.table = plot_table;
-    plot.record = plot_record;
+    plot.line = plot_line;
+    plot.select = plot_select;
     plot.dataPackage = plot_dataPackage;
+    plot.computed = plot_computed;
     plot.createFrame = createFrame;
     plot.createVector = createVector;
     plot.createList = createList;
