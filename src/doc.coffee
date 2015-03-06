@@ -690,8 +690,8 @@ plot(
 )
 
 ###
-plot table
-table
+plot select
+select
 Description goes here.
 ---
 tags:
@@ -700,13 +700,13 @@ tags:
 ###
 
 plot(
-  table() 
+  select() 
   from dataPackage 'data/mtcars'
 )
 
 ###
 plot table-where
-table + where
+select + where
 Description goes here.
 ---
 tags:
@@ -715,14 +715,14 @@ tags:
 ###
 
 plot(
-  table 'model', 'mpg', 'cyl', 'disp', 'hp'
+  select 'model', 'mpg', 'cyl', 'disp', 'hp'
   from dataPackage 'data/mtcars'
   where 'model', like /Merc/
 )
 
 ###
 plot table-limit
-table + limit
+select + limit
 Description goes here.
 ---
 tags:
@@ -731,14 +731,14 @@ tags:
 ###
 
 plot(
-  table 'model', 'mpg', 'cyl', 'disp', 'hp'
+  select 'model', 'mpg', 'cyl', 'disp', 'hp'
   from dataPackage 'data/mtcars'
   limit 5
 )
 
 ###
 plot table-limit-offset
-table + limit + offset
+select + limit + offset
 Description goes here.
 ---
 tags:
@@ -747,7 +747,7 @@ tags:
 ###
 
 plot(
-  table 'model', 'mpg', 'cyl', 'disp', 'hp'
+  select 'model', 'mpg', 'cyl', 'disp', 'hp'
   from dataPackage 'data/mtcars'
   limit 10, 5
 )
@@ -851,12 +851,12 @@ plot(
 
 ###
 plot stacked-bars-temp
-stacked bar data table (temp)
+stacked bar data select (temp)
 Description goes here.
 ###
 
 plot(
-  table 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 1)
+  select 'factor(cyl)', 'factor(vs)', count('cyl'), stack(count('cyl'), 1)
   from dataPackage 'data/mtcars'
   groupBy factor('cyl'), factor('vs')
 )
@@ -868,7 +868,7 @@ Description goes here.
 ###
 
 plot(
-  table 'All', 'factor(cyl)', count('cyl')
+  select 'All', 'factor(cyl)', count('cyl')
   from dataPackage 'data/mtcars'
   groupBy factor(value 'All'), factor('cyl')
 )
