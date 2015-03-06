@@ -224,7 +224,7 @@ class Stroke
     @size
   ) ->
 
-class TableExpr
+class SelectExpr
   constructor: (@fields) ->
 
 class RecordExpr
@@ -713,7 +713,7 @@ class Box
     )
 
 class Query
-  constructor: (@select, @where, @limit, @group, @having) ->
+  constructor: (@where, @limit, @group, @having) ->
 
 class Category
   constructor: (@key, @value) ->
@@ -764,9 +764,6 @@ class Factoring
 
 class GroupOp
   constructor: (@fields) ->
-
-class SelectOp
-  constructor: (@name, @fields, @func) ->
 
 class WhereOp
   constructor: (@fields, @predicate) ->
@@ -1061,7 +1058,6 @@ dumpFrame = (frame) ->
 
 createQuery = (ops) ->
   new Query(
-    filterByType ops, SelectOp
     filterByType ops, WhereOp
     filterByType ops, LimitOp
     filterByType ops, GroupOp
@@ -1278,16 +1274,6 @@ plot_groupBy = (args...) ->
     else
       throw new Error "Cannot group by [#{arg}]"
   new GroupOp fields
-
-# SELECT clause
-# ------------------------------
-
-plot__select = dispatch(
-  [ String, [String], Function, (target, sources, func) -> new SelectOp target, (createFields sources), func ]
-)
-
-plot_select = (target, sources..., func) ->
-  plot__select target, (if sources.length then sources else [target]), func
 
 # WHERE clause
 # ------------------------------
@@ -3024,8 +3010,8 @@ plot_shape = dispatch(
 plot_tooltip = (args...) ->
   new VariableTooltipChannel collectFields args
 
-plot_table = (args...) ->
-  new TableExpr collectFields args
+plot_select = (args...) ->
+  new SelectExpr collectFields args
 
 plot_record = (index=0) ->
   new RecordExpr index
@@ -3866,7 +3852,7 @@ renderVisualization = (_frame, ops) ->
   frame = queryFrame _frame, query
   #debug frame
 
-  if findByType ops, TableExpr
+  if findByType ops, SelectExpr
     renderTable frame, ops
   else if findByType ops, RecordExpr
     renderRecord frame, ops
@@ -3903,10 +3889,10 @@ renderRecord = (frame, ops) ->
   new Plot element, subscribe, unsubscribe
 
 renderTable = (frame, ops) ->
-  tableExpr = findByType ops, TableExpr
+  selectExpr = findByType ops, SelectExpr
 
-  vectorGroups = if tableExpr.fields.length
-    for field in tableExpr.fields
+  vectorGroups = if selectExpr.fields.length
+    for field in selectExpr.fields
       frame.evaluate field
   else
     frame.vectors
@@ -4141,7 +4127,6 @@ plot.tooltip = plot_tooltip
 plot.factor = plot_factor
 plot.stack = plot_stack
 plot.groupBy = plot_groupBy
-plot.select = plot_select
 plot.where = plot_where
 plot.limit = plot_limit
 plot.having = plot_having
