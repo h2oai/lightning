@@ -1334,11 +1334,11 @@ plot_like = (regex) ->
   throw new Error "like [#{regex}]: expecting RegExp" if TRegExp isnt typeOf regex
   (actual) -> regex.test actual
 
-plot_in = (expecteds...) -> (actual) ->
+plot_in = (expecteds) -> (actual) ->
   return yes for expected in expecteds when expected is actual
   no
 
-plot_notIn = (expecteds...) -> (actual) -> 
+plot_notIn = (expecteds) -> (actual) -> 
   return no for expected in expecteds when expected is actual
   yes
 
@@ -3245,6 +3245,7 @@ plot_defaults =
   axisTitleFont: 'bold 10px monospace'
   axisLabelColor: '#4d4d4d'
   gridLineColor: '#eee'
+  originLineColor: '#ccc'
 
 px = (pixels) -> "#{round pixels}px"
 
@@ -3710,6 +3711,13 @@ renderGridlines = (g, axis, width, height) ->
     for tick in axis.guide()
       tickPosition = mmax 0.5, -0.5 + round axis.scale tick.value
       doLine g, 0, tickPosition, width, tickPosition
+
+    # Origin line
+    if axis.domain.min <= 0 <= axis.domain.max
+      g.strokeStyle = plot_defaults.originLineColor
+      tickPosition = mmax 0.5, -0.5 + round axis.scale 0
+      doLine g, 0, tickPosition, width, tickPosition
+
   return
 
 renderGridlinesX = (g, axis, rect) ->
