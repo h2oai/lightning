@@ -57,6 +57,12 @@ headerPattern = /^(plot)\s+([\w-]+)\s*$/
 defaultArticleData = width: 640, height: 240
 requiredFrontMatter = [ 'data' ]
 
+defaultSettings = '''
+plot.settings.axisLabelFont = '11px Lekton, monospace';
+plot.settings.axisTitleFont = 'bold 11px Lekton, monospace';
+
+'''
+
 parseArticles = (compileScript, lines) ->
   # group into comment / code blocks
   blocks = []
@@ -125,7 +131,7 @@ parseArticles = (compileScript, lines) ->
       article.javascript = javascript = coffee.compile coffeescript, bare: yes
       article.javascriptListing = (highlight.highlightAuto javascript, [ 'javascript' ]).value
 
-      article.script = compileScript javascript.trim().substr(0, javascript.length - 2) + "(document.getElementById('example'));"
+      article.script = defaultSettings + compileScript javascript.trim().substr(0, javascript.length - 2) + "(document.getElementById('example'));"
 
       article.scriptListing = (highlight.highlightAuto article.script, [ 'javascript' ]).value
 

@@ -3223,7 +3223,7 @@ plot_parse = (esprima, escodegen) ->
 # ==============================
 #
 
-plot_defaults =
+plot_settings =
   maxCanvasSize: new Size 795, 600
   visualizationSize: new Size 300, 300
   axisLabelFont: '10px monospace'
@@ -3621,9 +3621,9 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
 
 renderAxis = (g, axis, width, height, orientation) ->
 
-  g.font = plot_defaults.axisLabelFont
-  g.fillStyle = plot_defaults.axisLabelColor
-  g.strokeStyle = plot_defaults.axisTickColor
+  g.font = plot_settings.axisLabelFont
+  g.fillStyle = plot_settings.axisLabelColor
+  g.strokeStyle = plot_settings.axisTickColor
   g.textBaseline = 'middle'
 
   titleHeight = __emWidth + 4
@@ -3675,7 +3675,7 @@ renderAxis = (g, axis, width, height, orientation) ->
   g.restore()
 
   # Axis title
-  g.font = plot_defaults.axisTitleFont
+  g.font = plot_settings.axisTitleFont
   g.textAlign = 'center'
   g.translate titleHeight/2, height/2
   g.rotate orientation * Halfπ
@@ -3684,7 +3684,7 @@ renderAxis = (g, axis, width, height, orientation) ->
   g.restore()
 
 renderGridlines = (g, axis, width, height) ->
-  g.strokeStyle = plot_defaults.gridLineColor
+  g.strokeStyle = plot_settings.gridLineColor
   if axis instanceof CategoricalAxis
     # Rule lines at the top and bottom
     doLine g, 0, 0.5, width, 0.5
@@ -3697,7 +3697,7 @@ renderGridlines = (g, axis, width, height) ->
 
     # Origin line
     if axis.domain.min <= 0 <= axis.domain.max
-      g.strokeStyle = plot_defaults.originLineColor
+      g.strokeStyle = plot_settings.originLineColor
       tickPosition = mmax 0.5, -0.5 + round axis.scale 0
       doLine g, 0, tickPosition, width, tickPosition
 
@@ -3819,7 +3819,7 @@ computeApproxAxisSize = (type, domain) ->
         longest = length
     new Bounds(
       ceil longest * __emWidth + padding
-      plot_defaults.visualizationSize.height
+      plot_settings.visualizationSize.height
     )
 
   else
@@ -3962,17 +3962,17 @@ renderPlot = (frame, ops) ->
   axisBoundsY = computeApproxAxisSize spaceY.type, domainY
 
   bounds = (findByType ops, Bounds) ? new Bounds undefined, undefined
-  boundsWidth = bounds.width ? mmin plot_defaults.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height
-  boundsHeight = bounds.height ? mmin plot_defaults.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height
+  boundsWidth = bounds.width ? mmin plot_settings.maxCanvasSize.width, axisBoundsY.width + axisBoundsX.height
+  boundsHeight = bounds.height ? mmin plot_settings.maxCanvasSize.height, axisBoundsX.width + axisBoundsY.height
 
   box = new Box(
     boundsWidth
     boundsHeight
     new Margin(
-      mmin 0.3 * plot_defaults.maxCanvasSize.width, axisBoundsY.width
+      mmin 0.3 * plot_settings.maxCanvasSize.width, axisBoundsY.width
       0
       0
-      mmin 0.3 * plot_defaults.maxCanvasSize.height, axisBoundsX.width 
+      mmin 0.3 * plot_settings.maxCanvasSize.height, axisBoundsX.width 
     )
   )
 
@@ -4073,7 +4073,7 @@ __emWidth = 18
 initializeScratchCanvas = ->
   __scratchCanvas = canvas = createCanvas new Bounds 100, 100
   g = canvas.context
-  g.font = plot_defaults.axisLabelFont
+  g.font = plot_settings.axisLabelFont
   __emWidth = (g.measureText 'M').width #FIXME won't work for non-monospace fonts
 
 __isLibInitialized = no
@@ -4108,6 +4108,7 @@ plot = (ops...) ->
 # 
 
 plot.VERSION = '999.999.999'
+plot.settings = plot_settings
 plot.bounds = plot_bounds
 plot.from = plot_from
 plot.value = plot_value
