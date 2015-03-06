@@ -926,3 +926,17 @@ plot(
   from dataPackage 'data/performance'
   bounds null, 600
 )
+
+
+###
+plot on-the-fly
+On the fly
+Plotting expressions
+###
+plot(
+  path position 'x', 'sin'
+  path position 'x', 'cos'
+  from computed 'x', -Math.PI, Math.PI, 0.05,
+    sin: (x) -> Math.sin x
+    cos: (x) -> Math.cos x
+)

@@ -882,6 +882,17 @@ computeExtent = (array) ->
   
   new Extent min, max
 
+# int, (int -> real) -> Extent
+computeFunctorExtent = (count, f) ->
+  min = Number.POSITIVE_INFINITY
+  max = Number.NEGATIVE_INFINITY
+  for i in [0 ... count]
+    if (value = f i) isnt undefined
+      min = value if value <= min
+      max = value if value >= max
+  
+  new Extent min, max
+
 # real -> Extent -> int
 computeSkew_ = (origin) -> (extent) ->
   if extent.min >= origin and extent.max > origin
@@ -940,6 +951,12 @@ _createVector = (name, label, type, data, _format) ->
   at = (i) -> data[i]
   format = if _format then (i) -> _format data[i], i else at
   new Vector name, label, type, at, count, domain, format
+
+createFunctor = (name, label, type, _count, _at, _format) ->
+  #TODO Handle streaming data. computeFunctorExtent() evals _at _count times.
+  domain = computeFunctorExtent _count, _at 
+  format = if _format then (i) -> _format (_at i), i else _at
+  new Vector name, label, type, _at, _count, domain, format
 
 #
 # Factor
@@ -3052,22 +3069,38 @@ readCsvAsFrame = (label, columns, data, hasHeader) ->
 
     switch column.type
       when 'String'
-        plot.createFactor(
+        createFactor(
           column.label   
           column.type
           data
           column.domain
         )
       when 'Number'
-        plot.createVector(
+        createVector(
           column.label
           column.type
           data
-          _.identity #TODO
+          identity #TODO
         )
       #TODO Date
 
-  createFrame label, vectors, _.range rows.length
+  createFrame label, vectors, sequence rows.length
+
+#TODO rename
+plot_computed = (label0, start, end, step, columns) -> (go) ->
+  rowCount = floor (end - start) / step
+  at0 = (i) -> start + i * step
+
+  functor_ = (label, expr) ->
+    at = (i) -> expr at0 i
+    createFunctor label, label, 'Number', rowCount, at, identity
+
+  vectors = for label, expr of columns
+    functor_ label, expr
+
+  unshift vectors, createFunctor label0, label0, 'Number', rowCount, at0, identity
+
+  go null, createFrame 'computed', vectors, sequence rowCount
 
 plot_dataPackage = (url) -> (go) ->
   download 'json', "#{url}/datapackage.json", (error, dataPackage) ->
@@ -4120,6 +4153,7 @@ plot.schema = plot_schema
 plot.table = plot_table
 plot.record = plot_record
 plot.dataPackage = plot_dataPackage
+plot.computed = plot_computed
 plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createList = createList
