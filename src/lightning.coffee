@@ -3262,14 +3262,9 @@ removeDOMChildren = (el) ->
   return
 
 createStylesheet = (styles) ->
-  sheet = for selector, style of styles
-    lines = for property, value of style
-      "#{property}:#{value}"
-    "#{selector}{#{join lines, ';'};}"
-
   el = document.createElement 'style'
   el.type = 'text/css'
-  el.innerHTML = join sheet, '\n'
+  el.innerHTML = styles
   headEl = head document.getElementsByTagName 'head'
   headEl.appendChild el
   return
@@ -3330,6 +3325,8 @@ createViewport = (box) ->
     width: px box.width
     height: px box.height
 
+  container.className = 'lz'
+
   marquee = createDOMElement 'div',
     position: 'absolute'
     left: px 0
@@ -3347,7 +3344,7 @@ createViewport = (box) ->
     'max-width': px 0.9 * box.width # set width to 90% of container width so that long tooltips wrap properly 
     display: 'none'
 
-  tooltip.className = 'lightning-tooltip'
+  tooltip.className = 'lz-tooltip'
 
   container.appendChild baseCanvas.element
   container.appendChild highlightCanvas.element
@@ -3880,7 +3877,7 @@ renderRecord = (frame, ops) ->
   recordExpr = findByType ops, RecordExpr
   index = recordExpr.index
 
-  [ table, tbody, tr, th, td ] = diecut 'table.lightning-record', 'tbody', 'tr', 'th', 'td'
+  [ table, tbody, tr, th, td ] = diecut 'table.lz-record', 'tbody', 'tr', 'th', 'td'
 
   trs = for name, vector of frame.schema
     value = vector.format index
@@ -3916,7 +3913,7 @@ renderTable = (frame, ops) ->
 
   vectors = flatten vectorGroups
   
-  [ table, thead, tbody, tr, th, thr, td, tdr ] = diecut 'table.lightning-table', 'thead', 'tbody', 'tr', 'th', 'th.lightning-number', 'td', 'td.lightning-number'
+  [ table, thead, tbody, tr, th, thr, td, tdr ] = diecut 'table.lz-table', 'thead', 'tbody', 'tr', 'th', 'th.lz-number', 'td', 'td.lz-number'
   
   ths = for vector in vectors
     switch vector.type
@@ -4045,30 +4042,44 @@ visualize = dispatch(
 )
 
 initializeStylesheet = ->
-  createStylesheet
-    '.lightning-tooltip':
-      background: '#2c2c2c'
-      color: '#fff'
-      'font-size': '12px'
-    '.lightning-tooltip th, .lightning-tooltip td':
-      padding: '0px 4px'
-      'vertical-align': 'middle'
-    '.lightning-tooltip th':
-      'text-align': 'left'
-    '.lightning-table th, .lightning-table td':
-      padding: '0px 8px'
-      'vertical-align': 'middle'
-    '.lightning-table tbody > tr:nth-child(odd)':
-      'background-color': '#f3f3f3'
-    '.lightning-table .lightning-number':
-      'text-align': 'right'
-    '.lightning-record th, .lightning-record td':
-      padding: '0px 8px'
-      'vertical-align': 'middle'
-    '.lightning-record th':
-      'text-align': 'right'
-    '.lightning-record tbody > tr:nth-child(odd)':
-      'background-color': '#f3f3f3'
+  createStylesheet '''
+    .lz-tooltip {
+      background: #2c2c2c;
+      color: #fff;
+      font-size: 12px;
+    }
+    .lz-tooltip th, .lz-tooltip td {
+      padding: 0px 4px;
+      vertical-align: middle;
+    }
+    .lz-tooltip th {
+      text-align: left;
+    }
+    .lz-table tbody tr:hover {
+      outline: 1px solid black;
+      cursor: pointer;
+    }
+    .lz-table th, .lz-table td {
+      padding: 0px 8px;
+      vertical-align: middle;
+    }
+    .lz-table tbody > tr:nth-child(odd) {
+      background-color: #f3f3f3;
+    }
+    .lz-table .lz-number {
+      text-align: right;
+    }
+    .lz-record th, .lz-record td {
+      padding: 0px 8px;
+      vertical-align: middle;
+    }
+    .lz-record th {
+      text-align: right;
+    }
+    .lz-record tbody > tr:nth-child(odd) {
+      background-color: #f3f3f3;
+    }
+    '''
 
 __scratchCanvas = null
 __emWidth = 18
