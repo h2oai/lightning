@@ -1,7 +1,9 @@
 // Tomorrow
 // https://github.com/ChrisKempson/Tomorrow-Theme#tomorrow
 color-background = #fff
-color-foreground = #4d4d4c
+color-foreground = #808080
+color-logo-gray = #4a4a4a
+color-logo-yellow = #f7e53b
 color-current = #efefef 
 color-selection = #d6d6d6
 color-comment = #8e908c
@@ -22,27 +24,37 @@ color-tooltip = #555
 body
   background-color color-background
   color color-foreground
-  font-size 14px
-  line-height 18px
+  font-size 18px
+  line-height 24px
   font-family 'Lekton', monospace
 
-h1, p, ul, ol, .article
+p, ul, ol, .article
   margin-bottom 30px
 
+h1
+  text-align center
+  font-size 30px
+  line-height 35px
+  margin-bottom 5px
+
 h2
+  text-align center
+  font-size 24px
+  line-height  28px
   margin-bottom 10px
 
 pre
   margin-bottom 35px
 
-h1, h2
-  font-weight 700
 
 a
   text-decoration none
-  background-color color-highlight
+  color color-foreground
+  background color-logo-yellow
+  padding 0 5px
   &:hover
-    text-decoration underline
+    background color-logo-gray
+    color color-logo-yellow
 
 a.paginate
   position absolute
@@ -58,11 +70,22 @@ a.paginate
   &.paginate-next
     right 0
 
+hr
+  box-sizing content-box
+  width 100px
+  height 0
+  margin 50px auto
+  border 0
+  border-top 1px solid #d9d9d9
+
 pre
   font-family 'Lekton', monospace
+  font-size 15px
+  line-height 20px
   background url(unquote('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAAKElEQVQImWN89+4dAwODoKAgAwMDE5z1/v17xv///0NYUBkIS1BQEAB7Uw7Oc/qzUwAAAABJRU5ErkJggg=='))
   padding 15px
   white-space pre
+  margin-bottom 75px
 
 .container
   width 640px
@@ -71,5 +94,7 @@ pre
 .lz
   margin 0px auto
 
-#error
-  color red
+#example
+  margin-bottom 75px
+
+
