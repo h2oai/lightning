@@ -685,7 +685,7 @@ tags:
 ###
 
 plot(
-  record 5
+  select 5
   from dataPackage 'data/mtcars'
 )
 

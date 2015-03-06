@@ -3011,10 +3011,10 @@ plot_tooltip = (args...) ->
   new VariableTooltipChannel collectFields args
 
 plot_select = (args...) ->
-  new SelectExpr collectFields args
-
-plot_record = (index=0) ->
-  new RecordExpr index
+  if args.length is 1 and isNumber arg = head args
+    new RecordExpr arg
+  else
+    new SelectExpr collectFields args
 
 readDataPackageSchema = (schema) ->
   for field in schema
@@ -4152,7 +4152,6 @@ plot.rect = plot_rect
 plot.path = plot_path
 plot.schema = plot_schema
 plot.select = plot_select
-plot.record = plot_record
 plot.dataPackage = plot_dataPackage
 plot.computed = plot_computed
 plot.createFrame = createFrame
