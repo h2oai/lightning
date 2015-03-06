@@ -125,7 +125,7 @@ parseArticles = (compileScript, lines) ->
       article.javascript = javascript = coffee.compile coffeescript, bare: yes
       article.javascriptListing = (highlight.highlightAuto javascript, [ 'javascript' ]).value
 
-      article.script = compileScript javascript.trim().substr(0, javascript.length - 2) + "('example');"
+      article.script = compileScript javascript.trim().substr(0, javascript.length - 2) + "(document.getElementById('example'));"
 
       article.scriptListing = (highlight.highlightAuto article.script, [ 'javascript' ]).value
 

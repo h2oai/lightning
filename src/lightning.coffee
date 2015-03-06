@@ -4090,15 +4090,12 @@ plot = (ops...) ->
   if datasource = findByType ops, Datasource, Frame
     do initializeLib
     (arg) -> 
-      go = if isString arg
-        if targetElement = document.getElementById arg
-          (error, vis) ->
-            if error
-              targetElement.innerHTML = error.message #TODO could be prettier
-            else
-              targetElement.appendChild vis.element
-        else
-          undefined
+      go = if isElement arg
+        (error, vis) ->
+          if error
+            arg.innerHTML = error.message #TODO could be prettier
+          else
+            arg.appendChild vis.element
       else if isFunction arg
         arg
       else
