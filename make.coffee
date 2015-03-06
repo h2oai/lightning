@@ -15,7 +15,7 @@ highlight = require 'highlight.js'
 esprima = require 'esprima'
 escodegen = require 'escodegen'
 Uglify = require 'uglify-js'
-shorthand = require './tools/shorthand/shorthand.coffee'
+desugar = require 'desugar'
 
 EOL = "\n"
 words = (str) -> str.split /\s+/g
@@ -36,11 +36,9 @@ cp = (src, dest) ->
 cpn = (src, dest) ->
   cp src, dest unless fs.existsSync dest
 
-shorthandSymbols = yaml.safeLoad read 'shorthand.yml'
-shorthandImplicits = [ 'console', 'Math', '_' ]
+desugarSymbols = yaml.safeLoad read 'desugar.yml'
 compileCoffee = (script) ->
-  shorthand shorthandSymbols, (coffee.compile script), 
-    implicits: shorthandImplicits
+  desugar desugarSymbols, coffee.compile script
 
 node_header_js = """
 var _ = require('lodash');

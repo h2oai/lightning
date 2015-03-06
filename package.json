@@ -38,6 +38,7 @@
     "coffeelint": "^1.7.1",
     "connect": "^3.3.3",
     "d3": "^3.5.2",
+    "desugar": "0.0.3",
     "escodegen": "^1.4.2",
     "esprima": "^1.2.2",
     "faucet": "0.0.1",
