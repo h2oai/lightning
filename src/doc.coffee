@@ -950,7 +950,7 @@ plot(
   point position 'wt', 'mpg'
   line(
   # position 0, y-intercept
-    position (value 0), value 10
+    position (value 0), value 23
   )
   from dataPackage 'data/mtcars'
 )
@@ -963,7 +963,7 @@ plot(
   point position 'wt', 'mpg'
   line(
   # position x-intercept
-    position value 10
+    position value 3.3
   )
   from dataPackage 'data/mtcars'
 )
@@ -976,7 +976,10 @@ plot(
   point position 'wt', 'mpg'
   line(
   # position slope, y-intercept
-    position value(10), value(10)
+    position value(0.5), value(14)
+    strokeColor value 'red'
+    strokeOpacity value 0.5
+    lineWidth value 5
   )
   from dataPackage 'data/mtcars'
 )

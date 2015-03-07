@@ -292,6 +292,18 @@ class LineExpr extends AnnotationExpr
     @lineWidth
   ) ->
 
+class Annotation
+
+class LineAnnotation extends Annotation
+  constructor: (
+    @slope
+    @intercept
+    @strokeColor
+    @strokeOpacity
+    @lineWidth
+  ) ->
+    @render = renderLineAnnotation
+
 class Mark
 
 class PointMark extends Mark
@@ -1500,12 +1512,14 @@ cloneColor = (color) ->
   [ r, g, b ] = color.rgb()
   chroma.rgb r, g, b
 
-colorToStyle = (color) -> color.css()
+colorToStyle = (color, opacity) ->
+  if 0 <= opacity < 1
+    cloneColor color
+      .alpha opacity
+      .css()
+  else
+    color.css()
 
-colorToStyleA = (color, alpha) ->
-  cloneColor color
-    .alpha alpha
-    .css()
 
 #
 # Shapes
@@ -1870,12 +1884,7 @@ encodeStyle = (colorEncoder, opacityEncoder) ->
     colorAt = colorEncoder.encode
     opacityAt = opacityEncoder.encode
     new VariableEncoder "(#{colorEncoder.label}, #{opacityEncoder.label})", (i) ->
-      color = colorAt i
-      opacity = opacityAt i
-      if 0 <= opacity < 1
-        colorToStyleA color, opacity
-      else
-        colorToStyle color
+      colorToStyle (colorAt i), opacityAt i
   else
     undefined
 
@@ -2101,6 +2110,54 @@ doSchemaY = (g, x, q0, q1, q2, q3, qn, w, s, lw) ->
       doLine g, x, q3, x, qn # upper whisker
       doLine g, x - w4, q0, x + w4, q0 # lower fence
       doLine g, x - w4, qn, x + w4, qn # upper fence
+
+#
+# Annotation Rendering
+# ==============================
+#
+
+renderLineAnnotation = (annotation, axisX, axisY, g) ->
+  { slope, intercept, strokeColor, strokeOpacity, lineWidth } = annotation
+
+  if intercept isnt undefined
+    if slope is 0
+      # horizontal line, so axisY should be quantitative
+      if axisY instanceof LinearAxis
+        x1 = axisX.range.min
+        x2 = axisX.range.max
+        y1 = y2 = axisY.scale intercept
+    else
+      if axisX instanceof LinearAxis and axisY instanceof LinearAxis
+        x1 = axisX.scale axisX.domain.min
+        x2 = axisX.scale axisX.domain.max
+        y1 = axisY.scale slope * axisX.domain.min + intercept
+        y2 = axisY.scale slope * axisY.domain.max + intercept
+  else
+    # vertical line, so axisX should be quantitative 
+    if axisX instanceof LinearAxis
+      x1 = x2 = axisX.scale slope
+      y1 = axisY.range.min
+      y2 = axisY.range.max
+
+  if x1 isnt undefined and y1 isnt undefined and x2 isnt undefined and y2 isnt undefined
+    g.save()
+    g.strokeStyle = colorToStyle strokeColor, strokeOpacity
+    doLine g, x1, y1, x2, y2
+    g.restore()
+
+  return
+
+createLineAnnotation  = (expr) ->
+  [ slope, intercept ] = expr.position.coordinates
+  { strokeColor, strokeOpacity, lineWidth } = expr
+
+  new LineAnnotation(
+    if slope then slope.value else 0
+    if intercept then intercept.value else undefined
+    if strokeColor then strokeColor.value else chroma 'red'
+    if strokeOpacity then strokeOpacity.value else 1.0
+    if lineWidth then lineWidth.value else 1.5 #TODO read from settings
+  )
 
 #
 # Point Rendering
@@ -2850,6 +2907,10 @@ createMark = dispatch(
   [ SchemaExpr, Array, createSchemaMark ]
 )
 
+createAnnotation = dispatch(
+  [ LineExpr, createLineAnnotation ]
+)
+
 PointGeometry = new Geometry(
   encodePointMark
   maskPointMarks
@@ -3484,7 +3545,7 @@ createEventDispatcher = ->
 
   [ subscribe, unsubscribe, dispatch ]
 
-createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
+createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _dispatch) ->
   _viewport = createViewport _box
 
   { baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
@@ -3637,6 +3698,9 @@ createVisualization = (_box, _frame, _layers, _axisX, _axisY, _dispatch) ->
     for layer in _layers
       layer.render _indices, layer.encoders, baseContext
       layer.mask _indices, layer.encoders, maskContext, mask
+
+    for annotation in _annotations
+      annotation.render annotation, _axisX, _axisY, baseContext
 
     maskContext.restore()
     baseContext.restore()
@@ -4028,9 +4092,12 @@ renderPlot = (frame, ops) ->
 
     new Layer encodings, encoders, geom.mask, geom.highlight, geom.render, geom.select
 
+  annotations = map (filterByType ops, AnnotationExpr), (expr) ->
+    createAnnotation expr
+
   [ subscribe, unsubscribe, dispatch ] = do createEventDispatcher
 
-  visualization = createVisualization box, frame, layers, axisX, axisY, dispatch
+  visualization = createVisualization box, frame, layers, annotations, axisX, axisY, dispatch
 
   visualization.render() #TODO should be callable externally, with indices.
   new Plot visualization.viewport.container, subscribe, unsubscribe
