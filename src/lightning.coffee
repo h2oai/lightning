@@ -2142,6 +2142,7 @@ renderLineAnnotation = (annotation, axisX, axisY, g) ->
   if x1 isnt undefined and y1 isnt undefined and x2 isnt undefined and y2 isnt undefined
     g.save()
     g.strokeStyle = colorToStyle strokeColor, strokeOpacity
+    g.lineWidth = lineWidth
     doLine g, x1, y1, x2, y2
     g.restore()
 
