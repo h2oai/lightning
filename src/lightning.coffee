@@ -517,7 +517,9 @@ class Axis
 class CategoricalAxis extends Axis
   constructor: (@type, @label, @scale, @domain, @range, @rect, @guide) ->
 
-class LinearAxis extends Axis
+class QuantitativeAxis extends Axis
+
+class LinearAxis extends QuantitativeAxis
   constructor: (@type, @label, @scale, @domain, @range, @rect, @guide) ->
 
 class Tick
@@ -2122,19 +2124,19 @@ renderLineAnnotation = (annotation, axisX, axisY, g) ->
   if intercept isnt undefined
     if slope is 0
       # horizontal line, so axisY should be quantitative
-      if axisY instanceof LinearAxis
+      if axisY instanceof QuantitativeAxis
         x1 = axisX.range.min
         x2 = axisX.range.max
         y1 = y2 = axisY.scale intercept
     else
-      if axisX instanceof LinearAxis and axisY instanceof LinearAxis
+      if axisX instanceof QuantitativeAxis and axisY instanceof QuantitativeAxis
         x1 = axisX.scale axisX.domain.min
         x2 = axisX.scale axisX.domain.max
         y1 = axisY.scale slope * axisX.domain.min + intercept
         y2 = axisY.scale slope * axisY.domain.max + intercept
   else
     # vertical line, so axisX should be quantitative 
-    if axisX instanceof LinearAxis
+    if axisX instanceof QuantitativeAxis
       x1 = x2 = axisX.scale slope
       y1 = axisY.range.min
       y2 = axisY.range.max
@@ -3748,7 +3750,7 @@ renderAxis = (g, axis, width, height, orientation) ->
       g.fillText label, labelAnchor, position, maxLabelSize - 6
     doLine g, width - 0.5, 0, width - 0.5, height
 
-  else if axis instanceof LinearAxis
+  else if axis instanceof QuantitativeAxis
     minPosition = 6
     maxPosition = height - 6
     for tick in axis.guide()
@@ -3786,7 +3788,7 @@ renderGridlines = (g, axis, width, height) ->
     # Rule lines at the top and bottom
     doLine g, 0, 0.5, width, 0.5
     doLine g, 0, height - 0.5, width, height - 0.5
-  else if axis instanceof LinearAxis
+  else if axis instanceof QuantitativeAxis
     # Rule a line for each tick
     for tick in axis.guide()
       tickPosition = mmax 0.5, -0.5 + round axis.scale tick.value
@@ -3908,7 +3910,7 @@ computeApproxAxisSize = (type, domain) ->
       ceil categories.length * (__emWidth + 8)
     )
 
-  else if axis instanceof LinearAxis
+  else if axis instanceof QuantitativeAxis
     longest = 0
     categories = axis.guide()
     for tick in axis.guide()
@@ -3939,7 +3941,7 @@ createAxis = (type, label, domain, range, rect) ->
         for value in ticks count
           new Tick value, format value
 
-      new LinearAxis type, label, scale, domain, range, rect, guide
+      new QuantitativeAxis type, label, scale, domain, range, rect, guide
 
     else
       throw new Error "Unhandled axis type [#{type}]."
