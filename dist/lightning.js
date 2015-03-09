@@ -1,5 +1,5 @@
 (function () {
-    var All, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantCoordChannel, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LimitOp, LineExpr, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectExpr, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, Tan30, TextMark, Tick, TooltipChannel, TooltipEncoder, Transparent, Value, VariableCoordChannel, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableTooltipChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, applyc, arrayElementsAreEqual, asInt, asReal, asString, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, colorToStyleA, combineExtents, computeApproxAxisSize, computeAxisDomain, computeExtent, computeFunctorExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAllFactor, createAllField, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExpr_, createExtent, createFactor, createFactorField, createFields, createFrame, createFunctor, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, download, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeTooltip, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFactorDomain, filterFrame, findByType, findByTypes, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__where, plot_aggregate, plot_avg, plot_bounds, plot_computed, plot_count, plot_dataPackage, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_limit, plot_line, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_rect, plot_schema, plot_select, plot_settings, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_tooltip, plot_value, plot_where, plot_width, px, quantile_, queryFrame, readCsvAsFrame, readDataPackageSchema, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, __slice = [].slice, __extends = function (child, parent) {
+    var All, Annotation, AnnotationExpr, Axis, BarEncoding, BarGeometry, BarMark, BooleanValue, Bounds, Box, Canvas, CategoricalAxis, CategoricalRange, Category, Cell, Channel, Clip, ColEncoding, ColGeometry, ColMark, ColorChannel, ColorEncoder, ColorLimit, ColorPalettes, ColorRange, ConstantCoordChannel, ConstantEncoder, ConstantFillColorChannel, ConstantFillOpacityChannel, ConstantHeightChannel, ConstantLineWidthChannel, ConstantShapeChannel, ConstantSizeChannel, ConstantStrokeColorChannel, ConstantStrokeOpacityChannel, ConstantWidthChannel, CoordChannel, Cube, Datasource, DateValue, Degrees, DeselectEventArg, DivergingColorRange, DivergingRange, Encoder, Encoding, EpsilonSquare, Extent, Factor, Factoring, Field, Fill, FillColorChannel, FillOpacityChannel, Frame, Geometry, Group, GroupOp, Halfπ, HavingOp, HeightChannel, HoverEventArg, Layer, Level, LimitOp, LineAnnotation, LineExpr, LineWidthChannel, LinearAxis, List, MappedField, Margin, Mark, MarkExpr, Mask, Matcher, NumberValue, OpacityEncoder, PathEncoding, PathExpr, PathGeometry, PathMark, Plot, PointEncoding, PointExpr, PointGeometry, PointMark, PositionChannel, PositionEncoder, QuantitativeAxis, QuantitativeRange, Query, Radians, Range, RecordExpr, Rect, RectExpr, ReducedField, Regions, SchemaExpr, SchemaXEncoding, SchemaXGeometry, SchemaXMark, SchemaYEncoding, SchemaYGeometry, SchemaYMark, SelectEventArg, SelectExpr, SequentialColorRange, SequentialRange, ShapeChannel, ShapeEncoder, ShapePalettes, Shapes, Size, SizeChannel, SizeEncoder, Space1D, Space2D, Sqrt3, StringValue, Stroke, StrokeColorChannel, StrokeOpacityChannel, TArguments, TArray, TBoolean, TDate, TError, TFunction, TNull, TNumber, TObject, TRegExp, TString, TUndefined, Tan30, TextMark, Tick, TooltipChannel, TooltipEncoder, Transparent, Value, VariableCoordChannel, VariableEncoder, VariableFillColorChannel, VariableFillOpacityChannel, VariableHeightChannel, VariableLineWidthChannel, VariableShapeChannel, VariableSizeChannel, VariableStrokeColorChannel, VariableStrokeOpacityChannel, VariableTooltipChannel, VariableWidthChannel, Vector, Viewport, Visualization, WhereOp, WidthChannel, aggregateFrame, aggregate_avg, aggregate_count, aggregate_max, aggregate_min, aggregate_sum, always, applyc, arrayElementsAreEqual, asInt, asReal, asString, buildHierarchy, byteToHex, captureMouseEvents, clampNorm, clamp_, clipRect, cloneColor, collapseHierarchy, collectFields, colorToStyle, combineExtents, computeApproxAxisSize, computeAxisDomain, computeExtent, computeFunctorExtent, computeSchema, computeSkew0, computeSkew_, copy, createAggregateField, createAllFactor, createAllField, createAnnotation, createAxis, createAxisLabel, createCanvas, createCategoricalScale, createClip, createColorScale, createDOMElement, createDivergingColorScale, createDivergingLinearScale, createEventDispatcher, createExpr_, createExtent, createFactor, createFactorField, createFields, createFrame, createFunctor, createLineAnnotation, createLinearScale, createList, createMark, createMask, createNicedSequentialLinearScale, createOrdinalScale, createPathMark, createPointMark, createQuery, createRectMark, createSchemaMark, createSequentialColorScale, createSequentialLinearScale, createSpace1D, createStackedField, createStylesheet, createTooltipTable, createVector, createViewport, createVisualization, defaultSize, dispatch, dispatch_numeric, doFill, doLine, doRectX, doRectY, doSchemaX, doSchemaY, doStroke, download, drawCircle, drawCross, drawDiamond, drawSquare, drawTriangleDown, drawTriangleLeft, drawTriangleRight, drawTriangleUp, dumpFrame, encodeArea, encodeBarMark, encodeColMark, encodeColor, encodeConstantPosition, encodeFill, encodeHeight, encodeLineWidth, encodeOpacity, encodePathMark, encodePointMark, encodePosition, encodeSchemaXMark, encodeSchemaYMark, encodeShape, encodeSize, encodeStroke, encodeStyle, encodeTooltip, encodeWidth, encode_size, extractFactor, factorize, filterByType, filterFactorDomain, filterFrame, findByType, findByTypes, flatMap, getFFMouseCoords, highlightBarMarks, highlightColMarks, highlightPathMarks, highlightPointMarks, highlightSchemaXMarks, highlightSchemaYMarks, includeOrigin0, includeOrigin_, initFill, initFillAndStroke, initStroke, initializeLib, initializeScratchCanvas, initializeStylesheet, maskBarMarks, maskColMarks, maskPathMarks, maskPointMarks, maskSchemaXMarks, maskSchemaYMarks, operation, pickCategoricalColorPalette, pickCategoricalShapePalette, plot, plot__having, plot__where, plot_aggregate, plot_avg, plot_bounds, plot_computed, plot_count, plot_dataPackage, plot_domain, plot_eq, plot_factor, plot_fillColor, plot_fillOpacity, plot_from, plot_ge, plot_groupBy, plot_gt, plot_having, plot_height, plot_in, plot_le, plot_like, plot_limit, plot_line, plot_lineWidth, plot_lt, plot_max, plot_min, plot_ne, plot_notIn, plot_parse, plot_path, plot_point, plot_position, plot_range, plot_rect, plot_schema, plot_select, plot_settings, plot_shape, plot_size, plot_stack, plot_strokeColor, plot_strokeOpacity, plot_sum, plot_tooltip, plot_value, plot_where, plot_width, px, quantile_, queryFrame, readCsvAsFrame, readDataPackageSchema, removeDOMChildren, renderAxis, renderAxisX, renderAxisY, renderBarMarks, renderColMarks, renderGridlines, renderGridlinesX, renderGridlinesY, renderHtml, renderLineAnnotation, renderPathMarks, renderPlot, renderPointMarks, renderRecord, renderSchemaXMarks, renderSchemaYMarks, renderTable, renderVisualization, scaleSafe_, selectBarMarks, selectColMarks, selectMarks, selectSchemaXMarks, selectSchemaYMarks, sq, structureOf, typeOf, visualize, ε, π, τ, __emWidth, __isLibInitialized, __scratchCanvas, _createVector, __slice = [].slice, __extends = function (child, parent) {
             for (var key in parent) {
                 if (__hasProp.call(parent, key))
                     child[key] = parent[key];
@@ -425,6 +425,11 @@
         }
         return RectExpr;
     }(MarkExpr);
+    AnnotationExpr = function () {
+        function AnnotationExpr() {
+        }
+        return AnnotationExpr;
+    }();
     LineExpr = function (_super) {
         __extends(LineExpr, _super);
         function LineExpr(_at_position, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
@@ -434,7 +439,24 @@
             this.lineWidth = _at_lineWidth;
         }
         return LineExpr;
-    }(MarkExpr);
+    }(AnnotationExpr);
+    Annotation = function () {
+        function Annotation() {
+        }
+        return Annotation;
+    }();
+    LineAnnotation = function (_super) {
+        __extends(LineAnnotation, _super);
+        function LineAnnotation(_at_slope, _at_intercept, _at_strokeColor, _at_strokeOpacity, _at_lineWidth) {
+            this.slope = _at_slope;
+            this.intercept = _at_intercept;
+            this.strokeColor = _at_strokeColor;
+            this.strokeOpacity = _at_strokeOpacity;
+            this.lineWidth = _at_lineWidth;
+            this.render = renderLineAnnotation;
+        }
+        return LineAnnotation;
+    }(Annotation);
     Mark = function () {
         function Mark() {
         }
@@ -702,6 +724,13 @@
         }
         return CategoricalAxis;
     }(Axis);
+    QuantitativeAxis = function (_super) {
+        __extends(QuantitativeAxis, _super);
+        function QuantitativeAxis() {
+            return QuantitativeAxis.__super__.constructor.apply(this, arguments);
+        }
+        return QuantitativeAxis;
+    }(Axis);
     LinearAxis = function (_super) {
         __extends(LinearAxis, _super);
         function LinearAxis(_at_type, _at_label, _at_scale, _at_domain, _at_range, _at_rect, _at_guide) {
@@ -714,7 +743,7 @@
             this.guide = _at_guide;
         }
         return LinearAxis;
-    }(Axis);
+    }(QuantitativeAxis);
     Tick = function () {
         function Tick(_at_value, _at_label) {
             this.value = _at_value;
@@ -2318,11 +2347,12 @@
         _ref = color.rgb(), r = _ref[0], g = _ref[1], b = _ref[2];
         return chroma.rgb(r, g, b);
     };
-    colorToStyle = function (color) {
-        return color.css();
-    };
-    colorToStyleA = function (color, alpha) {
-        return cloneColor(color).alpha(alpha).css();
+    colorToStyle = function (color, opacity) {
+        if (0 <= opacity && opacity < 1) {
+            return cloneColor(color).alpha(opacity).css();
+        } else {
+            return color.css();
+        }
     };
     drawCircle = function (g, x, y, area) {
         var r;
@@ -2704,14 +2734,7 @@
             colorAt = colorEncoder.encode;
             opacityAt = opacityEncoder.encode;
             return new VariableEncoder('(' + colorEncoder.label + ', ' + opacityEncoder.label + ')', function (i) {
-                var color, opacity;
-                color = colorAt(i);
-                opacity = opacityAt(i);
-                if (0 <= opacity && opacity < 1) {
-                    return colorToStyleA(color, opacity);
-                } else {
-                    return colorToStyle(color);
-                }
+                return colorToStyle(colorAt(i), opacityAt(i));
             });
         } else {
             return void 0;
@@ -2950,6 +2973,45 @@
             doLine(g, x - w4, q0, x + w4, q0);
             return doLine(g, x - w4, qn, x + w4, qn);
         }
+    };
+    renderLineAnnotation = function (annotation, axisX, axisY, g) {
+        var intercept, lineWidth, slope, strokeColor, strokeOpacity, x1, x2, y1, y2;
+        slope = annotation.slope, intercept = annotation.intercept, strokeColor = annotation.strokeColor, strokeOpacity = annotation.strokeOpacity, lineWidth = annotation.lineWidth;
+        if (intercept !== void 0) {
+            if (slope === 0) {
+                if (axisY instanceof QuantitativeAxis) {
+                    x1 = axisX.range.min;
+                    x2 = axisX.range.max;
+                    y1 = y2 = axisY.scale(intercept);
+                }
+            } else {
+                if (axisX instanceof QuantitativeAxis && axisY instanceof QuantitativeAxis) {
+                    x1 = axisX.scale(axisX.domain.min);
+                    x2 = axisX.scale(axisX.domain.max);
+                    y1 = axisY.scale(slope * axisX.domain.min + intercept);
+                    y2 = axisY.scale(slope * axisY.domain.max + intercept);
+                }
+            }
+        } else {
+            if (axisX instanceof QuantitativeAxis) {
+                x1 = x2 = axisX.scale(slope);
+                y1 = axisY.range.min;
+                y2 = axisY.range.max;
+            }
+        }
+        if (x1 !== void 0 && y1 !== void 0 && x2 !== void 0 && y2 !== void 0) {
+            g.save();
+            g.strokeStyle = colorToStyle(strokeColor, strokeOpacity);
+            g.lineWidth = lineWidth;
+            doLine(g, x1, y1, x2, y2);
+            g.restore();
+        }
+    };
+    createLineAnnotation = function (expr) {
+        var intercept, lineWidth, slope, strokeColor, strokeOpacity, _ref;
+        _ref = expr.position.coordinates, slope = _ref[0], intercept = _ref[1];
+        strokeColor = expr.strokeColor, strokeOpacity = expr.strokeOpacity, lineWidth = expr.lineWidth;
+        return new LineAnnotation(slope ? slope.value : 0, intercept ? intercept.value : void 0, strokeColor ? strokeColor.value : chroma('red'), strokeOpacity ? strokeOpacity.value : 1, lineWidth ? lineWidth.value : 1.5);
     };
     createPointMark = function (expr, vectors) {
         var fillColor, fillOpacity, lineWidth, positionX, positionY, shape, size, space, strokeColor, strokeOpacity, _ref, _ref1, _ref2;
@@ -3685,6 +3747,10 @@
         SchemaExpr,
         Array,
         createSchemaMark
+    ]);
+    createAnnotation = dispatch([
+        LineExpr,
+        createLineAnnotation
     ]);
     PointGeometry = new Geometry(encodePointMark, maskPointMarks, highlightPointMarks, renderPointMarks, selectMarks);
     PathGeometry = new Geometry(encodePathMark, maskPathMarks, highlightPathMarks, renderPathMarks, selectMarks);
@@ -4482,7 +4548,7 @@
         });
     };
     createEventDispatcher = function () {
-        var subscribe, unsubscribe, _subscribersByEvent;
+        var notify, subscribe, unsubscribe, _subscribersByEvent;
         _subscribersByEvent = {};
         subscribe = function (event, subscriber) {
             var subscribers;
@@ -4512,7 +4578,7 @@
                 }
             }
         };
-        dispatch = function () {
+        notify = function () {
             var args, event, subscriber, subscribers, _i, _len;
             event = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
             if (subscribers = _subscribersByEvent[event]) {
@@ -4525,10 +4591,10 @@
         return [
             subscribe,
             unsubscribe,
-            dispatch
+            notify
         ];
     };
-    createVisualization = function (_box, _frame, _layers, _axisX, _axisY, _dispatch) {
+    createVisualization = function (_box, _frame, _layers, _annotations, _axisX, _axisY, _notify) {
         var baseCanvas, clip, clipCanvas, displayTooltip, hideTooltip, highlight, highlightCanvas, hover, hoverCanvas, marquee, mask, maskCanvas, moveTooltip, render, selectAt, selectWithin, test, tooltip, visRect, _index, _indices, _tooltipOffset, _viewport;
         _viewport = createViewport(_box);
         baseCanvas = _viewport.baseCanvas, highlightCanvas = _viewport.highlightCanvas, hoverCanvas = _viewport.hoverCanvas, clipCanvas = _viewport.clipCanvas, maskCanvas = _viewport.maskCanvas, marquee = _viewport.marquee, tooltip = _viewport.tooltip, mask = _viewport.mask, clip = _viewport.clip;
@@ -4605,7 +4671,7 @@
                         layer.highlight([i], layer.encoders, hoverContext);
                     }
                     hoverContext.restore();
-                    _dispatch('hover', new HoverEventArg(_frame.vectors, i));
+                    _notify('hover', new HoverEventArg(_frame.vectors, i));
                     tooltipData = {};
                     for (_j = 0, _len1 = _layers.length; _j < _len1; _j++) {
                         layer = _layers[_j];
@@ -4656,10 +4722,10 @@
             i = test(x, y);
             if (i !== void 0) {
                 highlight([i]);
-                _dispatch('select', new SelectEventArg(_frame.vectors, [i]));
+                _notify('select', new SelectEventArg(_frame.vectors, [i]));
             } else {
                 highlight([]);
-                _dispatch('deselect', new DeselectEventArg(_frame.vectors));
+                _notify('deselect', new DeselectEventArg(_frame.vectors));
             }
         };
         selectWithin = function (x1, y1, x2, y2) {
@@ -4673,14 +4739,14 @@
                 selectedIndices = layer.select(_indices, layer.encoders, xmin, ymin, xmax, ymax);
                 highlight(selectedIndices);
                 if (selectedIndices.length) {
-                    _dispatch('select', new SelectEventArg(_frame.vectors, selectedIndices));
+                    _notify('select', new SelectEventArg(_frame.vectors, selectedIndices));
                 } else {
-                    _dispatch('deselect', new DeselectEventArg(_frame.vectors));
+                    _notify('deselect', new DeselectEventArg(_frame.vectors));
                 }
             }
         };
         render = function () {
-            var baseContext, layer, maskContext, _i, _len;
+            var annotation, baseContext, layer, maskContext, _i, _j, _len, _len1;
             baseContext = baseCanvas.context;
             maskContext = maskCanvas.context;
             renderGridlinesX(baseContext, _axisX, visRect);
@@ -4693,6 +4759,10 @@
                 layer = _layers[_i];
                 layer.render(_indices, layer.encoders, baseContext);
                 layer.mask(_indices, layer.encoders, maskContext, mask);
+            }
+            for (_j = 0, _len1 = _annotations.length; _j < _len1; _j++) {
+                annotation = _annotations[_j];
+                annotation.render(annotation, _axisX, _axisY, baseContext);
             }
             maskContext.restore();
             baseContext.restore();
@@ -4726,7 +4796,7 @@
                 g.fillText(label, labelAnchor, position, maxLabelSize - 6);
             }
             doLine(g, width - 0.5, 0, width - 0.5, height);
-        } else if (axis instanceof LinearAxis) {
+        } else if (axis instanceof QuantitativeAxis) {
             minPosition = 6;
             maxPosition = height - 6;
             _ref1 = axis.guide();
@@ -4757,7 +4827,7 @@
         if (axis instanceof CategoricalAxis) {
             doLine(g, 0, 0.5, width, 0.5);
             doLine(g, 0, height - 0.5, width, height - 0.5);
-        } else if (axis instanceof LinearAxis) {
+        } else if (axis instanceof QuantitativeAxis) {
             _ref = axis.guide();
             for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 tick = _ref[_i];
@@ -4885,7 +4955,7 @@
                 }
             }
             return new Bounds(Math.ceil(longest * __emWidth + padding), Math.ceil(categories.length * (__emWidth + 8)));
-        } else if (axis instanceof LinearAxis) {
+        } else if (axis instanceof QuantitativeAxis) {
             longest = 0;
             categories = axis.guide();
             _ref = axis.guide();
@@ -5079,7 +5149,7 @@
         }
     };
     renderPlot = function (frame, ops) {
-        var axisBoundsX, axisBoundsY, axisRectX, axisRectY, axisX, axisY, bounds, boundsHeight, boundsWidth, box, domainX, domainY, layers, marks, rangeX, rangeY, spaceX, spaceY, spaces, subscribe, unsubscribe, vectorsX, vectorsY, visualization, _ref, _ref1, _ref2, _ref3;
+        var annotations, axisBoundsX, axisBoundsY, axisRectX, axisRectY, axisX, axisY, bounds, boundsHeight, boundsWidth, box, domainX, domainY, layers, marks, notify, rangeX, rangeY, spaceX, spaceY, spaces, subscribe, unsubscribe, vectorsX, vectorsY, visualization, _ref, _ref1, _ref2, _ref3;
         marks = _.map(filterByType(ops, MarkExpr), function (expr) {
             var coord, positionVectors;
             positionVectors = function () {
@@ -5132,8 +5202,11 @@
             }
             return new Layer(encodings, encoders, geom.mask, geom.highlight, geom.render, geom.select);
         });
-        _ref3 = createEventDispatcher(), subscribe = _ref3[0], unsubscribe = _ref3[1], dispatch = _ref3[2];
-        visualization = createVisualization(box, frame, layers, axisX, axisY, dispatch);
+        annotations = _.map(filterByType(ops, AnnotationExpr), function (expr) {
+            return createAnnotation(expr);
+        });
+        _ref3 = createEventDispatcher(), subscribe = _ref3[0], unsubscribe = _ref3[1], notify = _ref3[2];
+        visualization = createVisualization(box, frame, layers, annotations, axisX, axisY, notify);
         visualization.render();
         return new Plot(visualization.viewport.container, subscribe, unsubscribe);
     };
