@@ -226,12 +226,12 @@ build = (argv) ->
   #TODO compile lightning only once.
   write 'build/js/tests.js', node_test_header_js + EOL + compileCoffee [ lightning_coffee, tests_coffee ].join(EOL)
 
-  cp 'build/js/lightning.js', 'dist/lightning.js'
-
   # *** DANGER ***
+  # cp 'build/js/lightning.js', 'dist/lightning.js'
   # cp 'dist/lightning.js', '../h2o-flow/vendor/h2oai/lightning.min.js'
 
   if argv.m
+    cp 'build/js/lightning.js', 'dist/lightning.js'
     uglification = Uglify.minify [ 'dist/lightning.js' ], warnings: yes
     write 'dist/lightning.min.js', uglification.code
     cp 'dist/lightning.min.js', '../h2o-flow/vendor/h2oai/lightning.min.js'
