@@ -3540,15 +3540,15 @@ createEventDispatcher = ->
         delete _subscribersByEvent[_event]
     return
 
-  dispatch = (event, args...) ->
+  notify = (event, args...) ->
     if subscribers = _subscribersByEvent[event]
       for subscriber in subscribers
         apply subscriber, null, args
     return
 
-  [ subscribe, unsubscribe, dispatch ]
+  [ subscribe, unsubscribe, notify ]
 
-createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _dispatch) ->
+createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _notify) ->
   _viewport = createViewport _box
 
   { baseCanvas, highlightCanvas, hoverCanvas, clipCanvas, maskCanvas, marquee, tooltip, mask, clip } = _viewport
@@ -3623,7 +3623,7 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _dis
           layer.highlight [ i ], layer.encoders, hoverContext
         hoverContext.restore()
 
-        _dispatch 'hover', new HoverEventArg _frame.vectors, i
+        _notify 'hover', new HoverEventArg _frame.vectors, i
 
         tooltipData = {}
         for layer in _layers
@@ -3665,10 +3665,10 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _dis
     # debug 'selectAt', x, y
     if i isnt undefined
       highlight [ i ]
-      _dispatch 'select', new SelectEventArg _frame.vectors, [ i ]
+      _notify 'select', new SelectEventArg _frame.vectors, [ i ]
     else
       highlight []
-      _dispatch 'deselect', new DeselectEventArg _frame.vectors
+      _notify 'deselect', new DeselectEventArg _frame.vectors
     return
 
   selectWithin = (x1, y1, x2, y2) ->
@@ -3681,9 +3681,9 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _dis
       selectedIndices = layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
       highlight selectedIndices
       if selectedIndices.length
-        _dispatch 'select', new SelectEventArg _frame.vectors, selectedIndices
+        _notify 'select', new SelectEventArg _frame.vectors, selectedIndices
       else
-        _dispatch 'deselect', new DeselectEventArg _frame.vectors
+        _notify 'deselect', new DeselectEventArg _frame.vectors
     return
 
   render = ->
@@ -3941,7 +3941,7 @@ createAxis = (type, label, domain, range, rect) ->
         for value in ticks count
           new Tick value, format value
 
-      new QuantitativeAxis type, label, scale, domain, range, rect, guide
+      new LinearAxis type, label, scale, domain, range, rect, guide
 
     else
       throw new Error "Unhandled axis type [#{type}]."
@@ -4098,9 +4098,9 @@ renderPlot = (frame, ops) ->
   annotations = map (filterByType ops, AnnotationExpr), (expr) ->
     createAnnotation expr
 
-  [ subscribe, unsubscribe, dispatch ] = do createEventDispatcher
+  [ subscribe, unsubscribe, notify ] = do createEventDispatcher
 
-  visualization = createVisualization box, frame, layers, annotations, axisX, axisY, dispatch
+  visualization = createVisualization box, frame, layers, annotations, axisX, axisY, notify
 
   visualization.render() #TODO should be callable externally, with indices.
   new Plot visualization.viewport.container, subscribe, unsubscribe
