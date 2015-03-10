@@ -983,3 +983,15 @@ plot(
   )
   from dataPackage 'data/mtcars'
 )
+
+###
+plot label-occlusion-test
+Label Occlusion Test
+###
+plot(
+  rect(
+    position 'mpg', 'model'
+  )
+  from dataPackage 'data/mtcars'
+  bounds null, 100
+)

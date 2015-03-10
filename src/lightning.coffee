@@ -3717,7 +3717,6 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
 
   new Visualization _viewport, _frame, test, highlight, hover, selectAt, selectWithin, render
 
-
 renderAxis = (g, axis, width, height, orientation) ->
 
   g.font = plot_settings.axisLabelFont
@@ -3740,14 +3739,21 @@ renderAxis = (g, axis, width, height, orientation) ->
   labelAnchor = width - 6
 
   if axis instanceof CategoricalAxis
-    for category in axis.guide()
-      label = category.value
+    categories = axis.guide()
+    maxTickLabels = floor height / (__emWidth + 2)
+    divisor = floor categories.length / maxTickLabels
+    
+    for category, i in categories
       position = axis.scale category
-
       tickPosition = -0.5 + round position
+
+      # Tick
       doLine g, tickStart, tickPosition, width, tickPosition
 
-      g.fillText label, labelAnchor, position, maxLabelSize - 6
+      if i isnt 0 and 0 is i % divisor
+        # Tick label
+        g.fillText category.value, labelAnchor, position, maxLabelSize - 6
+
     doLine g, width - 0.5, 0, width - 0.5, height
 
   else if axis instanceof QuantitativeAxis
@@ -3756,16 +3762,20 @@ renderAxis = (g, axis, width, height, orientation) ->
     for tick in axis.guide()
       label = tick.label
       position = axis.scale tick.value
-
       tickPosition = mmax 0.5, -0.5 + round position
+
+      # Tick
       doLine g, tickStart, tickPosition, width, tickPosition
 
+      # Offset first and/or last labels inwards
       labelPosition = if position < minPosition
         minPosition
       else if position > maxPosition
         maxPosition
       else
         position
+
+      # Tick label
       g.fillText label, labelAnchor, labelPosition, maxLabelSize - 6
     doLine g, width - 0.5, 0, width - 0.5, height
   else
