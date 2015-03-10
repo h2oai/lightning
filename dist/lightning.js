@@ -4773,7 +4773,7 @@
         return new Visualization(_viewport, _frame, test, highlight, hover, selectAt, selectWithin, render);
     };
     renderAxis = function (g, axis, width, height, orientation) {
-        var category, label, labelAnchor, labelPosition, maxLabelSize, maxPosition, minPosition, position, tick, tickPosition, tickStart, titleHeight, _i, _j, _len, _len1, _ref, _ref1;
+        var categories, category, divisor, i, label, labelAnchor, labelPosition, maxLabelSize, maxPosition, maxTickLabels, minPosition, position, tick, tickPosition, tickStart, titleHeight, _i, _j, _len, _len1, _ref;
         g.font = plot_settings.axisLabelFont;
         g.fillStyle = plot_settings.axisLabelColor;
         g.strokeStyle = plot_settings.axisTickColor;
@@ -4786,22 +4786,25 @@
         tickStart = width - 5;
         labelAnchor = width - 6;
         if (axis instanceof CategoricalAxis) {
-            _ref = axis.guide();
-            for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-                category = _ref[_i];
-                label = category.value;
+            categories = axis.guide();
+            maxTickLabels = Math.floor(height / (__emWidth + 2));
+            divisor = Math.floor(categories.length / maxTickLabels);
+            for (i = _i = 0, _len = categories.length; _i < _len; i = ++_i) {
+                category = categories[i];
                 position = axis.scale(category);
                 tickPosition = -0.5 + Math.round(position);
                 doLine(g, tickStart, tickPosition, width, tickPosition);
-                g.fillText(label, labelAnchor, position, maxLabelSize - 6);
+                if (i !== 0 && 0 === i % divisor) {
+                    g.fillText(category.value, labelAnchor, position, maxLabelSize - 6);
+                }
             }
             doLine(g, width - 0.5, 0, width - 0.5, height);
         } else if (axis instanceof QuantitativeAxis) {
             minPosition = 6;
             maxPosition = height - 6;
-            _ref1 = axis.guide();
-            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-                tick = _ref1[_j];
+            _ref = axis.guide();
+            for (_j = 0, _len1 = _ref.length; _j < _len1; _j++) {
+                tick = _ref[_j];
                 label = tick.label;
                 position = axis.scale(tick.value);
                 tickPosition = Math.max(0.5, -0.5 + Math.round(position));
