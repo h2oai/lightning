@@ -4794,7 +4794,7 @@
                 position = axis.scale(category);
                 tickPosition = -0.5 + Math.round(position);
                 doLine(g, tickStart, tickPosition, width, tickPosition);
-                if (i !== 0 && 0 === i % divisor) {
+                if (divisor === 0 || i !== 0 && 0 === i % divisor) {
                     g.fillText(category.value, labelAnchor, position, maxLabelSize - 6);
                 }
             }
