@@ -3741,6 +3741,7 @@ renderAxis = (g, axis, width, height, orientation) ->
   if axis instanceof CategoricalAxis
     categories = axis.guide()
     maxTickLabels = floor height / (__emWidth + 2)
+
     divisor = floor categories.length / maxTickLabels
     
     for category, i in categories
@@ -3750,7 +3751,7 @@ renderAxis = (g, axis, width, height, orientation) ->
       # Tick
       doLine g, tickStart, tickPosition, width, tickPosition
 
-      if i isnt 0 and 0 is i % divisor
+      if divisor is 0 or i isnt 0 and 0 is i % divisor
         # Tick label
         g.fillText category.value, labelAnchor, position, maxLabelSize - 6
 
