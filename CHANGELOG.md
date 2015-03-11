@@ -4,6 +4,9 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased][unreleased]
 
+## [0.1.13 - 2015-03-10]
+### Fixed
+- Fix categorical axis label rendering when adequate space is available
 
 ## [0.1.12] - 2015-03-10
 ### Fixed
