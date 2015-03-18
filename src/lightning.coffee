@@ -3674,13 +3674,17 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
     ymin = -visRect.top + if y1 > y2 then y2 else y1
     ymax = -visRect.top + if y1 > y2 then y1 else y2
     # debug 'selectWithin', xmin, ymin, xmax, ymax
-    for layer in _layers
-      selectedIndices = layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
-      highlight selectedIndices
-      if selectedIndices.length
-        _notify 'select', new SelectEventArg _frame.vectors, selectedIndices
-      else
-        _notify 'deselect', new DeselectEventArg _frame.vectors
+
+    selectedIndicesByLayer = for layer in _layers
+      layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
+
+    selectedIndices = unique flatten selectedIndicesByLayer, yes
+
+    highlight selectedIndices
+    if selectedIndices.length
+      _notify 'select', new SelectEventArg _frame.vectors, selectedIndices
+    else
+      _notify 'deselect', new DeselectEventArg _frame.vectors
     return
 
   render = ->
