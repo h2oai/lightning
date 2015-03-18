@@ -9,7 +9,7 @@
     "minify": "coffee make.coffee -bm",
     "watch": "coffee make.coffee -w",
     "test": "coffee make.coffee -bt | faucet",
-    "cover": "coffee make.coffee -b && mkdir -p build/cover && istanbul cover --dir build/cover build/js/tests.js && istanbul report --dir build/cover html",
+    "coverage": "coffee make.coffee -b && istanbul cover build/js/tests.js && istanbul report html",
     "clean": "coffee make.coffee -c",
     "serve": "http-server build",
     "doc": "groc src/lightning.coffee"

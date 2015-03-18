@@ -3,6 +3,7 @@
 node_modules/
 lib/
 build/
+coverage/
 doc/
 *.swp
 *.log

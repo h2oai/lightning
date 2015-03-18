@@ -835,10 +835,10 @@ asInt = (datum) ->
   value = parseInt datum, 10
   if isNaN value then undefined else value
 
-# string -> string
 # null -> undefined
 # undefined -> undefined
-asString = (datum) ->
+# any -> any
+asAny = (datum) ->
   if datum? then datum else undefined
 
 # real -> real
@@ -3116,7 +3116,7 @@ readDataPackageSchema = (schema) ->
         label: field.name
         type: 'String'
         domain: field.lightningDomain ? []
-        parse: asString
+        parse: asAny
 
       when 'integer'
         label: field.name

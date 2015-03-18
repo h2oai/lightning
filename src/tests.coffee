@@ -126,3 +126,38 @@ test 'dispatch', (t) ->
 
   t.end()
 
+check = (t, f) ->
+  (expected, args...) ->
+    actual = f.apply null, args
+    t actual, expected 
+
+test 'asReal', (t) ->
+  t.plan 6
+  c = check t.equal, asReal
+  c undefined, undefined
+  c undefined, null
+  c undefined, 'foo'
+  c 0, '0'
+  c 1, '1'
+  c 1.1, '1.1'
+
+test 'asInt', (t) ->
+  t.plan 6
+  c = check t.equal, asInt
+  c undefined, undefined
+  c undefined, null
+  c undefined, 'foo'
+  c 0, '0'
+  c 1, '1'
+  c 1, '1.1'
+
+test 'asAny', (t) ->
+  t.plan 5
+  c = check t.equal, asAny
+  c undefined, undefined
+  c undefined, null
+  c 'foo', 'foo'
+  c 10, 10
+  c (foo={}), foo
+
+

@@ -2,7 +2,11 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased][unreleased]
+## [TODO]
+- BUG: layer #2 in sin/cos curve example fails hit-testing.
+- BUG: path example - selecting points joins all selected points instead of respecting original sequence.
+
+## [Unreleased]
 
 ## [0.1.13 - 2015-03-10]
 ### Fixed
