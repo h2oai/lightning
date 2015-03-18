@@ -3352,18 +3352,15 @@ createStylesheet = (styles) ->
   return
 
 createTooltipTable = (dict) ->
-  table = document.createElement 'table'
-  table.appendChild tbody = document.createElement 'tbody'
-  for label, value of dict
-    tbody.appendChild tr = document.createElement 'tr'
-    
-    tr.appendChild td = document.createElement 'td'
-    td.appendChild document.createTextNode "#{label}:"
+  [ table, tbody, tr, th, td ] = diecut 'table', 'tbody', 'tr', 'th', 'td'
 
-    tr.appendChild th = document.createElement 'th'
-    th.appendChild document.createTextNode value
+  rows = for label, value of dict
+    tr [
+      td "#{label}:"
+      th value
+    ]
 
-  table
+  renderHtml table tbody rows
 
 createCanvas = (bounds) ->
   { width, height } = bounds
