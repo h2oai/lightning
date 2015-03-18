@@ -3678,7 +3678,10 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
     selectedIndicesByLayer = for layer in _layers
       layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
 
-    selectedIndices = unique flatten selectedIndicesByLayer, yes
+    selectedIndices = if _layers.length > 1
+      unique flatten selectedIndicesByLayer, yes
+    else
+      head selectedIndicesByLayer
 
     highlight selectedIndices
     if selectedIndices.length
