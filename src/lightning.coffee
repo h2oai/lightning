@@ -811,6 +811,21 @@ class SelectEventArg
 class DeselectEventArg
   constructor: (@vectors) ->
 
+#TODO add top margin
+class ColumnSelectEventArg
+  constructor: (@vector) ->
+
+class HeaderSelectEventArg
+  constructor: (@vector) ->
+
+#TODO add left margin
+class RowSelectEventArg
+  constructor: (@index) ->
+
+class CellSelectEventArg
+  constructor: (@vector, @index) ->
+
+
 #
 # Utility functions
 # ==============================
@@ -3620,7 +3635,7 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
           layer.highlight [ i ], layer.encoders, hoverContext
         hoverContext.restore()
 
-        _notify 'hover', new HoverEventArg _frame.vectors, i
+        _notify 'markhover', new HoverEventArg _frame.vectors, i
 
         tooltipData = {}
         for layer in _layers
@@ -3662,10 +3677,10 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
     # debug 'selectAt', x, y
     if i isnt undefined
       highlight [ i ]
-      _notify 'select', new SelectEventArg _frame.vectors, [ i ]
+      _notify 'markselect', new SelectEventArg _frame.vectors, [ i ]
     else
       highlight []
-      _notify 'deselect', new DeselectEventArg _frame.vectors
+      _notify 'markdeselect', new DeselectEventArg _frame.vectors
     return
 
   selectWithin = (x1, y1, x2, y2) ->
@@ -3685,9 +3700,9 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
 
     highlight selectedIndices
     if selectedIndices.length
-      _notify 'select', new SelectEventArg _frame.vectors, selectedIndices
+      _notify 'markselect', new SelectEventArg _frame.vectors, selectedIndices
     else
-      _notify 'deselect', new DeselectEventArg _frame.vectors
+      _notify 'markdeselect', new DeselectEventArg _frame.vectors
     return
 
   render = ->
@@ -4041,8 +4056,21 @@ renderTable = (frame, ops) ->
     tbody trs
   ]
 
-  subscribe = noop #TODO
-  unsubscribe = noop #TODO
+  [ subscribe, unsubscribe, notify ] = do createEventDispatcher
+
+  $(element).on 'click', (event) ->
+    $target = $ event.target
+    $parent = $target.parent()
+    parentType = $parent.prop('tagName').toLowerCase()
+    targetType = $target.prop('tagName').toLowerCase()
+    targetIndex = $target.index()
+    parentIndex = $parent.index()
+    switch targetType
+      when 'td'
+        notify 'cellselect', new CellSelectEventArg vectors[targetIndex], frame.indices[parentIndex]
+      when 'th'
+        notify 'headerselect', new HeaderSelectEventArg vectors[targetIndex]
+    return
 
   new Plot element, subscribe, unsubscribe
 
