@@ -4160,10 +4160,6 @@ initializeStylesheet = ->
     .lz-tooltip th {
       text-align: left;
     }
-    .lz-table > tbody > tr:hover {
-      outline: 1px solid black;
-      cursor: pointer;
-    }
     .lz-table th, .lz-table td {
       padding: 0px 8px;
       vertical-align: middle;
