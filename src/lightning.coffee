@@ -1029,7 +1029,7 @@ factorize = (_read, count, values, _format) ->
   format = if _format
     (i) -> _format data[i].value
   else
-    (i) -> if value = data[i].value isnt undefined then escape value else value
+    (i) -> if (value = data[i].value) isnt undefined then escape value else value
 
   new Factoring at, valueAt, count, domain, format
 
