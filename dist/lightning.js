@@ -1651,7 +1651,7 @@
         format = _format ? function (i) {
             return _format(data[i].value);
         } : function (i) {
-            if (value = data[i].value !== void 0) {
+            if ((value = data[i].value) !== void 0) {
                 return _.escape(value);
             } else {
                 return value;
