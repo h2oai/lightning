@@ -1008,7 +1008,7 @@ createFunctor = (name, label, type, _count, _at, _format) ->
 # ==============================
 # 
 # (int -> a), (-> int), [a] -> Factoring
-factorize = (_read, count, values) ->
+factorize = (_read, count, values, _format) ->
   _id = 0
   _dictionary = {}
   length = count()
@@ -1026,15 +1026,18 @@ factorize = (_read, count, values) ->
 
   at = (i) -> data[i]
   valueAt = (i) -> data[i].value
-  format = (i) -> data[i].value
+  format = if _format
+    (i) -> _format data[i].value
+  else
+    (i) -> if value = data[i].value isnt undefined then escape value else value
 
   new Factoring at, valueAt, count, domain, format
 
 # string, type, [a], [a] -> Factor 
-createFactor = (label, type, data, domain) ->
+createFactor = (label, type, data, domain, _format) ->
   count = -> data.length
   at = (i) -> data[i]
-  factoring = factorize at, count, domain or []
+  factoring = factorize at, count, domain or [], _format
   new Factor label, label, type, factoring.at, factoring.valueAt, count, factoring.domain, factoring.format
 
 createAllFactor = (label, length) ->
@@ -3998,7 +4001,7 @@ renderRecord = (frame, ops) ->
     value = vector.format index
     escapedValue = switch vector.type
       when TString
-        if value isnt undefined then escape value else '-'
+        if value isnt undefined then value else '-'
       when TNumber
         if value isnt undefined then escape value else '-'
       when TObject
@@ -4042,7 +4045,7 @@ renderTable = (frame, ops) ->
       value = vector.format i
       switch vector.type
         when TString
-          td if value isnt undefined then escape value else '-'
+          td if value isnt undefined then value else '-'
         when TNumber
           tdr if value isnt undefined then escape value else '-'
         when TObject
