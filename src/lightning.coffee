@@ -400,19 +400,6 @@ class PathMark extends Mark
   ) ->
     @geometry = PathGeometry
 
-class TextMark extends Mark
-  constructor: (
-    @space
-    @positionX
-    @positionY
-    @text
-    @size
-    @fillColor
-    @fillOpacity
-    @tooltip
-  ) ->
-    @geometry = TextGeometry
-
 class Encoding
 
 class PointEncoding extends Encoding
@@ -2984,8 +2971,6 @@ plot_value = dispatch(
   [ String, (value) -> new StringValue value ]
 )
 
-plot_domain = (values...) ->
-
 plot_range = dispatch(
   [ Array, (a) -> new CategoricalRange a]
   [ 
@@ -4228,7 +4213,6 @@ plot.settings = plot_settings
 plot.bounds = plot_bounds
 plot.from = plot_from
 plot.value = plot_value
-plot.domain = plot_domain
 plot.range = plot_range
 plot.position = plot_position
 plot.fillColor = plot_fillColor
