@@ -1,3 +1,8 @@
+check = (t, f) ->
+  (expected, args...) ->
+    actual = f.apply null, args
+    t actual, expected 
+
 test 'types', (t) ->
   t.plan 12
   t.equal TUndefined, 'undefined'
@@ -126,10 +131,81 @@ test 'dispatch', (t) ->
 
   t.end()
 
-check = (t, f) ->
-  (expected, args...) ->
-    actual = f.apply null, args
-    t actual, expected 
+test 'applyc', (t) ->
+  class Foo
+    constructor: (@bar, @baz) ->
+
+  foo = applyc Foo, [ 'bar', 'baz' ]
+  
+  t.plan 3
+  t.assert foo instanceof Foo
+  t.equal foo.bar, 'bar'
+  t.equal foo.baz, 'baz'
+
+test 'classes and attributes', (t) ->
+
+  classes = [
+    [ Clip, 2 ]
+    [ Mask, 2 ]
+    [ Size, 2 ]
+    [ Rect, 4 ]
+    [ Vector, 7 ]
+    [ Factor, 8 ]
+    [ List, 6 ]
+    [ Frame, 9 ]
+    [ Value, 1 ]
+    [ NumberValue, 1 ]
+    [ StringValue, 1 ]
+    [ DateValue, 1 ]
+    [ BooleanValue, 1 ]
+    [ Field, 1 ]
+    [ MappedField, 1 ]
+    [ ReducedField, 1 ]
+    [ Fill, 2 ]
+    [ Stroke, 3 ]
+    [ SelectExpr, 1 ]
+    [ RecordExpr, 1 ]
+    [ PointExpr, 9 ]
+    [ PathExpr, 5 ]
+    [ SchemaExpr, 5 ]
+    [ RectExpr, 9 ]
+    [ LineExpr, 4 ]
+    [ LineAnnotation, 5 ]
+    [ PointMark, 11 ]
+    [ SchemaXMark, 12 ]
+    [ SchemaYMark, 12 ]
+    [ ColMark, 11 ]
+    [ BarMark, 11 ]
+    [ PathMark, 7 ]
+    [ PointEncoding, 12 ]
+    [ SchemaXEncoding, 12 ]
+    [ SchemaYEncoding, 12 ]
+    [ ColEncoding, 12 ]
+    [ BarEncoding, 12 ]
+    [ PathEncoding, 7 ]
+    [ Space2D, 2 ]
+    [ Space1D, 3 ]
+    [ CategoricalAxis, 7 ]
+    [ LinearAxis, 7 ]
+    [ Tick, 2 ]
+    [ Encoder, 2 ]
+    [ ConstantEncoder, 1 ]
+    [ VariableEncoder, 3 ]
+    [ TooltipEncoder, 1 ]
+    [ PositionEncoder, 6 ]
+    [ ColorEncoder, 6 ]
+    [ OpacityEncoder, 6 ]
+    [ SizeEncoder, 6 ]
+    [ ShapeEncoder, 6 ]
+    [ Channel, 0 ]
+    [ ColorChannel, 0 ]
+  ]
+
+  t.plan classes.length
+  for [ klass, argCount ] in classes
+    instance = applyc klass,  args = ({} for i in [0 ... argCount])
+    t.assert instance instanceof klass
+  return
 
 test 'asReal', (t) ->
   t.plan 6
@@ -160,4 +236,43 @@ test 'asAny', (t) ->
   c 10, 10
   c (foo={}), foo
 
+test 'sq', (t) ->
+  t.plan 1
+  t.equal (sq 3), 9
+
+test 'clampNorm', (t) ->
+  t.plan 5
+  t.equal (clampNorm 0), 0
+  t.equal (clampNorm 0.5), 0.5
+  t.equal (clampNorm 1), 1
+  t.equal (clampNorm -10), 0
+  t.equal (clampNorm 10), 1
+
+test 'copy', (t) ->
+  t.plan 2
+  t.deepEqual (copy []), []
+  foo = {}
+  bar = {}
+  t.deepEqual (copy [foo, bar]), [foo, bar]
+
+test 'flatMap', (t) ->
+  t.plan 2
+  t.deepEqual (flatMap []), []
+  t.deepEqual (flatMap [ 1, 2, 3, 4 ], ((a) -> [ a, a * a ])), [ 1, 1, 2, 4, 3, 9, 4, 16 ]
+
+test 'operation', (t) ->
+  t.plan 2
+  add = (a, b) -> a + b
+  op1 = operation add, 36, 6
+  t.equal op1(), 42
+
+  fortytwo = -> 42
+  op2 = operation fortytwo
+  t.equal op2(), 42
+
+test 'always', (t) ->
+  t.plan 1
+  foo = {}
+  alwaysFoo = always foo
+  t.equal alwaysFoo(), foo
 
