@@ -328,6 +328,7 @@ keys:
 vvalues:
   type: qualify
   object: _
+  property: values
 pairs:
   type: qualify
   object: _

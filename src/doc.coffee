@@ -891,6 +891,25 @@ plot(
 )
 
 ###
+plot custom-domain
+Custom Domain
+Setting custom domains on axes
+---
+tags:
+ - point
+ - ll
+###
+
+plot(
+  point(
+    position 'Training Speed', 'Test Set Error'
+    tooltip 'Parameters'
+  )
+  domainY_HACK 0, 1 
+  from dataPackage 'data/performance'
+)
+
+###
 plot extra-tooltip-data
 Extra tooltip data
 Displaying additional attributes in tooltips, with custom bounds

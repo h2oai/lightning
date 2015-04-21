@@ -642,6 +642,12 @@ class VariableTooltipChannel extends TooltipChannel
 class Extent
   constructor: (@min, @max) ->
 
+class DomainX #TODO HACK
+  constructor: (@min, @max) ->
+
+class DomainY #TODO HACK
+  constructor: (@min, @max) ->
+
 class Range
 
 class CategoricalRange extends Range
@@ -856,6 +862,7 @@ flatMap = (xs, f) ->
       ys.push y
   ys
 
+# ( a* -> b) -> -> b
 # ( a* -> b), a* -> -> b
 operation = (f, args...) -> -> apply f, null, args
 
@@ -2959,6 +2966,14 @@ plot_bounds = dispatch(
   [ null, null, -> new Bounds undefined, undefined ]
 )
 
+plot_domainX_HACK = dispatch(
+  [ Number, Number, (min, max) -> new DomainX min, max ]
+)
+
+plot_domainY_HACK = dispatch(
+  [ Number, Number, (min, max) -> new DomainY min, max ]
+)
+
 plot_from = dispatch(
   [ Frame, identity ]
   [ Function, (read) -> new Datasource read ]
@@ -4031,12 +4046,15 @@ renderTable = (frame, ops) ->
 
   new Plot element, subscribe, unsubscribe
 
-computeAxisDomain = (self, other) ->
+computeAxisDomain = (self, other, domain) ->
   if self.type is TNumber
-    if other.type is TString
-      includeOrigin0 self.domain
-    else # other.type is TNumber
-      self.domain
+    if domain
+      combineExtents self.domain, domain
+    else
+      if other.type is TString
+        includeOrigin0 self.domain
+      else # other.type is TNumber
+        self.domain
   else
     self.domain
 
@@ -4053,8 +4071,8 @@ renderPlot = (frame, ops) ->
   spaceX = createSpace1D vectorsX, frame.indices
   spaceY = createSpace1D vectorsY, frame.indices
 
-  domainX = computeAxisDomain spaceX, spaceY
-  domainY = computeAxisDomain spaceY, spaceX
+  domainX = computeAxisDomain spaceX, spaceY, findByType ops, DomainX
+  domainY = computeAxisDomain spaceY, spaceX, findByType ops, DomainY
 
   axisBoundsX = computeApproxAxisSize spaceX.type, domainX
   axisBoundsY = computeApproxAxisSize spaceY.type, domainY
@@ -4262,7 +4280,8 @@ plot.createFrame = createFrame
 plot.createVector = createVector
 plot.createList = createList
 plot.createFactor = createFactor
-
+plot.domainX_HACK = plot_domainX_HACK
+plot.domainY_HACK = plot_domainY_HACK
 
 if module?.exports? then module.exports = plot else window.plot = plot
 
