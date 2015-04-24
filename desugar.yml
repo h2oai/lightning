@@ -338,9 +338,6 @@ invert:
 functions:
   type: qualify
   object: _
-extend:
-  type: qualify
-  object: _
 pick:
   type: qualify
   object: _
