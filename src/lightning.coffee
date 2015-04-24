@@ -19,6 +19,7 @@ Tan30 = tan 30 * Radians
 Sqrt3 = sqrt 3
 ColorLimit = 255 * 255 * 255
 Transparent = 'transparent'
+MidDot = '&middot;'
 
 #
 # Pseudo-types
@@ -4001,11 +4002,11 @@ renderRecord = (frame, ops) ->
     value = vector.format index
     escapedValue = switch vector.type
       when TString
-        if value isnt undefined then value else '-'
+        if value isnt undefined then value else MidDot
       when TNumber
-        if value isnt undefined then escape value else '-'
+        if value isnt undefined then escape value else MidDot
       when TObject
-        if value isnt undefined then value else '-'
+        if value isnt undefined then value else MidDot
       else
         throw new Error "Cannot render table cell of type #{vector.type}"
     tr [
@@ -4045,11 +4046,11 @@ renderTable = (frame, ops) ->
       value = vector.format i
       switch vector.type
         when TString
-          td if value isnt undefined then value else '-'
+          td if value isnt undefined then value else MidDot
         when TNumber
-          tdr if value isnt undefined then escape value else '-'
+          tdr if value isnt undefined then escape value else MidDot
         when TObject
-          td if value isnt undefined then value else '-'
+          td if value isnt undefined then value else MidDot
         else
           throw new Error "Cannot render table cell of type #{vector.type}"
     tr tds
