@@ -804,13 +804,13 @@ class HavingOp
   constructor: (@fields, @predicate) ->
 
 class HoverEventArg
-  constructor: (@vectors, @index) ->
+  constructor: (@frame, @index) ->
 
 class SelectEventArg
-  constructor: (@vectors, @indices) ->
+  constructor: (@frame, @indices) ->
 
 class DeselectEventArg
-  constructor: (@vectors) ->
+  constructor: (@frame) ->
 
 #TODO add top margin
 class ColumnSelectEventArg
@@ -3639,7 +3639,7 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
           layer.highlight [ i ], layer.encoders, hoverContext
         hoverContext.restore()
 
-        _notify 'markhover', new HoverEventArg _frame.vectors, i
+        _notify 'markhover', new HoverEventArg _frame, i
 
         tooltipData = {}
         for layer in _layers
@@ -3681,10 +3681,10 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
     # debug 'selectAt', x, y
     if i isnt undefined
       highlight [ i ]
-      _notify 'markselect', new SelectEventArg _frame.vectors, [ i ]
+      _notify 'markselect', new SelectEventArg _frame, [ i ]
     else
       highlight []
-      _notify 'markdeselect', new DeselectEventArg _frame.vectors
+      _notify 'markdeselect', new DeselectEventArg _frame
     return
 
   selectWithin = (x1, y1, x2, y2) ->
@@ -3704,9 +3704,9 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
 
     highlight selectedIndices
     if selectedIndices.length
-      _notify 'markselect', new SelectEventArg _frame.vectors, selectedIndices
+      _notify 'markselect', new SelectEventArg _frame, selectedIndices
     else
-      _notify 'markdeselect', new DeselectEventArg _frame.vectors
+      _notify 'markdeselect', new DeselectEventArg _frame
     return
 
   render = ->
