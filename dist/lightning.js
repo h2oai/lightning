@@ -1339,22 +1339,22 @@
         return HavingOp;
     }();
     HoverEventArg = function () {
-        function HoverEventArg(vectors1, index1) {
-            this.vectors = vectors1;
+        function HoverEventArg(frame1, index1) {
+            this.frame = frame1;
             this.index = index1;
         }
         return HoverEventArg;
     }();
     SelectEventArg = function () {
-        function SelectEventArg(vectors1, indices1) {
-            this.vectors = vectors1;
+        function SelectEventArg(frame1, indices1) {
+            this.frame = frame1;
             this.indices = indices1;
         }
         return SelectEventArg;
     }();
     DeselectEventArg = function () {
-        function DeselectEventArg(vectors1) {
-            this.vectors = vectors1;
+        function DeselectEventArg(frame1) {
+            this.frame = frame1;
         }
         return DeselectEventArg;
     }();
@@ -4715,7 +4715,7 @@
                         layer.highlight([i], layer.encoders, hoverContext);
                     }
                     hoverContext.restore();
-                    _notify('markhover', new HoverEventArg(_frame.vectors, i));
+                    _notify('markhover', new HoverEventArg(_frame, i));
                     tooltipData = {};
                     for (m = 0, len1 = _layers.length; m < len1; m++) {
                         layer = _layers[m];
@@ -4766,10 +4766,10 @@
             i = test(x, y);
             if (i !== void 0) {
                 highlight([i]);
-                _notify('markselect', new SelectEventArg(_frame.vectors, [i]));
+                _notify('markselect', new SelectEventArg(_frame, [i]));
             } else {
                 highlight([]);
-                _notify('markdeselect', new DeselectEventArg(_frame.vectors));
+                _notify('markdeselect', new DeselectEventArg(_frame));
             }
         };
         selectWithin = function (x1, y1, x2, y2) {
@@ -4790,9 +4790,9 @@
             selectedIndices = _layers.length > 1 ? _.unique(_.flatten(selectedIndicesByLayer, true)) : _.head(selectedIndicesByLayer);
             highlight(selectedIndices);
             if (selectedIndices.length) {
-                _notify('markselect', new SelectEventArg(_frame.vectors, selectedIndices));
+                _notify('markselect', new SelectEventArg(_frame, selectedIndices));
             } else {
-                _notify('markdeselect', new DeselectEventArg(_frame.vectors));
+                _notify('markdeselect', new DeselectEventArg(_frame));
             }
         };
         render = function () {
