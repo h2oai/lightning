@@ -702,7 +702,7 @@ class Visualization
     @selectWithin, @render) ->
 
 class Plot
-  constructor: (@element, @subscribe, @unsubscribe) ->
+  constructor: (@element, @subscribe, @unsubscribe, @highlight) ->
 
 class Bounds
   constructor: (@width, @height) ->
@@ -4018,8 +4018,9 @@ renderRecord = (frame, ops) ->
 
   subscribe = noop #TODO
   unsubscribe = noop #TODO
+  highlight = noop #TODO
 
-  new Plot element, subscribe, unsubscribe
+  new Plot element, subscribe, unsubscribe, highlight
 
 renderTable = (frame, ops) ->
   selectExpr = findByType ops, SelectExpr
@@ -4076,7 +4077,9 @@ renderTable = (frame, ops) ->
         notify 'headerselect', new HeaderSelectEventArg vectors[targetIndex]
     return
 
-  new Plot element, subscribe, unsubscribe
+  highlight = noop #TODO
+
+  new Plot element, subscribe, unsubscribe, highlight
 
 computeAxisDomain = (self, other, domain) ->
   if self.type is TNumber
@@ -4153,7 +4156,7 @@ renderPlot = (frame, ops) ->
   visualization = createVisualization box, frame, layers, annotations, axisX, axisY, notify
 
   visualization.render() #TODO should be callable externally, with indices.
-  new Plot visualization.viewport.container, subscribe, unsubscribe
+  new Plot visualization.viewport.container, subscribe, unsubscribe, visualization.highlight
 
 #
 # Bootstrap
