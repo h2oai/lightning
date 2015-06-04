@@ -1217,10 +1217,11 @@
         return Visualization;
     }();
     Plot = function () {
-        function Plot(element1, subscribe1, unsubscribe1) {
+        function Plot(element1, subscribe1, unsubscribe1, highlight1) {
             this.element = element1;
             this.subscribe = subscribe1;
             this.unsubscribe = unsubscribe1;
+            this.highlight = highlight1;
         }
         return Plot;
     }();
@@ -4757,20 +4758,16 @@
                     layer.render(indices, layer.encoders, highlightContext);
                 }
                 highlightContext.restore();
+                _notify('markselect', new SelectEventArg(_frame, indices));
             } else {
                 baseCanvas.element.style.opacity = 1;
+                _notify('markdeselect', new DeselectEventArg(_frame));
             }
         };
         selectAt = function (x, y) {
             var i;
             i = test(x, y);
-            if (i !== void 0) {
-                highlight([i]);
-                _notify('markselect', new SelectEventArg(_frame, [i]));
-            } else {
-                highlight([]);
-                _notify('markdeselect', new DeselectEventArg(_frame));
-            }
+            highlight(i !== void 0 ? [i] : []);
         };
         selectWithin = function (x1, y1, x2, y2) {
             var layer, selectedIndices, selectedIndicesByLayer, xmax, xmin, ymax, ymin;
@@ -4789,11 +4786,6 @@
             }();
             selectedIndices = _layers.length > 1 ? _.unique(_.flatten(selectedIndicesByLayer, true)) : _.head(selectedIndicesByLayer);
             highlight(selectedIndices);
-            if (selectedIndices.length) {
-                _notify('markselect', new SelectEventArg(_frame, selectedIndices));
-            } else {
-                _notify('markdeselect', new DeselectEventArg(_frame));
-            }
         };
         render = function () {
             var annotation, baseContext, l, layer, len, len1, m, maskContext;
@@ -5066,7 +5058,7 @@
         }
     };
     renderRecord = function (frame, ops) {
-        var element, escapedValue, index, name, recordExpr, ref, subscribe, table, tbody, td, th, tr, trs, unsubscribe, value, vector;
+        var element, escapedValue, highlight, index, name, recordExpr, ref, subscribe, table, tbody, td, th, tr, trs, unsubscribe, value, vector;
         recordExpr = findByType(ops, RecordExpr);
         index = recordExpr.index;
         ref = diecut('table.lz-record', 'tbody', 'tr', 'th', 'td'), table = ref[0], tbody = ref[1], tr = ref[2], th = ref[3], td = ref[4];
@@ -5114,10 +5106,11 @@
         element = renderHtml(table(tbody(trs)));
         subscribe = _.noop;
         unsubscribe = _.noop;
-        return new Plot(element, subscribe, unsubscribe);
+        highlight = _.noop;
+        return new Plot(element, subscribe, unsubscribe, highlight);
     };
     renderTable = function (frame, ops) {
-        var element, field, i, notify, ref, ref1, selectExpr, subscribe, table, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, vectorGroups, vectors;
+        var element, field, highlight, i, notify, ref, ref1, selectExpr, subscribe, table, tbody, td, tdr, tds, th, thead, thr, ths, tr, trs, unsubscribe, value, vector, vectorGroups, vectors;
         selectExpr = findByType(ops, SelectExpr);
         vectorGroups = function () {
             var l, len, ref, results;
@@ -5203,7 +5196,8 @@
                 notify('headerselect', new HeaderSelectEventArg(vectors[targetIndex]));
             }
         });
-        return new Plot(element, subscribe, unsubscribe);
+        highlight = _.noop;
+        return new Plot(element, subscribe, unsubscribe, highlight);
     };
     computeAxisDomain = function (self, other, domain) {
         if (self.type === TNumber) {
@@ -5280,7 +5274,7 @@
         ref3 = createEventDispatcher(), subscribe = ref3[0], unsubscribe = ref3[1], notify = ref3[2];
         visualization = createVisualization(box, frame, layers, annotations, axisX, axisY, notify);
         visualization.render();
-        return new Plot(visualization.viewport.container, subscribe, unsubscribe);
+        return new Plot(visualization.viewport.container, subscribe, unsubscribe, visualization.highlight);
     };
     visualize = dispatch([
         Datasource,
