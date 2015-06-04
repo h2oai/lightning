@@ -3671,20 +3671,15 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
         layer.highlight indices, layer.encoders, highlightContext
         layer.render indices, layer.encoders, highlightContext
       highlightContext.restore()
-
+      _notify 'markselect', new SelectEventArg _frame, indices
     else
       baseCanvas.element.style.opacity = 1
+      _notify 'markdeselect', new DeselectEventArg _frame
     return
 
   selectAt = (x, y) ->
     i = test x, y
-    # debug 'selectAt', x, y
-    if i isnt undefined
-      highlight [ i ]
-      _notify 'markselect', new SelectEventArg _frame, [ i ]
-    else
-      highlight []
-      _notify 'markdeselect', new DeselectEventArg _frame
+    highlight if i isnt undefined then [ i ] else []
     return
 
   selectWithin = (x1, y1, x2, y2) ->
@@ -3703,10 +3698,6 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
       head selectedIndicesByLayer
 
     highlight selectedIndices
-    if selectedIndices.length
-      _notify 'markselect', new SelectEventArg _frame, selectedIndices
-    else
-      _notify 'markdeselect', new DeselectEventArg _frame
     return
 
   render = ->
