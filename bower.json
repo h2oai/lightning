@@ -30,8 +30,8 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "d3": "~3.4.13",
-    "lodash": "~2.4.1",
+    "d3": "~5.7.0",
+    "lodash": "~4.17.11",
     "chroma-js": "~0.6.1",
     "papaparse": "~4.1.0",
     "diecut": "~0.0.1"

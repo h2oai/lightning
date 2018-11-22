@@ -1692,7 +1692,7 @@
     };
     createFrame = function (label, vectors, indices, cube, metadata) {
         var frame, schema;
-        schema = _.indexBy(vectors, function (vector) {
+        schema = _.keyBy(vectors, function (vector) {
             return vector.name;
         });
         frame = new Frame(label, vectors, schema, indices, cube, null, null, null, metadata || {});
@@ -2530,7 +2530,7 @@
     };
     createNicedSequentialLinearScale = function (domain, range) {
         var scale;
-        scale = d3.scale.linear().domain([
+        scale = d3.scaleLinear().domain([
             domain.min,
             domain.max
         ]).range([
@@ -2566,7 +2566,7 @@
         });
     };
     createSequentialLinearScale = function (domain, range) {
-        return scaleSafe_(d3.scale.linear().domain([
+        return scaleSafe_(d3.scaleLinear().domain([
             domain.min,
             domain.max
         ]).range([
@@ -2575,7 +2575,7 @@
         ]));
     };
     createDivergingLinearScale = function (domain, range) {
-        return scaleSafe_(d3.scale.linear().domain([
+        return scaleSafe_(d3.scaleLinear().domain([
             domain.min,
             domain.mid,
             domain.max
@@ -4309,8 +4309,8 @@
                                 } else {
                                     try {
                                         return go(null, readCsvAsFrame(dataPackage.name, readDataPackageSchema(resource.schema), data, true));
-                                    } catch (_error) {
-                                        error = _error;
+                                    } catch (error1) {
+                                        error = error1;
                                         return go(error);
                                     }
                                 }
@@ -4784,7 +4784,7 @@
                 }
                 return results;
             }();
-            selectedIndices = _layers.length > 1 ? _.unique(_.flatten(selectedIndicesByLayer, true)) : _.head(selectedIndicesByLayer);
+            selectedIndices = _layers.length > 1 ? _.uniq(_.flatten(selectedIndicesByLayer, true)) : _.head(selectedIndicesByLayer);
             highlight(selectedIndices);
         };
         render = function () {
@@ -4983,7 +4983,7 @@
             }
             return results;
         }();
-        return _.unique(labels).join(', ');
+        return _.uniq(labels).join(', ');
     };
     computeApproxAxisSize = function (type, domain) {
         var axis, categories, category, l, len, len1, length, longest, m, padding, rect, ref, tick;
@@ -5297,8 +5297,8 @@
             var error;
             try {
                 return go(null, renderVisualization(frame, ops));
-            } catch (_error) {
-                error = _error;
+            } catch (error1) {
+                error = error1;
                 return go(error);
             }
         }

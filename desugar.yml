@@ -4,11 +4,7 @@ call:
   type: invoke
 concat:
   type: invoke
-indexOf:
-  type: invoke
 join:
-  type: invoke
-lastIndexOf:
   type: invoke
 pop:
   type: invoke
@@ -138,9 +134,6 @@ mmax:
 pow:
   type: qualify
   object: Math
-random:
-  type: qualify
-  object: Math
 round:
   type: qualify
   object: Math
@@ -209,6 +202,7 @@ groupBy:
 indexBy:
   type: qualify
   object: _
+  property: keyBy
 countBy:
   type: qualify
   object: _
@@ -257,7 +251,7 @@ intersection:
 difference:
   type: qualify
   object: _
-unique:
+uniq:
   type: qualify
   object: _
 zip:
