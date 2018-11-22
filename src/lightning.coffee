@@ -1674,7 +1674,7 @@ scaleSafe_ = (scale) -> (value) ->
     undefined
 
 createNicedSequentialLinearScale = (domain, range) ->
-  scale = d3.scale.linear()
+  scale = d3.scaleLinear()
     .domain [ domain.min, domain.max ]
     .range [ range.min, range.max ]
     .nice()
@@ -1704,7 +1704,7 @@ createCategoricalScale = (domain, range) ->
 # SequentialRange a, SequentialRange real -> (a -> real)
 createSequentialLinearScale = (domain, range) ->
   scaleSafe_(
-    d3.scale.linear()
+    d3.scaleLinear()
       .domain [ domain.min, domain.max ]
       .range [ range.min, range.max ]
   )
@@ -1712,7 +1712,7 @@ createSequentialLinearScale = (domain, range) ->
 # DivergingRange a, DivergingRange real -> (a -> real)
 createDivergingLinearScale = (domain, range) ->
   scaleSafe_(
-    d3.scale.linear()
+    d3.scaleLinear()
       .domain [ domain.min, domain.mid, domain.max ]
       .range [ range.min, range.mid, range.max ]
   )
@@ -3693,7 +3693,7 @@ createVisualization = (_box, _frame, _layers, _annotations, _axisX, _axisY, _not
       layer.select _indices, layer.encoders, xmin, ymin, xmax, ymax
 
     selectedIndices = if _layers.length > 1
-      unique flatten selectedIndicesByLayer, yes
+      uniq flatten selectedIndicesByLayer, yes
     else
       head selectedIndicesByLayer
 
@@ -3915,7 +3915,7 @@ createSpace1D = (vectors, indices) ->
 createAxisLabel = (vectors) ->
   labels = for vector in vectors
     vector.label
-  join (unique labels), ', '
+  join (uniq labels), ', '
 
 computeApproxAxisSize = (type, domain) ->
   rect = new Rect 0, 0, 400, 400
